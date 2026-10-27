@@ -1,0 +1,9 @@
+{
+  "appId": "de.pizzeriaparola.app",
+  "appName": "Pizzeria Parola",
+  "webDir": "www",
+  "backgroundColor": "#1b221f",
+  "android": {
+    "backgroundColor": "#1b221f"
+  }
+}
