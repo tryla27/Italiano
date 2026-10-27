@@ -20,11 +20,13 @@
   color-scheme:dark;
 }
 html,body{height:100%}
+[hidden]{display:none!important}
 body{background:var(--slate);color:var(--chalk);font-family:var(--body);font-size:16px;line-height:1.4;
   background-image:radial-gradient(ellipse at 20% 0%,rgba(255,255,255,.05),transparent 55%),radial-gradient(ellipse at 90% 100%,rgba(255,255,255,.035),transparent 50%)}
 .app{height:100%;max-width:520px;margin:0 auto;display:flex;flex-direction:column}
 #screen{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:14px;padding-block:12px 18px;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+#screen>*{flex-shrink:0}
 button{font-family:var(--body);color:inherit;cursor:pointer}
 button:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
 h1,h2,h3{margin:0;font-weight:400}
@@ -58,6 +60,45 @@ h1,h2,h3{margin:0;font-weight:400}
 .lvls b{color:var(--chalk);font-family:var(--hand);font-size:1.25rem;font-weight:700;margin-right:4px}
 .lvls li.done b{color:var(--basil)} .lvls li.done b::after{content:" ✓"}
 .lvls li.now b{color:var(--gold)} .lvls li.now b::after{content:" ← du bist hier";font-family:var(--body);font-size:.75rem;font-weight:800}
+.room{position:relative;width:100%;aspect-ratio:4/3;max-width:100%;border-radius:16px;overflow:hidden;border:2px solid var(--line);touch-action:none}
+.room .wall{position:absolute;inset:0 0 45% 0;background:linear-gradient(#e9dcc3,#dccaa8);}
+.room .wall::after{content:"";position:absolute;left:0;right:0;bottom:0;height:10%;background:#b8562f}
+.room .floor{position:absolute;inset:55% 0 0 0;background-color:#efe7d6;background-image:linear-gradient(45deg,#2f3a35 25%,transparent 25%,transparent 75%,#2f3a35 75%),linear-gradient(45deg,#2f3a35 25%,transparent 25%,transparent 75%,#2f3a35 75%);background-size:28px 28px;background-position:0 0,14px 14px}
+.ri{position:absolute;transform:translate(-50%,-50%);touch-action:none;line-height:0}
+.ri svg,.pia svg,#ghost svg{width:100%;height:auto;display:block}
+.emo{display:block;font-size:2rem;line-height:1;text-align:center}
+.room.edit{position:sticky;top:0;z-index:5;width:min(100%,40vh*4/3);align-self:center;box-shadow:0 8px 18px rgba(0,0,0,.45)}
+.room.edit .ri{cursor:grab}
+.ri[data-act]{cursor:pointer}
+.ri.hit{filter:drop-shadow(0 0 6px var(--basil)) drop-shadow(0 0 3px var(--basil))}
+.ri.miss{animation:shake .35s;filter:drop-shadow(0 0 6px var(--tomato))}
+.pal{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.pi{background:var(--slate2);border:2px solid var(--line);border-radius:12px;padding:6px 4px;text-align:center;touch-action:none;cursor:grab;position:relative;display:flex;flex-direction:column;align-items:center;gap:2px}
+.pi .pia{width:34px}
+.pi b{font-size:.74rem;line-height:1.1}
+.pi small{font-size:.64rem;color:var(--chalk-dim);line-height:1.1}
+.pi i{position:absolute;top:4px;right:6px;font-style:normal;font-size:.7rem;color:var(--gold);font-weight:800}
+.pi.used{opacity:.4;cursor:default}
+#ghost{position:fixed;z-index:40;transform:translate(-50%,-50%);pointer-events:none;filter:drop-shadow(0 8px 10px rgba(0,0,0,.5))}
+.vocabbtn{border:2px solid var(--basil);background:var(--basil-soft);color:var(--chalk);border-radius:16px;padding:12px;font-family:var(--game);font-size:1.35rem;display:flex;flex-direction:column;align-items:center;gap:2px}
+.vocabbtn small{font-family:var(--body);font-size:.82rem;font-weight:600;color:var(--chalk-dim)}
+.row3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.row3 .sec{padding:12px 4px;font-size:.92rem}
+.sec:disabled{opacity:.4}
+input,textarea{-webkit-user-select:text;user-select:text}
+.vcard{background:var(--chalk);color:#1e2420;border-radius:18px;padding:20px 16px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:6px}
+.vcard .label{font-size:.75rem;text-transform:uppercase;letter-spacing:.1em;color:#6b6f68;font-weight:800}
+.vword{font-family:var(--game);font-size:2.2rem;line-height:1.1;overflow-wrap:anywhere}
+.vword.de{font-family:var(--body);font-weight:800;font-size:1.6rem}
+.vform{display:flex;gap:8px}
+.vform input{flex:1;min-width:0;font:600 1.15rem var(--body);padding:12px 14px;border-radius:14px;border:2px solid var(--line);background:var(--slate2);color:var(--chalk)}
+.vform input:focus{outline:none;border-color:var(--gold)}
+.vform .serve{padding:12px 16px;font-size:1.1rem}
+.accents{display:flex;gap:6px;flex-wrap:wrap}
+.accents button{border:1px solid var(--line);background:var(--slate2);border-radius:10px;min-width:40px;padding:8px;font-weight:800;font-size:1.05rem}
+.bar{height:8px;border-radius:99px;background:var(--slate3);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--basil);border-radius:99px;transition:width .3s}
+.vday.done .ic{color:var(--basil)} .vday.locked{opacity:.55}
 .link{background:none;border:0;color:var(--chalk-dim);text-decoration:underline;font-size:.9rem;align-self:center;padding:6px}
 
 /* HUD */
@@ -65,6 +106,7 @@ h1,h2,h3{margin:0;font-weight:400}
 .hud .where{font-size:.85rem;color:var(--chalk-dim);font-weight:600}
 .stars{color:var(--gold);letter-spacing:1px;font-size:1rem;white-space:nowrap}
 .stars .off{color:var(--slate3)}
+.stars .half{background:linear-gradient(90deg,var(--gold) 50%,var(--slate3) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
 .money{font-family:var(--game);font-size:1.3rem;color:var(--gold)}
 .quit{background:var(--slate2);border:0;border-radius:10px;padding:6px 10px;font-size:.8rem;color:var(--chalk-dim)}
 .combo{align-self:center;background:var(--gold);color:#3a2a00;font-family:var(--game);padding:3px 12px;border-radius:999px;font-size:.95rem}
@@ -89,7 +131,12 @@ h1,h2,h3{margin:0;font-weight:400}
 .opt small{display:block;font-weight:400;color:var(--chalk-dim);font-size:.85rem;margin-top:3px}
 .opt.ok{border-color:var(--basil);background:var(--basil-soft)}
 .opt.bad{border-color:var(--tomato);background:var(--tomato-soft);color:var(--chalk-dim);text-decoration:line-through}
-.opt:disabled{cursor:default}
+.opt[aria-disabled="true"]{cursor:default}
+.w{border-bottom:1px dotted currentColor;cursor:help;-webkit-touch-callout:none}
+.opt .w{border-bottom-color:transparent}
+#pop{position:fixed;z-index:30;background:var(--gold);color:#2a1f00;border-radius:10px;padding:6px 10px;font-weight:800;font-size:.95rem;box-shadow:0 6px 18px rgba(0,0,0,.4);max-width:70vw;pointer-events:none}
+#pop small{display:block;font-weight:600;font-size:.75rem;opacity:.75}
+body{-webkit-user-select:none;user-select:none}
 .shake{animation:shake .35s}
 @keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
 
@@ -160,11 +207,14 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mi{border-bottom:1px dashed var(--line);padding-bottom:8px}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
+.mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
 @media (prefers-reduced-motion: reduce){.shake{animation:none}.big:active,.serve:active{transform:none}}
 </style>
 
 <div class="app"><div id="screen"></div></div>
 <div id="overlay" hidden></div>
+<div id="pop" hidden></div>
+<div id="ghost" hidden></div>
 
 <script>
 /* ---------- Helpers ---------- */
@@ -183,16 +233,24 @@ const ING={pomodoro:["Tomate","#d8402b"],mozzarella:["Mozzarella","#f6f0e2"],bas
   peperoni:["Paprika","#f2b134"],tonno:["Thunfisch","#c8a17f"],carciofi:["Artischocken","#8aa357"],rucola:["Rucola","#4f8a2a"]};
 const EXTRAS=Object.keys(ING).filter(k=>k!=="pomodoro"&&k!=="mozzarella");
 const MENU=[
-  {n:"margherita",pl:"margherite",ing:["pomodoro","mozzarella","basilico"]},
-  {n:"diavola",pl:"diavole",ing:["pomodoro","mozzarella","salame"]},
-  {n:"capricciosa",pl:"capricciose",ing:["pomodoro","mozzarella","prosciutto","funghi","carciofi","olive"]},
-  {n:"prosciutto e funghi",pl:"prosciutto e funghi",ing:["pomodoro","mozzarella","prosciutto","funghi"]},
-  {n:"tonno e cipolla",pl:"tonno e cipolla",ing:["pomodoro","mozzarella","tonno","cipolla"]},
-  {n:"ortolana",pl:"ortolane",ing:["pomodoro","mozzarella","peperoni","cipolla","funghi"]},
-  {n:"crudo e rucola",pl:"crudo e rucola",ing:["pomodoro","mozzarella","prosciutto","rucola"]}
+  {n:"margherita",p:7,pl:"margherite",ing:["pomodoro","mozzarella","basilico"]},
+  {n:"diavola",p:9,pl:"diavole",ing:["pomodoro","mozzarella","salame"]},
+  {n:"capricciosa",p:11,pl:"capricciose",ing:["pomodoro","mozzarella","prosciutto","funghi","carciofi","olive"]},
+  {n:"prosciutto e funghi",p:10,pl:"prosciutto e funghi",ing:["pomodoro","mozzarella","prosciutto","funghi"]},
+  {n:"tonno e cipolla",p:9,pl:"tonno e cipolla",ing:["pomodoro","mozzarella","tonno","cipolla"]},
+  {n:"ortolana",p:9,pl:"ortolane",ing:["pomodoro","mozzarella","peperoni","cipolla","funghi"]},
+  {n:"crudo e rucola",p:11,pl:"crudo e rucola",ing:["pomodoro","mozzarella","prosciutto","rucola"]}
 ];
 const cap=s=>s.replace(/\b\w/g,c=>c.toUpperCase());
 const QIT=["","una","due","tre","quattro"], QDE=["","eine","zwei","drei","vier"];
+function numIt(n){
+  const u=["zero","uno","due","tre","quattro","cinque","sei","sette","otto","nove","dieci","undici","dodici","tredici","quattordici","quindici","sedici","diciassette","diciotto","diciannove"];
+  const t=["","","venti","trenta","quaranta","cinquanta","sessanta","settanta","ottanta","novanta"];
+  if(n<20)return u[n];
+  if(n<100){const d=Math.floor(n/10),r=n%10;let w=t[d];if(r===1||r===8)w=w.slice(0,-1);return w+(r===0?"":r===3?"tré":u[r]);}
+  if(n<200){const r=n-100;return r===0?"cento":(r===1||r===8||(r>=80&&r<90)?"cent":"cento")+numIt(r);}
+  return u[Math.floor(n/100)]+"cento"+(n%100?numIt(n%100):"");
+}
 
 // [Italienisch, Deutsch, richtige Antwort, Antwort auf Deutsch, [falsche], Tipp, (Frage)]
 const GREET=[
@@ -225,8 +283,8 @@ const PROB=[
  ["Possiamo sederci fuori?","Können wir draußen sitzen?","Sì, c'è un tavolo in terrazza.","Ja, auf der Terrasse ist ein Tisch frei.",["No, il forno è fuori.","Fuori piove pizza.","Sì, il bagno è fuori."],"fuori = draußen. sedersi = sich setzen."]
 ];
 const BILL=[
- ["Il conto, per favore.","Die Rechnung, bitte.","Subito! Sono diciotto euro.","Sofort! Das macht achtzehn Euro.",["Il conto è buonissimo.","Conto fino a dieci.","Buongiorno, si accomodi."],"conto = Rechnung. Nenn ihm den Preis!"],
- ["Quanto pago?","Wie viel zahle ich?","Sono dodici euro, grazie.","Das macht zwölf Euro, danke.",["Paga il pane.","Dodici pizze, subito.","Sono di Napoli."],"quanto = wie viel. pagare = bezahlen."],
+ ["Il conto, per favore.","Die Rechnung, bitte.","Subito! Sono {N} euro.","Sofort! Das macht {D} Euro.",["Il conto è buonissimo.","Subito! Sono {W} euro.","Buongiorno, si accomodi."],"conto = Rechnung. Nenn ihm den richtigen Preis! Er hat {D} € verbraucht."],
+ ["Quanto pago?","Wie viel zahle ich?","Sono {N} euro, grazie.","Das macht {D} Euro, danke.",["Paga il pane.","Sono {W} euro, grazie.","Sono di Napoli."],"quanto = wie viel. pagare = bezahlen. Seine Bestellung kostet {D} €."],
  ["Posso pagare con la carta?","Kann ich mit Karte zahlen?","Sì, certo!","Ja, natürlich!",["Pago io, grazie.","La pizza è di carta.","No, è un tavolo."],"carta = Karte. Er möchte mit Karte zahlen."],
  ["Grazie mille, arrivederci!","Vielen Dank, auf Wiedersehen!","Grazie a Lei, a presto!","Ich danke Ihnen, bis bald!",["Buongiorno, si accomodi.","Il bagno è a destra.","Vorrei un caffè."],"Der Gast verabschiedet sich. Verabschiede dich auch."],
  ["Era tutto perfetto! Le lascio la mancia.","Alles war perfekt! Ich lasse Ihnen Trinkgeld da.","Grazie mille, molto gentile!","Vielen Dank, sehr nett!",["Non mi piace la mancia.","Mancia una pizza?","Mi dispiace molto."],"mancia = Trinkgeld."],
@@ -256,6 +314,7 @@ const DRINK=[
  ["Il tiramisù è fatto in casa?","Ist das Tiramisu hausgemacht?","Sì, lo fa mia nonna ogni mattina.","Ja, meine Oma macht es jeden Morgen.",["No, la casa è chiusa.","Sì, la casa è in via Roma.","Fatto? Non ancora, domani."],"fatto in casa = hausgemacht."],
  ["Un limoncello per finire!","Zum Abschluss einen Limoncello!","Ottima scelta, offre la casa!","Gute Wahl, geht aufs Haus!",["Finito, arrivederci.","Il limone è finito.","Per finire il conto, sì."],"per finire = zum Abschluss. offre la casa = geht aufs Haus."]
 ];
+const DRINK_PRICE=[5,4,2,5,2,5,0]; // gleiche Reihenfolge wie DRINK
 const DIR=[
  ["Scusi, dov'è la spiaggia?","Entschuldigung, wo ist der Strand?","Vada dritto e poi giri a sinistra.","Gehen Sie geradeaus und dann links.",["La spiaggia è una pizza.","Vado a dormire.","Sì, è buonissima."],"spiaggia = Strand. dritto = geradeaus, a sinistra = links."],
  ["C'è una farmacia qui vicino?","Gibt es hier in der Nähe eine Apotheke?","Sì, a cento metri, sulla destra.","Ja, hundert Meter weiter rechts.",["Sì, vendiamo pizza.","No, sono in vacanza.","La farmacia è calda."],"farmacia = Apotheke, vicino = in der Nähe, a destra = rechts."],
@@ -278,31 +337,31 @@ const SURNAMES=["Rossi","Russo","Ricci","Romano","Rinaldi"];
 
 // Stufen: was neu dazukommt, steht in "neu"
 const LEVELS=[
- {it:"Il Chiosco",de:"Imbissstand",guests:3,base:5,cost:12,phones:0,talk:[TALK],talkChance:.5,neu:"Begrüßen, einfache Pizzen, abkassieren"},
- {it:"La Pizzeria",de:"Pizzeria",guests:4,base:8,cost:25,phones:1,talk:[TALK,PROB],neu:"Pizzen von der Karte, „senza“, Mengen, Probleme, Telefon"},
- {it:"La Trattoria",de:"Trattoria",guests:4,base:10,cost:35,phones:1,talk:[TALK,PROB],drinks:true,neu:"Getränke und Nachtisch"},
- {it:"Il Ristorante",de:"Ristorante",guests:5,base:13,cost:50,phones:2,talk:[PROB,TALK],drinks:true,reserv:true,neu:"„senza … ma con …“, Tischreservierungen am Telefon"},
- {it:"Sul Mare",de:"Restaurant am Meer in Amalfi",guests:5,base:16,cost:65,phones:2,talk:[DIR,PROB],drinks:true,reserv:true,neu:"Touristen: Wegbeschreibungen, Wetter, Fähre"},
- {it:"Il Maestro",de:"Meister-Pizzeria",guests:5,base:20,cost:80,phones:2,talk:[CRITIC,DIR],drinks:true,reserv:true,neu:"Restaurantkritiker und Zeitung, Vergangenheitsform"}
+ {it:"Il Chiosco",rent:8,de:"Imbissstand",guests:3,base:2,cost:12,phones:0,talk:[TALK],talkChance:.5,neu:"Begrüßen, einfache Pizzen, abkassieren"},
+ {it:"La Pizzeria",rent:15,de:"Pizzeria",guests:4,base:3,cost:25,phones:1,talk:[TALK,PROB],neu:"Pizzen von der Karte, „senza“, Mengen, Probleme, Telefon"},
+ {it:"La Trattoria",rent:25,de:"Trattoria",guests:4,base:4,cost:35,phones:1,talk:[TALK,PROB],drinks:true,neu:"Getränke und Nachtisch"},
+ {it:"Il Ristorante",rent:35,de:"Ristorante",guests:5,base:5,cost:50,phones:2,talk:[PROB,TALK],drinks:true,reserv:true,neu:"„senza … ma con …“, Tischreservierungen am Telefon"},
+ {it:"Sul Mare",rent:45,de:"Restaurant am Meer in Amalfi",guests:5,base:6,cost:65,phones:2,talk:[DIR,PROB],drinks:true,reserv:true,neu:"Touristen: Wegbeschreibungen, Wetter, Fähre"},
+ {it:"Il Maestro",rent:60,de:"Meister-Pizzeria",guests:5,base:8,cost:80,phones:2,talk:[CRITIC,DIR],drinks:true,reserv:true,neu:"Restaurantkritiker und Zeitung, Vergangenheitsform"}
 ];
 const SHOP=[
- {id:"basilico",ic:"🌿",it:"il basilico in vaso",de:"Basilikum im Topf",cost:20,bonus:.05,lv:0},
- {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:35,bonus:.05,lv:0},
- {id:"mandolino",ic:"🎶",it:"il mandolino",de:"Musik vom Mandolinenspieler",cost:50,bonus:.1,lv:0},
- {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: mehr Gäste, Pizzen von der Karte, Telefon",cost:150,lv:0,up:1},
- {id:"forno",ic:"🔥",it:"il forno a legna",de:"Holzofen",cost:90,bonus:.15,lv:1},
- {id:"vespa",ic:"🛵",it:"la Vespa",de:"Vespa für Lieferungen",cost:110,bonus:.1,lv:1},
- {id:"trattoria",ic:"🍷",it:"La Trattoria",de:"Aufsteigen: Getränke und Nachtisch",cost:300,lv:1,up:2},
- {id:"botti",ic:"🛢️",it:"le botti di vino",de:"Weinfässer",cost:140,bonus:.1,lv:2},
- {id:"insegna",ic:"💡",it:"l'insegna luminosa",de:"Leuchtschild",cost:120,bonus:.1,lv:2},
- {id:"ristorante",ic:"⭐",it:"Il Ristorante",de:"Aufsteigen: Reservierungen, schwierigere Bestellungen",cost:500,lv:2,up:3},
- {id:"lampadari",ic:"✨",it:"i lampadari",de:"Kronleuchter",cost:200,bonus:.15,lv:3},
- {id:"pianoforte",ic:"🎹",it:"il pianoforte",de:"Klavier mit Live-Musik",cost:260,bonus:.15,lv:3},
- {id:"mare",ic:"🌊",it:"Sul Mare",de:"Aufsteigen: Umzug an die Amalfiküste, viele Touristen",cost:800,lv:3,up:4},
- {id:"terrazza",ic:"🏖️",it:"la terrazza sul mare",de:"Terrasse mit Meerblick",cost:320,bonus:.2,lv:4},
- {id:"barca",ic:"⛵",it:"la barca",de:"Eigenes Boot für Ausflügler",cost:400,bonus:.2,lv:4},
- {id:"maestro",ic:"👑",it:"Il Maestro",de:"Aufsteigen: Die berühmteste Pizzeria Italiens",cost:1200,lv:4,up:5},
- {id:"forno_oro",ic:"🏆",it:"il forno d'oro",de:"Goldener Ofen",cost:600,bonus:.3,lv:5}
+ {id:"basilico",ic:"🌿",it:"il basilico in vaso",de:"Basilikum im Topf",cost:25,bonus:.05,lv:0},
+ {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:40,bonus:.05,lv:0},
+ {id:"mandolino",ic:"🎶",it:"il mandolino",de:"Musik vom Mandolinenspieler",cost:60,bonus:.1,lv:0},
+ {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: mehr Gäste, Pizzen von der Karte, Telefon",cost:200,lv:0,up:1},
+ {id:"forno",ic:"🔥",it:"il forno a legna",de:"Holzofen",cost:120,bonus:.15,lv:1},
+ {id:"vespa",ic:"🛵",it:"la Vespa",de:"Vespa für Lieferungen",cost:150,bonus:.1,lv:1},
+ {id:"trattoria",ic:"🍷",it:"La Trattoria",de:"Aufsteigen: Getränke und Nachtisch",cost:450,lv:1,up:2},
+ {id:"botti",ic:"🛢️",it:"le botti di vino",de:"Weinfässer",cost:200,bonus:.1,lv:2},
+ {id:"insegna",ic:"💡",it:"l'insegna luminosa",de:"Leuchtschild",cost:170,bonus:.1,lv:2},
+ {id:"ristorante",ic:"⭐",it:"Il Ristorante",de:"Aufsteigen: Reservierungen, schwierigere Bestellungen",cost:800,lv:2,up:3},
+ {id:"lampadari",ic:"✨",it:"i lampadari",de:"Kronleuchter",cost:300,bonus:.15,lv:3},
+ {id:"pianoforte",ic:"🎹",it:"il pianoforte",de:"Klavier mit Live-Musik",cost:380,bonus:.15,lv:3},
+ {id:"mare",ic:"🌊",it:"Sul Mare",de:"Aufsteigen: Umzug an die Amalfiküste, viele Touristen",cost:1300,lv:3,up:4},
+ {id:"terrazza",ic:"🏖️",it:"la terrazza sul mare",de:"Terrasse mit Meerblick",cost:500,bonus:.2,lv:4},
+ {id:"barca",ic:"⛵",it:"la barca",de:"Eigenes Boot für Ausflügler",cost:620,bonus:.2,lv:4},
+ {id:"maestro",ic:"👑",it:"Il Maestro",de:"Aufsteigen: Die berühmteste Pizzeria Italiens",cost:2000,lv:4,up:5},
+ {id:"forno_oro",ic:"🏆",it:"il forno d'oro",de:"Goldener Ofen",cost:1000,bonus:.3,lv:5}
 ];
 const REVIEWS=[
  [4.5,"Ottimo! Torneremo sicuramente.","Hervorragend! Wir kommen bestimmt wieder."],
@@ -311,8 +370,19 @@ const REVIEWS=[
  [0,"Mamma mia, che confusione!","Meine Güte, was für ein Durcheinander!"]
 ];
 
+// Wörterbuch: Italienisch → Deutsch (zum Antippen)
+const DICT={
+"a":"zu, nach, in, um","abbiamo":"wir haben","accomodi":"(nehmen Sie) Platz","acqua":"Wasser","al":"zum, am, an den","all'":"zum, zur","alla":"zur, an die","alle":"um (Uhrzeit), an die","allergico":"allergisch","allora":"also, dann","altra":"andere","anche":"auch","ancora":"noch","angolo":"Ecke","anni":"Jahre","aperta":"offen","aperti":"geöffnet","appetito":"Appetit","apro":"ich öffne","arriva":"kommt (an)","arrivederci":"auf Wiedersehen","autobus":"Bus","avete":"habt ihr / haben Sie","bagno":"Toilette, Bad","barca":"Boot","basilico":"Basilikum","bella":"schön","bellissima":"wunderschön","bello":"schön","bene":"gut","benvenuto":"willkommen","bianca":"weiß","bianco":"weiß","bicchiere":"Glas","biglietti":"Fahrkarten, Tickets","birra":"Bier","botti":"Fässer","buon":"gut(en)","buona":"gute","buonanotte":"gute Nacht","buonasera":"guten Abend","buongiorno":"guten Tag, guten Morgen","buonissima":"sehr lecker","buonissimo":"sehr lecker","buono":"gut, lecker","c'":"es (gibt)","caffè":"Kaffee, Espresso","calda":"warm, heiß","caldo":"warm, heiß","cappuccino":"Cappuccino","capri":"Capri (Insel)","capricciosa":"Capricciosa (Pizza)","capricciose":"Capricciose (Pizzen)","carciofi":"Artischocken","caro":"teuer","carta":"Karte","casa":"Haus, Zuhause","cent":"hundert","cento":"hundert","centro":"Zentrum","certo":"natürlich, sicher","che":"was, wie, dass","chiama":"heißt","chiamo":"ich heiße / ich rufe","chili":"Kilo","chilo":"Kilo","chiosco":"Kiosk, Imbissstand","chiudo":"ich schließe","chiusa":"geschlossen","chiusi":"geschlossen","chiuso":"geschlossen","ci":"da, es, uns","ciao":"hallo, tschüss","cinquanta":"fünfzig","cinque":"fünf","cipolla":"Zwiebel","circa":"ungefähr","città":"Stadt","come":"wie","cominciato":"angefangen","comprare":"kaufen","compro":"ich kaufe","con":"mit","consiglia":"empfehlen Sie","consiglio":"ich empfehle","conto":"Rechnung","controllo":"ich prüfe","coperta":"Decke","corso":"Allee, Hauptstraße","cosa":"was","costa":"kostet","costano":"kosten","cotta":"gekocht","crudo":"roher Schinken","cucina":"Küche","d'":"von","da":"von, aus, bei, seit","dal":"vom, beim","dalla":"aus der","dei":"der (Plural)","del":"des, vom","della":"der, von der","dentro":"drinnen","destra":"rechts","di":"von, aus","diavola":"Diavola (scharfe Pizza)","diavole":"Diavole (scharfe Pizzen)","dieci":"zehn","dietro":"hinter","dispiace":"tut leid","dodici":"zwölf","dolce":"Nachtisch, süß","domani":"morgen","domenica":"Sonntag","doppio":"doppelt","dormire":"schlafen","dov'":"wo","dove":"wo","dritto":"geradeaus","due":"zwei","e":"und","ecco":"hier ist, bitte sehr","eccolo":"hier ist er","entrare":"hereinkommen","era":"war","errore":"Fehler","esco":"ich gehe raus","euro":"Euro","fa":"vor (Zeit) / macht","facciamo":"machen wir","faccio":"ich mache","fame":"Hunger","fanno":"machen (zusammen)","fare":"machen","farina":"Mehl","farmacia":"Apotheke","fatto":"gemacht","favore":"Gefallen (per favore = bitte)","finestra":"Fenster","finire":"beenden, Abschluss","finito":"fertig, aus","fino":"bis","fondo":"Ende, hinten","formaggi":"Käsesorten","forno":"Ofen","foto":"Foto","fredda":"kalt","freddo":"kalt","fresca":"frisch","fresco":"frisch","fritto":"frittiert","frizzante":"mit Kohlensäure","funghi":"Pilze","fuori":"draußen","garibaldi":"Garibaldi (Platzname)","gentile":"nett, freundlich","germania":"Deutschland","ghiaccio":"Eis (Würfel)","gigante":"riesig","giornale":"Zeitung","giornata":"Tag","giorni":"Tage","giovedì":"Donnerstag","giri":"biegen Sie ab","giusto":"richtig","gliene":"Ihnen davon","grande":"groß","gratis":"gratis","grazie":"danke","ho":"ich habe","i":"die (Plural)","ieri":"gestern","il":"der","imparando":"(am) Lernen","impasto":"Teig","in":"in","indirizzo":"Adresse","insegna":"Schild","io":"ich","italiano":"Italienisch","l'":"der, die, das","la":"die","lampadari":"Kronleuchter","lascio":"ich lasse","le":"die (Plural) / Ihnen","legna":"Holz","lei":"Sie / sie","libero":"frei","limoncello":"Zitronenlikör","limone":"Zitrone","lo":"ihn, es","luca":"Luca (Name)","luminosa":"leuchtend","lunedì":"Montag","là":"dort","lì":"dort","ma":"aber","macchiato":"Espresso mit Milchschaum","macchina":"Auto","maestro":"Meister","mai":"jemals, nie","mancia":"Trinkgeld","mandolino":"Mandoline","mangiato":"gegessen","mangio":"ich esse","mare":"Meer","margherita":"Margherita (Pizza)","margherite":"Margherite (Pizzen)","martedì":"Dienstag","mattina":"Morgen, Vormittag","me":"mich, mir","menù":"Speisekarte","mercato":"Markt","mercoledì":"Mittwoch","metri":"Meter","metto":"ich lege, ich stelle","mezza":"halb","mi":"mir, mich","mia":"meine","migliore":"beste","milano":"Mailand","mille":"tausend (grazie mille = vielen Dank)","minuti":"Minuten","mio":"mein","molto":"sehr, viel","mozzarella":"Mozzarella","napoli":"Neapel","naturale":"still (Wasser)","ne":"davon","nel":"im","nell'":"im, in der","nelle":"in den","no":"nein","noci":"Nüsse","nome":"Name","non":"nicht","nonna":"Oma","nostra":"unsere","nostre":"unsere","notte":"Nacht","nove":"neun","numero":"Nummer","offerta":"Angebot","offre":"spendiert","oggi":"heute","ogni":"jeden","olive":"Oliven","onore":"Ehre","ora":"Uhr, Stunde, jetzt","ordinare":"bestellen","ore":"Stunden, Uhr","oro":"Gold","ortolana":"Gemüsepizza","ortolane":"Gemüsepizzen","ottima":"sehr gute","otto":"acht","paga":"zahlt","pagare":"bezahlen","pago":"ich zahle","pane":"Brot","panna":"Sahne","parcheggiare":"parken","parcheggio":"Parkplatz","parla":"sprechen Sie","parlo":"ich spreche","parte":"fährt ab","password":"Passwort","peperoni":"Paprika","per":"für, um zu","perfetto":"perfekt","perso":"verpasst, verloren","persone":"Personen","pesce":"Fisch","piace":"gefällt","piacere":"freut mich","pianoforte":"Klavier","piazza":"Platz","piccante":"scharf","piede":"Fuß","piedi":"Füße (a piedi = zu Fuß)","pioggia":"Regen","piove":"es regnet","pizza":"Pizza","pizzaiolo":"Pizzabäcker","pizze":"Pizzen","pizzeria":"Pizzeria","più":"mehr","po'":"bisschen","poi":"dann, danach","pomodori":"Tomaten","pomodoro":"Tomate","porta":"Tür / bringen Sie","porto":"Hafen / ich bringe","possiamo":"können wir","posso":"darf ich, kann ich","posto":"Platz","prego":"bitte, gern geschehen","premio":"Preis (Auszeichnung)","prendo":"ich nehme","prenotare":"reservieren","presto":"bald","problema":"Problem","profumo":"Duft","pronto":"hallo (am Telefon), fertig","prosciutto":"Schinken","provare":"probieren","provi":"probieren Sie","provo":"ich probiere","quadri":"Karos","qual":"welches","quale":"welche","quanti":"wie viele","quanto":"wie viel","quarto":"Viertel","quattro":"vier","questa":"diese","qui":"hier","quindici":"fünfzehn","resto":"Wechselgeld / ich bleibe","ricetta":"Rezept","riposare":"ruhen","riposo":"ich ruhe","ristorante":"Restaurant","roma":"Rom","rossa":"rot","rossi":"rot / Rossi (Name)","rosso":"rot","rucola":"Rucola","sabato":"Samstag","salame":"Salami","sale":"Salz","salve":"hallo","scelta":"Wahl","scusi":"Entschuldigung","sederci":"uns setzen","sedici":"sechzehn","segreto":"Geheimnis","sei":"sechs / du bist","senza":"ohne","sera":"Abend","sette":"sieben","si":"sich","siamo":"wir sind","siete":"seid ihr","sinistra":"links","sole":"Sonne","sono":"ich bin / sie sind / das macht","sorrento":"Sorrent (Stadt)","sorrido":"ich lächle","specialità":"Spezialität","spiaggia":"Strand","spina":"Zapfhahn (alla spina = vom Fass)","sta":"geht es (Ihnen)","stanchi":"müde","stanco":"müde","sto":"mir geht es / ich bin","subito":"sofort","sul":"auf dem, am","sulla":"auf der","suo":"Ihr, sein","sì":"ja","tabaccaio":"Tabakladen","tanto":"viel","tavolo":"Tisch","taxi":"Taxi","tedesco":"deutsch","tempo":"Zeit, Wetter","terrazza":"Terrasse","tiramisù":"Tiramisu","toledo":"Toledo (Straßenname)","tonno":"Thunfisch","tovaglie":"Tischdecken","traghetto":"Fähre","trattoria":"Gasthaus","tre":"drei","tredici":"dreizehn","treno":"Zug","trenta":"dreißig","tribunali":"Gerichte (Straßenname)","troppo":"zu (viel)","tutto":"alles","tè":"Tee","ultimo":"letzte","umberto":"Umberto (Name)","un":"ein","un'":"eine","una":"eine","vacanza":"Urlaub","vada":"gehen Sie","vado":"ich gehe, ich fahre","vaso":"Topf, Vase","vendiamo":"wir verkaufen","venerdì":"Freitag","vengo":"ich komme","venite":"kommt","venti":"zwanzig","ventiquattro":"vierundzwanzig","ventitré":"dreiundzwanzig","venuti":"gekommen","vespa":"Vespa (Roller)","via":"Straße","vicino":"in der Nähe, neben","vino":"Wein","vinto":"gewonnen","vita":"Leben","vorrei":"ich hätte gern","vuole":"möchten Sie","wifi":"WLAN","è":"ist",
+"sedia":"Stuhl","vetrina":"Schaufenster","bancone":"Theke","cassa":"Kasse","lampadario":"Lampe, Kronleuchter","pianta":"Pflanze","frigorifero":"Kühlschrank","metti":"stell, leg","tocca":"tippe an","locale":"Lokal, Laden"
+};
+
+for(let n=0;n<200;n++){const w=numIt(n);if(!DICT[w])DICT[w]=String(n);}
+function lookup(w){const k=w.toLowerCase();return DICT[k]||(k.endsWith("'")?DICT[k]:null)||(/^[A-ZÀ-Ý]/.test(w)?"Name":null);}
+function wordsHTML(text,tap){
+  return esc(text).replace(/[A-Za-zÀ-ÖØ-öø-ÿ]+'?/g,w=>lookup(w)?`<span class="w"${tap?` data-act="word"`:""} data-w="${w}">${w}</span>`:w);
+}
 /* ---------- Save state ---------- */
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1}};
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:false,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null};
 let S=Object.assign({},S0,{vol:Object.assign({},S0.vol)});
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";
@@ -447,23 +517,59 @@ document.addEventListener("visibilitychange",()=>{
 
 /* ---------- Drawing ---------- */
 function seeded(n){let s=n>>>0||1;return()=>{s=(s*1664525+1013904223)>>>0;return s/4294967296;};}
-function face(seed,mood){
-  const r=seeded(seed*7919);
-  const skin=["#f1c7a5","#e0a87e","#c68657","#8d5a3b","#f5d6be"][Math.floor(r()*5)];
-  const hair=["#2b1d14","#6b3e1f","#c9a15a","#9a9a9a","#151515","#a2412a"][Math.floor(r()*6)];
-  const style=Math.floor(r()*4), glasses=r()<.3, shirt=["#3a6ea5","#c0503f","#5f8f4e","#8a5aa8","#d39b2a"][Math.floor(r()*5)];
-  const mouth=mood>=2?"M40 63 Q50 72 60 63":mood===1?"M41 65 L59 65":"M40 69 Q50 60 60 69";
+// Jeder Gast sieht immer gleich aus.
+const CHARS={
+ "Signora Rossi":{f:1,skin:"#f1c7a5",hair:"#4a2c1a",style:"long",shirt:"#7d4fa0",lips:"#c0392b",ear:1},
+ "Signor Bianchi":{skin:"#e8b896",hair:"#a8a8a8",style:"short",shirt:"#3a6ea5",mus:1},
+ "Giulia":{f:1,skin:"#f5d6be",hair:"#d9b25a",style:"pony",shirt:"#2f8f86",lips:"#d9667a",ear:1},
+ "Marco":{skin:"#d39b6e",hair:"#1d1d1d",style:"short",shirt:"#c0503f",beard:1},
+ "Nonna Pina":{f:1,skin:"#f0c8a8",hair:"#d8d8d8",style:"bun",shirt:"#a587c4",lips:"#b9556a",glasses:"round",old:1},
+ "Dottor Ferri":{skin:"#f1c7a5",hair:"#8f8f8f",style:"bald",shirt:"#e8e4da",glasses:"round",tie:"#2c4a7a"},
+ "Sofia":{f:1,skin:"#f7dccb",hair:"#b8452a",style:"long",shirt:"#4f8f3e",lips:"#c94a5a",ear:1},
+ "Zio Gennaro":{skin:"#c68657",hair:"#151515",style:"bald",shirt:"#e08a2c",bigmus:1},
+ "Chiara":{f:1,skin:"#e0a87e",hair:"#111111",style:"bangs",shirt:"#e2b93b",lips:"#a8323e",ear:1},
+ "Turista Klaus":{skin:"#f5cdb5",hair:"#e3c46b",style:"hat",shirt:"hawaii",glasses:"sun",sunburn:1},
+ "Professoressa Conte":{f:1,skin:"#d8a27a",hair:"#5a3a22",style:"bob",shirt:"#2d3e6b",lips:"#b5485a",ear:1,glasses:"square"},
+ "Matteo":{skin:"#8d5a3b",hair:"#2b1d14",style:"curly",shirt:"#5f8f4e"},
+ "Signor Moretti":{skin:"#e0a87e",hair:"#5a5a5a",style:"short",shirt:"#6b4a2b",mus:1,glasses:"round"}
+};
+function face(name,mood){
+  const c=CHARS[name]||CHARS.Marco, hc=c.hair;
   let h="";
-  if(style===1)h+=`<path d="M22 52 Q22 22 50 22 Q78 22 78 52 L80 78 L20 78 Z" fill="${hair}"/>`;
-  h+=`<rect x="24" y="80" width="52" height="30" rx="20" fill="${shirt}"/>`;
-  h+=`<circle cx="50" cy="52" r="26" fill="${skin}"/>`;
-  if(style===0||style===1)h+=`<path d="M24 48 Q26 24 50 24 Q74 24 76 48 Q66 36 50 36 Q34 36 24 48Z" fill="${hair}"/>`;
-  if(style===3)h+=`<circle cx="50" cy="22" r="10" fill="${hair}"/><path d="M24 48 Q28 26 50 26 Q72 26 76 48 Q62 38 50 38 Q38 38 24 48Z" fill="${hair}"/>`;
-  if(style===2)h+=`<path d="M25 46 Q27 40 31 38 M75 46 Q73 40 69 38" stroke="${hair}" stroke-width="5" fill="none"/>`;
-  h+=`<circle cx="41" cy="51" r="3" fill="#1d1d1d"/><circle cx="59" cy="51" r="3" fill="#1d1d1d"/>`;
-  if(glasses)h+=`<g fill="none" stroke="#222" stroke-width="2"><circle cx="41" cy="51" r="7"/><circle cx="59" cy="51" r="7"/><path d="M48 51 L52 51"/></g>`;
-  h+=`<circle cx="34" cy="60" r="4" fill="#e88" opacity=".35"/><circle cx="66" cy="60" r="4" fill="#e88" opacity=".35"/>`;
-  h+=`<path d="${mouth}" stroke="#5a2a20" stroke-width="3" fill="none" stroke-linecap="round"/>`;
+  // Haare hinten (lang)
+  if(c.style==="long"||c.style==="bangs")h+=`<path d="M21 50 Q21 20 50 20 Q79 20 79 50 L82 92 Q50 98 18 92 Z" fill="${hc}"/>`;
+  if(c.style==="bob")h+=`<path d="M22 50 Q22 21 50 21 Q78 21 78 50 L79 72 Q50 78 21 72 Z" fill="${hc}"/>`;
+  if(c.style==="pony")h+=`<path d="M70 34 Q92 42 84 74 Q80 60 72 50 Z" fill="${hc}"/>`;
+  // Oberteil
+  if(c.shirt==="hawaii")h+=`<rect x="22" y="80" width="56" height="30" rx="20" fill="#1f9fb0"/><circle cx="34" cy="90" r="4" fill="#f4d03f"/><circle cx="52" cy="95" r="4" fill="#e74c3c"/><circle cx="66" cy="88" r="4" fill="#f4d03f"/>`;
+  else h+=`<rect x="24" y="80" width="52" height="30" rx="20" fill="${c.shirt}"/>`;
+  if(c.tie)h+=`<path d="M48 80 L52 80 L54 96 L50 100 L46 96 Z" fill="${c.tie}"/>`;
+  // Kopf
+  h+=`<circle cx="50" cy="52" r="26" fill="${c.skin}"/>`;
+  if(c.ear)h+=`<circle cx="25" cy="60" r="2.6" fill="#f4c64f"/><circle cx="75" cy="60" r="2.6" fill="#f4c64f"/>`;
+  // Haare vorne
+  if(c.style==="long"||c.style==="pony"||c.style==="bob")h+=`<path d="M24 50 Q24 24 50 24 Q76 24 76 50 Q70 34 54 32 Q40 38 24 50Z" fill="${hc}"/>`;
+  if(c.style==="bangs")h+=`<path d="M24 52 Q24 24 50 24 Q76 24 76 52 L74 42 Q50 36 26 42 Z" fill="${hc}"/>`;
+  if(c.style==="short")h+=`<path d="M25 46 Q27 25 50 25 Q73 25 75 46 Q68 34 50 34 Q32 34 25 46Z" fill="${hc}"/>`;
+  if(c.style==="curly")for(let i=0;i<7;i++)h+=`<circle cx="${28+i*7.3}" cy="${32-(i%2)*4}" r="7" fill="${hc}"/>`;
+  if(c.style==="bun")h+=`<circle cx="50" cy="21" r="10" fill="${hc}"/><path d="M25 48 Q28 26 50 26 Q72 26 75 48 Q62 36 50 36 Q38 36 25 48Z" fill="${hc}"/>`;
+  if(c.style==="bald")h+=`<path d="M25 50 Q26 41 31 38 M75 50 Q74 41 69 38" stroke="${hc}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
+  if(c.style==="hat")h+=`<ellipse cx="50" cy="31" rx="36" ry="7" fill="#e9d8a6"/><path d="M32 31 Q34 12 50 12 Q66 12 68 31 Z" fill="#e9d8a6"/><rect x="32" y="25" width="36" height="5" fill="#c0503f"/>`;
+  if(c.old)h+=`<path d="M36 44 Q41 42 46 44 M54 44 Q59 42 64 44" stroke="#b08060" stroke-width="1.2" fill="none"/>`;
+  // Augen
+  if(c.glasses==="sun")h+=`<rect x="31" y="45" width="16" height="10" rx="4" fill="#1d1d1d"/><rect x="53" y="45" width="16" height="10" rx="4" fill="#1d1d1d"/><path d="M47 49 L53 49" stroke="#1d1d1d" stroke-width="2"/>`;
+  else{
+    h+=`<circle cx="41" cy="51" r="3" fill="#1d1d1d"/><circle cx="59" cy="51" r="3" fill="#1d1d1d"/>`;
+    if(c.f)h+=`<path d="M37 47 L39 48.5 M63 47 L61 48.5" stroke="#1d1d1d" stroke-width="1.4"/>`;
+    if(c.glasses==="round")h+=`<g fill="none" stroke="#333" stroke-width="2"><circle cx="41" cy="51" r="7"/><circle cx="59" cy="51" r="7"/><path d="M48 51 L52 51"/></g>`;
+    if(c.glasses==="square")h+=`<g fill="none" stroke="#7a2a2a" stroke-width="2"><rect x="33" y="45" width="15" height="11" rx="2"/><rect x="52" y="45" width="15" height="11" rx="2"/><path d="M48 50 L52 50"/></g>`;
+  }
+  h+=`<circle cx="34" cy="61" r="4.5" fill="${c.sunburn?"#e74c3c":"#e88"}" opacity="${c.sunburn?.45:.35}"/><circle cx="66" cy="61" r="4.5" fill="${c.sunburn?"#e74c3c":"#e88"}" opacity="${c.sunburn?.45:.35}"/>`;
+  if(c.beard)h+=`<path d="M28 58 Q30 80 50 80 Q70 80 72 58 Q66 72 50 72 Q34 72 28 58Z" fill="${hc}" opacity=".85"/>`;
+  if(c.mus)h+=`<path d="M41 61 Q50 57 59 61 Q50 64 41 61Z" fill="${hc}"/>`;
+  if(c.bigmus)h+=`<path d="M36 62 Q43 55 50 60 Q57 55 64 62 Q57 66 50 63 Q43 66 36 62Z" fill="${hc}"/>`;
+  const mouth=mood>=2?"M41 65 Q50 73 59 65":mood===1?"M42 67 L58 67":"M41 71 Q50 62 59 71";
+  h+=`<path d="${mouth}" stroke="${c.lips||"#5a2a20"}" stroke-width="${c.lips?3.6:3}" fill="none" stroke-linecap="round"/>`;
   return `<svg viewBox="0 0 100 100" aria-hidden="true">${h}</svg>`;
 }
 function vendorFace(){return `<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="24" y="80" width="52" height="30" rx="20" fill="#2f6b3a"/><circle cx="50" cy="52" r="26" fill="#e0a87e"/><path d="M22 44 Q50 14 78 44 Z" fill="#2f6b3a"/><rect x="20" y="41" width="60" height="6" rx="3" fill="#24532d"/><circle cx="41" cy="53" r="3" fill="#1d1d1d"/><circle cx="59" cy="53" r="3" fill="#1d1d1d"/><path d="M38 62 Q44 58 50 62 Q56 58 62 62" stroke="#3a2416" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M41 68 Q50 75 59 68" stroke="#5a2a20" stroke-width="3" fill="none" stroke-linecap="round"/></svg>`;}
@@ -484,7 +590,7 @@ function pizzaSVG(set){
     }});
   return s+`</svg>`;
 }
-function starsHTML(n){let h="";for(let i=1;i<=5;i++)h+=n>=i?"★":n>=i-.5?"⯪":`<span class="off">★</span>`;return `<span class="stars" aria-label="${n} von 5 Sternen">${h}</span>`;}
+function starsHTML(n){let h="";for(let i=1;i<=5;i++)h+=n>=i?"★":n>=i-.5?`<span class="half">★</span>`:`<span class="off">★</span>`;return `<span class="stars" aria-label="${n} von 5 Sternen">${h}</span>`;}
 
 /* ---------- Step builders ---------- */
 function mcStep(item,task,extra){
@@ -517,7 +623,8 @@ function orderStep(L){
   if(senza)tip+=` <b>senza</b> = ohne.`; if(con)tip+=` <b>con</b> = mit.`;
   if(named)tip+=` Was auf eine ${cap(named.n)} gehört, steht im Menù.`;
   if(L>0)tip+=` Anzahl: una = 1, due = 2, tre = 3.`;
-  return {kind:"pizza",it,de,task:"Belege die Pizza und servier sie!",tip,want,qty,cur:new Set(),curQty:1,wrong:0,done:false};
+  const each=named?named.p+(con?1:0):5+want.size;
+  return {kind:"pizza",it,de,task:"Belege die Pizza und servier sie!",tip,want,qty,price:each*qty,cur:new Set(),curQty:1,wrong:0,done:false};
 }
 function phoneStep(){
   const q=rnd(1,4), p=pick(MENU), t=pick(TIMES), st=pick(STREETS), n=pick(NUMS);
@@ -529,7 +636,7 @@ function phoneStep(){
   if(kind==="time"){task="Für wann ist die Bestellung?";opts=shuffle([t,...sample(TIMES.filter(x=>x!==t),3)]).map(x=>({t:x[1]+" Uhr",ok:x===t}));tip="Die Uhrzeit kommt nach „per le“. sette = 7, otto = 8, nove = 9, e mezza = halb, e un quarto = Viertel nach.";}
   if(kind==="num"){task="Welche Hausnummer?";opts=shuffle([n,...sample(NUMS.filter(x=>x!==n),3)]).map(x=>({t:"Nr. "+x[1],ok:x===n}));tip="Die Hausnummer kommt nach „numero“. due = 2, dieci = 10, dodici = 12, venti = 20, trenta = 30.";}
   if(kind==="pizza"){task="Welche Pizza will er?";opts=shuffle([p,...sample(MENU.filter(x=>x!==p),3)]).map(x=>({t:cap(x.n),ok:x===p}));tip="Hör auf das Wort nach der Anzahl. Plural: margherite, diavole, capricciose, ortolane.";}
-  return {kind:"mc",phone:true,it,de,task,tip,opts,wrong:0,bad:[],done:false,showText:!canSpeak};
+  return {kind:"mc",phone:true,it,de,task,tip,opts,wrong:0,bad:[],done:false,showText:!canSpeak,price:p.p*q};
 }
 function reservStep(){
   const n=rnd(2,8), d=pick(DAYS), t=pick(TIMES), nm=pick(SURNAMES);
@@ -544,23 +651,32 @@ function reservStep(){
   return {kind:"mc",phone:true,it,de,task,tip,opts,wrong:0,bad:[],done:false,showText:!canSpeak};
 }
 
+function billStep(total){
+  const item=pickFresh(BILL);
+  let w=total; while(w===total||w<1)w=total+pick([-3,-2,-1,1,2,3,10,-10]);
+  const f=x=>x.replace("{N}",numIt(total)).replace("{D}",total).replace("{W}",numIt(w));
+  return mcStep([f(item[0]),f(item[1]),f(item[2]),f(item[3]),item[4].map(f),f(item[5])],"Was antwortest du?",{bill:total});
+}
+
 /* ---------- Game flow ---------- */
 let screen="home", G=null, menuOpen=false, volOpen=false;
 function startDay(){
   const L=S.level, LV=LEVELS[L];
-  G={guests:[],gi:0,si:0,earned:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0};
+  G={guests:[],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0};
   const phoneSlots=new Set(sample([...Array(LV.guests).keys()].slice(1),LV.phones));
   const names=shuffle(NAMES);
   for(let i=0;i<LV.guests;i++){
     let steps;
     if(phoneSlots.has(i))steps=[LV.reserv&&Math.random()<.5?reservStep():phoneStep()];
     else{
-      steps=[mcStep(pickFresh(GREET),"Was antwortest du?"),orderStep(L===0?0:L<=2?1:2)];
-      if(LV.drinks)steps.push(mcStep(pickFresh(DRINK),"Was antwortest du?"));
+      const ord=orderStep(L===0?0:L<=2?1:2); let total=ord.price;
+      steps=[mcStep(pickFresh(GREET),"Was antwortest du?"),ord];
+      if(LV.drinks){const di=pickFresh(DRINK);total+=DRINK_PRICE[DRINK.indexOf(di)]||0;steps.push(mcStep(di,"Was antwortest du?"));}
       if(!LV.talkChance||Math.random()<LV.talkChance)steps.push(mcStep(pickFresh(pick(LV.talk)),"Was antwortest du?"));
-      steps.push(mcStep(pickFresh(BILL),"Was antwortest du?"));
+      steps.push(billStep(total));
     }
-    G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],seed:rnd(1,99999),mood:2,steps,tip:0,phone:phoneSlots.has(i)});
+    const bill=steps.reduce((a,x)=>a+(x.bill||0),0)||(phoneSlots.has(i)?steps[0].price||0:0);
+    G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],mood:2,steps,tip:0,bill,phone:phoneSlots.has(i)});
   }
   G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
   screen="play"; render(); autoSpeak();
@@ -582,17 +698,18 @@ function finish(){
   st.done=true; G.steps++;
   const f=st.wrong===0?1:st.wrong===1?.5:.25;
   if(st.market){
-    const sv=Math.round(LV.cost*.3*f); G.saved+=sv; st.fb=[st.wrong?"meh":"good",`Gut verhandelt! −${sv} € beim Einkauf`];
+    const sv=Math.max(1,Math.round(Math.round((G.revenue||0)*.35)*.25*f)); G.saved+=sv; st.fb=[st.wrong?"meh":"good",`Gut verhandelt! −${sv} € beim Einkauf`];
   }else{
     let base=LV.base*(st.kind==="pizza"?1.5:st.phone?2:1)*f*(st.textShown?.5:1);
     let bonus=0;
-    if(st.wrong===0){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);bonus=G.combo>=2?Math.min(G.combo-1,5):0;}
+    if(st.wrong===0&&!st.peeked){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);bonus=G.combo>=3?Math.min(Math.floor(G.combo/3),3):0;}
     const tip=Math.max(1,Math.round(base*mult()))+bonus;
     G.earned+=tip; if(g)g.tip+=tip;
-    st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} €${bonus?` (Combo +${bonus})`:""}`];
+    st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`+(st.bill?` · Rechnung ${st.bill} €`:"")];
   }
   if(st.wrong===0){G.firstTry++;learn(st.it);}
   if(st.kind==="pizza")st.cur=new Set(st.want);
+  if(!st.market||st.corDe)collectStep(st);
   save();
 }
 function giveUp(){
@@ -604,7 +721,8 @@ function giveUp(){
     st.cur=new Set(st.want); st.curQty=st.qty;
   }
   note(st.it,st.de);
-  st.fb=["zero","Kein Problem, so wäre es richtig gewesen."];
+  collectStep(st);
+  st.fb=["zero","Kein Problem, so wäre es richtig gewesen."+(st.bill?` Er zahlt trotzdem ${st.bill} €.`:"")];
   save();
 }
 function advance(){
@@ -612,7 +730,8 @@ function advance(){
   else{
     const g=G.guests[G.gi]; G.si++;
     if(G.si>=g.steps.length){
-      G.banner=g.phone?`Bestellung notiert. +${g.tip} € insgesamt`:`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} nach Hause. +${g.tip} € Trinkgeld`;
+      G.revenue=(G.revenue||0)+(g.bill||0);
+      G.banner=g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
       G.gi++; G.si=0;
       if(G.gi>=G.guests.length){G.phase="market";G.banner="Feierabend! Jetzt noch Zutaten auf dem Markt kaufen.";}
     }else G.banner="";
@@ -621,13 +740,259 @@ function advance(){
 }
 function endDay(){
   const LV=LEVELS[S.level];
-  const cost=LV.cost-G.saved, net=G.earned-cost;
+  const rev=G.revenue||0, ing=Math.round(rev*.35), rent=LV.rent, net=rev+G.earned-ing-rent+G.saved;
   const d=new Date(), today=d.toLocaleDateString("sv-SE"); d.setDate(d.getDate()-1); const yest=d.toLocaleDateString("sv-SE");
   if(S.last!==today)S.streak=S.last===yest?S.streak+1:1;
   S.last=today;
-  G.summary={cost,net,day:S.day};
+  G.summary={ing,rent,net,day:S.day};
+  S.vocab.days[S.day]=buildVocab(S.day);
+  G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   S.coins=Math.max(0,S.coins+net); S.day++; save();
   screen="summary"; render(); sfx("coins");
+}
+
+/* ---------- Laden einrichten (Drag-and-drop) ---------- */
+const RI=(s)=>`<svg viewBox="0 0 64 64" aria-hidden="true">${s}</svg>`;
+const ROOM_ITEMS=[
+ {id:"porta",it:"la porta",de:"die Tür",w:13,multi:0,svg:RI('<rect x="16" y="4" width="32" height="58" rx="2" fill="#7a4a26"/><rect x="21" y="9" width="22" height="18" rx="2" fill="#9fd3e6"/><rect x="21" y="32" width="22" height="24" rx="2" fill="#5e3818"/><circle cx="42" cy="38" r="2.5" fill="#f4c64f"/>')},
+ {id:"vetrina",it:"la vetrina",de:"das Schaufenster",w:22,multi:0,svg:RI('<rect x="2" y="16" width="60" height="44" rx="2" fill="#e6ad5e"/><rect x="6" y="20" width="52" height="36" fill="#9fd3e6"/><path d="M2 6h60v10H2z" fill="#e5533f"/><path d="M8 6v10M20 6v10M32 6v10M44 6v10M56 6v10" stroke="#f3eee2" stroke-width="5"/><circle cx="32" cy="44" r="8" fill="#d99a4e"/><circle cx="32" cy="44" r="6" fill="#c93a24"/>')},
+ {id:"forno",it:"il forno",de:"der Ofen",w:19,multi:0,svg:RI('<path d="M4 60 Q4 10 32 10 Q60 10 60 60 Z" fill="#b8562f"/><path d="M10 60 Q10 18 32 18 Q54 18 54 60Z" fill="#d06a3a" opacity=".6"/><path d="M20 60 Q20 38 32 38 Q44 38 44 60 Z" fill="#1b1410"/><path d="M26 60 Q28 48 32 52 Q34 44 38 60Z" fill="#f4a63c"/><rect x="28" y="2" width="8" height="10" fill="#7a3a20"/>')},
+ {id:"bancone",it:"il bancone",de:"die Theke",w:26,multi:0,svg:RI('<rect x="2" y="24" width="60" height="8" rx="2" fill="#e6c9a0"/><rect x="4" y="32" width="56" height="28" fill="#8a5a32"/><path d="M18 32v28M32 32v28M46 32v28" stroke="#6b4426" stroke-width="2"/>')},
+ {id:"cassa",it:"la cassa",de:"die Kasse",w:10,multi:0,svg:RI('<rect x="8" y="30" width="48" height="28" rx="4" fill="#6f7b84"/><rect x="18" y="10" width="28" height="18" rx="3" fill="#2f3a40"/><rect x="21" y="13" width="22" height="10" fill="#7fe08a"/><g fill="#d8dde0"><rect x="14" y="36" width="8" height="6"/><rect x="28" y="36" width="8" height="6"/><rect x="42" y="36" width="8" height="6"/><rect x="14" y="46" width="8" height="6"/><rect x="28" y="46" width="8" height="6"/><rect x="42" y="46" width="8" height="6"/></g>')},
+ {id:"tavolo",it:"il tavolo",de:"der Tisch",w:16,multi:4,svg:RI('<rect x="12" y="34" width="4" height="26" fill="#6b4426"/><rect x="48" y="34" width="4" height="26" fill="#6b4426"/><ellipse cx="32" cy="32" rx="30" ry="9" fill="#f3eee2"/><path d="M8 30h8v6H8zM24 30h8v6h-8zM40 30h8v6h-8zM56 30h4v6h-4z" fill="#e5533f"/><ellipse cx="32" cy="27" rx="7" ry="2.5" fill="#fbf6ea"/>')},
+ {id:"sedia",it:"la sedia",de:"der Stuhl",w:9,multi:6,svg:RI('<rect x="16" y="4" width="32" height="6" rx="2" fill="#8a5a32"/><rect x="16" y="4" width="5" height="34" fill="#8a5a32"/><rect x="43" y="4" width="5" height="34" fill="#8a5a32"/><rect x="12" y="34" width="40" height="7" rx="2" fill="#a8703f"/><rect x="14" y="40" width="5" height="22" fill="#6b4426"/><rect x="45" y="40" width="5" height="22" fill="#6b4426"/>')},
+ {id:"lampadario",it:"il lampadario",de:"die Lampe",w:10,multi:2,svg:RI('<path d="M32 0v20" stroke="#3a3a3a" stroke-width="2"/><path d="M14 40 L24 20 H40 L50 40 Z" fill="#2f6b3a"/><ellipse cx="32" cy="42" rx="10" ry="5" fill="#ffe08a"/><path d="M20 48 L12 60 M32 50 V62 M44 48 L52 60" stroke="#ffe08a" stroke-width="2" opacity=".7"/>')},
+ {id:"pianta",it:"la pianta",de:"die Pflanze",w:10,multi:3,svg:RI('<path d="M20 44h24l-4 18H24z" fill="#c0603a"/><path d="M32 44 Q16 30 14 12 Q28 20 32 44 Q36 18 50 10 Q48 32 32 44 Q30 26 32 4 Q36 24 32 44" fill="#4f9a45"/>')},
+ {id:"frigorifero",it:"il frigorifero",de:"der Kühlschrank",w:11,multi:0,svg:RI('<rect x="14" y="2" width="36" height="60" rx="4" fill="#e9eef0"/><path d="M14 24h36" stroke="#b9c3c8" stroke-width="2"/><rect x="42" y="8" width="3" height="12" rx="1" fill="#8a969c"/><rect x="42" y="30" width="3" height="16" rx="1" fill="#8a969c"/>')},
+ {id:"insegna",it:"l'insegna",de:"das Schild",w:20,multi:0,svg:RI('<path d="M18 2v10M46 2v10" stroke="#3a3a3a" stroke-width="2"/><rect x="2" y="12" width="60" height="26" rx="5" fill="#1b221f" stroke="#f4c64f" stroke-width="3"/><text x="32" y="31" text-anchor="middle" font-family="Arial Black,Arial" font-weight="900" font-size="14" fill="#e5533f">PIZZA</text>')}
+];
+const ITEMBY=Object.fromEntries(ROOM_ITEMS.map(i=>[i.id,i]));
+function roomItem(id){
+  if(ITEMBY[id])return ITEMBY[id];
+  const sh=SHOP.find(x=>"shop:"+x.id===id);
+  return sh?{id,it:sh.it,de:sh.de,w:11,multi:0,emoji:sh.ic}:null;
+}
+const itemArt=it=>it.emoji?`<span class="emo">${it.emoji}</span>`:it.svg;
+function paletteItems(){
+  const base=ROOM_ITEMS.slice();
+  SHOP.filter(i=>S.owned.includes(i.id)&&!i.up).forEach(i=>base.push(roomItem("shop:"+i.id)));
+  return base.map(it=>{const n=S.room.filter(r=>r.id===it.id).length, max=it.multi||1;return {it,n,left:max-n};});
+}
+function roomHTML(interactive,quiz){
+  return `<div class="room${interactive?" edit":""}" id="room"><div class="wall"></div><div class="floor"></div>
+    ${(S.room||[]).map((r,i)=>{const it=roomItem(r.id);if(!it)return"";
+      return `<div class="ri" ${quiz?`data-act="ritem"`:""} data-i="${i}" style="left:${r.x}%;top:${r.y}%;width:${it.w}%;z-index:${Math.round(r.y)+(r.id==="lampadario"||r.id==="insegna"?100:0)}">${itemArt(it)}</div>`;}).join("")}
+  </div>`;
+}
+const MORETTI="Signor Moretti";
+function rSetup(){
+  if(!S.room)S.room=[];
+  const Q=S.setupQuiz;
+  if(Q&&!S.setupDone){ // Abfrage
+    const target=S.room[Q.queue[Q.qi]], it=target&&roomItem(target.id);
+    const done=Q.qi>=Q.queue.length;
+    $("#screen").innerHTML=`
+      <div class="scene"><div class="av">${face(MORETTI,2)}</div><div style="min-width:0"><div class="who">${MORETTI}, il proprietario</div>
+      <div class="bubble"><div class="it">${done?wordsHTML("Perfetto! Il locale è pronto. Buon lavoro!",true):wordsHTML(`Tocca ${it.it}!`,true)}</div>
+      ${done?`<div class="tr">Perfekt! Der Laden ist fertig. Viel Erfolg!</div>`:Q.revealed?`<div class="tr">Tippe ${esc(it.de)} an!</div>`:""}</div></div></div>
+      <div class="task">${done?"Fertig eingerichtet!":`Zeig mir … (${Q.qi+1} von ${Q.queue.length})`}</div>
+      ${roomHTML(false,!done)}
+      ${done?`<button class="big" data-act="setupDone">Apri il locale!<small>Jetzt kommen die ersten Gäste</small></button>`
+       :`${Q.showTip?`<div class="tipbox"><b>Tipp:</b> ${esc(it.it)} = ${esc(it.de)}</div>`:""}
+        <div class="ctrl">${Q.wrong>0&&!Q.showTip?`<button class="tipbtn" data-act="qtip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
+        <button class="idk" data-act="qidk" aria-label="Keine Ahnung">✕<small>K. Ahnung</small></button></div>`}`;
+    if(Q.flash!=null){const el=document.querySelector(`.ri[data-i="${Q.flash}"]`);if(el)el.classList.add(Q.flashOk?"hit":"miss");Q.flash=null;}
+    return;
+  }
+  const pal=paletteItems(), missing=ROOM_ITEMS.filter(i=>!S.room.some(r=>r.id===i.id));
+  const next=missing[0];
+  $("#screen").innerHTML=`
+    ${S.setupDone?`<button class="back" data-act="home">← Fertig</button>`:""}
+    <div class="scene"><div class="av">${face(MORETTI,2)}</div><div style="min-width:0"><div class="who">${MORETTI}, il proprietario</div>
+    <div class="bubble"><div class="it">${S.setupDone?wordsHTML("Cambia pure tutto come vuoi!",true):next?wordsHTML(`Benvenuto! Metti ${next.it} nel locale.`,true):wordsHTML("Bravo! Ora controlliamo i nomi.",true)}</div>
+    <div class="tr">${S.setupDone?"Stell ruhig alles um, wie du willst!":next?`Willkommen! Stell ${esc(next.de)} in den Laden.`:"Bravo! Jetzt prüfen wir die Namen."}</div></div></div></div>
+    <div class="task">${S.setupDone?"Laden umstellen":"Richte deinen Laden ein"}</div>
+    <p class="note" style="margin:-8px 0 0">Zieh die Sachen von unten in den Raum. Raus ziehen = entfernen. Antippen = Name hören.</p>
+    ${roomHTML(true,false)}
+    <div class="pal">${pal.map(p=>`<div class="pi${p.left<=0?" used":""}" data-id="${p.it.id}"><div class="pia">${itemArt(p.it)}</div><b>${esc(p.it.it)}</b>${S.setupDone||S.day>1?"":`<small>${esc(p.it.de)}</small>`}${(p.it.multi||1)>1?`<i>${p.n}/${p.it.multi}</i>`:""}</div>`).join("")}</div>
+    ${!S.setupDone?`<button class="big" data-act="setupCheck" ${missing.length?'disabled style="opacity:.45"':""}>Fertig!<small>${missing.length?`Noch ${missing.length} ${missing.length===1?"Sache":"Sachen"} fehlen`:"Jetzt prüft der Vermieter die Namen"}</small></button>`:""}`;
+}
+let drag=null;
+function ghostAt(x,y){const g=$("#ghost");g.style.left=x+"px";g.style.top=y+"px";}
+document.addEventListener("pointerdown",e=>{
+  if(screen!=="setup"||(S.setupQuiz&&!S.setupDone))return;
+  const pi=e.target.closest(".pi"), ri=e.target.closest(".room.edit .ri");
+  if(!pi&&!ri)return;
+  if(pi&&pi.classList.contains("used")){showName(pi,roomItem(pi.dataset.id));return;}
+  const id=pi?pi.dataset.id:S.room[+ri.dataset.i].id, it=roomItem(id); if(!it)return;
+  drag={id,from:pi?"pal":"room",idx:ri?+ri.dataset.i:-1,sx:e.clientX,sy:e.clientY,moved:false,el:pi||ri};
+  const g=$("#ghost"); g.innerHTML=itemArt(it); g.style.width=Math.max(48,($("#room").offsetWidth*it.w/100))+"px"; ghostAt(e.clientX,e.clientY);
+  e.preventDefault();
+});
+document.addEventListener("pointermove",e=>{
+  if(!drag)return;
+  if(!drag.moved&&Math.hypot(e.clientX-drag.sx,e.clientY-drag.sy)>6){drag.moved=true;$("#ghost").hidden=false;if(drag.from==="room")drag.el.style.opacity=".25";}
+  if(drag.moved)ghostAt(e.clientX,e.clientY);
+});
+document.addEventListener("pointerup",e=>{
+  if(!drag)return;
+  const d=drag; drag=null; $("#ghost").hidden=true;
+  if(!d.moved){showName(d.el,roomItem(d.id));return;}
+  const r=$("#room").getBoundingClientRect();
+  const inside=e.clientX>=r.left&&e.clientX<=r.right&&e.clientY>=r.top&&e.clientY<=r.bottom;
+  if(inside){
+    const x=Math.round((e.clientX-r.left)/r.width*1000)/10, y=Math.round((e.clientY-r.top)/r.height*1000)/10;
+    if(d.from==="pal")S.room.push({id:d.id,x,y}); else{S.room[d.idx].x=x;S.room[d.idx].y=y;}
+    sfx("select");
+    if(d.from==="pal"&&!S.setupDone){const it=roomItem(d.id);speak(it.it);}
+  }else if(d.from==="room"){S.room.splice(d.idx,1);sfx("click");}
+  save(); render();
+});
+document.addEventListener("pointercancel",()=>{if(drag){drag=null;$("#ghost").hidden=true;render();}});
+function showName(el,it){
+  if(!it||!el)return;
+  const pop=$("#pop"); pop.innerHTML=`${esc(it.it)}<small>${esc(it.de)}</small>`; pop.hidden=false;
+  const r=el.getBoundingClientRect(), pw=pop.offsetWidth;
+  pop.style.left=Math.max(8,Math.min(innerWidth-pw-8,r.left+r.width/2-pw/2))+"px";
+  pop.style.top=Math.max(8,r.top-pop.offsetHeight-8)+"px";
+  clearTimeout(popTimer); popTimer=setTimeout(()=>{pop.hidden=true;},2200);
+  speak(it.it);
+}
+function startSetupQuiz(){
+  const idx=[...new Set(S.room.map(r=>r.id))].filter(id=>ITEMBY[id]).map(id=>S.room.findIndex(r=>r.id===id));
+  S.setupQuiz={queue:shuffle(idx).slice(0,7),qi:0,wrong:0,showTip:false,revealed:false};
+  render(); const Q=S.setupQuiz; setTimeout(()=>speak(`Tocca ${roomItem(S.room[Q.queue[0]].id).it}!`),250);
+}
+function quizAnswer(i){
+  const Q=S.setupQuiz, want=Q.queue[Q.qi], it=roomItem(S.room[want].id);
+  const ok=S.room[i].id===S.room[want].id;
+  Q.flash=i; Q.flashOk=ok;
+  if(ok){sfx("right");learn(it.it);Q.qi++;Q.wrong=0;Q.showTip=false;Q.revealed=false;
+    render(); if(Q.qi<Q.queue.length){const nx=roomItem(S.room[Q.queue[Q.qi]].id);setTimeout(()=>speak(`Tocca ${nx.it}!`),500);}}
+  else{sfx("wrong");Q.wrong++;note(it.it,it.de);render();}
+}
+
+/* ---------- Vokabeln nach Tagen ---------- */
+const PROPER=new Set("toledo umberto garibaldi tribunali roma milano napoli sorrento capri luca rossi corso".split(" "));
+const STOP=new Set("a al all' alla alle c' che ci con d' da dal dalla dei del della di dov' e è i il in io l' la le lo ma mi ne nel nell' nelle per si sì un un' una sono no non lei me mio mia ecco po' qui là lì sul sulla poi molto tanto troppo ho fa sta sto era suo nostra nostre gliene questa qual quale ogni mai".split(" "));
+function collectWords(text,de,weight){
+  if(!G||!text)return;
+  G.seen=G.seen||new Set(); G.ex=G.ex||{}; G.wt=G.wt||{};
+  (text.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+'?/g)||[]).forEach(w=>{
+    const k=w.toLowerCase(), d=DICT[k];
+    if(!d||STOP.has(k)||PROPER.has(k))return;
+    if(/^\d+$/.test(d)&&+d>20)return;
+    G.seen.add(k); if(!G.ex[k])G.ex[k]=[text,de||""]; G.wt[k]=(G.wt[k]||0)+(weight||1);
+  });
+}
+function collectStep(st){
+  if(st.kind==="pizza"){collectWords(st.it,st.de,1);[...st.want].forEach(k=>collectWords(k,ING[k][0],1));return;}
+  collectWords(st.it,st.de,st.wrong||st.gaveUp?3:1);
+  if(st.corDe){const c=st.opts.find(o=>o.ok);if(c)collectWords(c.t,st.corDe,st.wrong||st.gaveUp?3:1);}
+}
+function buildVocab(dayN){
+  const before=new Set(); Object.entries(S.vocab.days).forEach(([d,l])=>{if(+d<dayN)l.forEach(v=>before.add(v.it));});
+  const wt=(G&&G.wt)||{}, tapped=(G&&G.tapped)||new Set();
+  let cand=[...((G&&G.seen)||[])].filter(k=>!before.has(k)).sort((a,b)=>((tapped.has(b)?10:0)+(wt[b]||0))-((tapped.has(a)?10:0)+(wt[a]||0)));
+  let list=cand.slice(0,12).map(k=>({it:k,de:DICT[k],ex:(G.ex&&G.ex[k])||null}));
+  if(dayN===1&&S.room)ROOM_ITEMS.slice(0,6).forEach(i=>list.push({it:i.it,de:i.de,ex:null}));
+  if(list.length<5){ // zu wenig Neues: schwierige alte Wörter wiederholen
+    Object.entries(S.book).sort((a,b)=>b[1].miss-a[1].miss).forEach(([it,v])=>{if(list.length<8&&it.split(" ").length<=2&&!list.some(x=>x.it===it))list.push({it,de:v.de,ex:null});});
+  }
+  return list;
+}
+const stripArt=s=>s.replace(/^(il|lo|la|i|gli|le|un|uno|una)\s+/,"").replace(/^(l'|un')/,"");
+const norm=s=>stripArt(s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[’`]/g,"'").replace(/[^a-z' ]/g," ").replace(/\s+/g," ").trim());
+function lev(a,b){const m=a.length,n=b.length,d=Array.from({length:m+1},(_,i)=>[i,...Array(n).fill(0)]);for(let j=1;j<=n;j++)d[0][j]=j;for(let i=1;i<=m;i++)for(let j=1;j<=n;j++)d[i][j]=Math.min(d[i-1][j]+1,d[i][j-1]+1,d[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return d[m][n];}
+function vocabUnlocked(d){return d===1||!!S.vocab.done[d-1];}
+function vocabStatus(){
+  const days=Object.keys(S.vocab.days).map(Number).sort((a,b)=>a-b);
+  if(!days.length)return "Deine Vokabeln kommen nach dem ersten Spieltag";
+  const open=days.find(d=>!S.vocab.done[d]);
+  if(!open)return `Alle ${days.length} ${days.length===1?"Tag":"Tage"} gelernt ✓`;
+  return vocabUnlocked(open)?`Tag ${open}: ${S.vocab.days[open].length} Wörter warten`:`Tag ${open} wartet`;
+}
+function startVocab(d){
+  const list=S.vocab.days[d]; if(!list||!vocabUnlocked(d))return;
+  S.vocabRun={day:d,queue:shuffle(list.map((_,k)=>({k,st:0}))),total:list.length,mastered:0,wrong:0,showTip:false,res:null,typed:"",opts:null,missed:false};
+  prepVocabQ(); screen="vocab"; render();
+}
+function prepVocabQ(){
+  const R=S.vocabRun, q=R.queue[0]; if(!q)return;
+  R.wrong=0;R.showTip=false;R.res=null;R.typed="";R.missed=false;R.msg="";
+  if(q.st===0){
+    const list=S.vocab.days[R.day], v=list[q.k];
+    let pool=list.filter((x,i)=>i!==q.k&&x.de!==v.de).map(x=>x.de);
+    if(pool.length<3)pool=pool.concat(Object.values(DICT).filter(x=>!/^\d+$/.test(x)&&x!==v.de));
+    R.opts=shuffle([v.de,...sample([...new Set(pool)],3)]);
+  }else R.opts=null;
+}
+function vocabAnswer(ans){
+  const R=S.vocabRun, q=R.queue[0], v=S.vocab.days[R.day][q.k];
+  let ok=false;
+  if(q.st===0){ok=ans===v.de;}
+  else{
+    const a=ans.trim(), want=v.it;
+    if(!a)return;
+    if(stripArt(a.toLowerCase())===stripArt(want.toLowerCase())){ok=true;R.msg="";}
+    else if(norm(a)===norm(want)){ok=true;R.msg=`Richtig! Achte auf die Schreibweise: ${want}`;}
+    else if(norm(want).length>=5&&lev(norm(a),norm(want))<=1){ok=true;R.msg=`Fast perfekt! Richtig geschrieben: ${want}`;}
+    R.typed=a;
+  }
+  if(ok){sfx("right");R.res="ok";speak(v.it);}
+  else{sfx("wrong");R.wrong++;R.missed=true;R.res="bad";R.badAns=ans;note(v.it,v.de);}
+  render();
+}
+function vocabNext(){
+  const R=S.vocabRun, q=R.queue.shift();
+  if(R.missed){R.queue.push({k:q.k,st:q.st});}
+  else if(q.st===0){const pos=Math.min(R.queue.length,2+Math.floor(Math.random()*Math.max(1,R.queue.length-1)));R.queue.splice(pos,0,{k:q.k,st:1});}
+  else R.mastered++;
+  if(!R.queue.length){S.vocab.done[R.day]=true;R.finished=true;sfx("coins");render();return;}
+  prepVocabQ(); render(); const nq=R.queue[0]; if(nq.st===0)setTimeout(()=>speak(S.vocab.days[R.day][nq.k].it),200);
+}
+function rVocab(){
+  const R=S.vocabRun;
+  if(R&&R.finished){
+    $("#screen").innerHTML=`<h2 class="t">Bravissimo!</h2><div class="panel" style="align-items:center;text-align:center"><div class="review">Tag ${R.day} geschafft ✓<small>Alle ${R.total} Wörter sitzen.</small></div></div>
+      ${S.vocab.days[R.day+1]?`<button class="big" data-act="vstart" data-d="${R.day+1}">Weiter mit Tag ${R.day+1}<small>${S.vocab.days[R.day+1].length} Wörter</small></button>`:`<p class="note">Die Vokabeln für Tag ${R.day+1} bekommst du, sobald du Spieltag ${R.day+1} gespielt hast.</p>`}
+      <button class="sec" data-act="vlist">Zur Übersicht</button>`;
+    return;
+  }
+  if(R){
+    const q=R.queue[0], v=S.vocab.days[R.day][q.k];
+    const pct=Math.round(R.mastered/R.total*100);
+    let body="";
+    if(q.st===0){
+      body=`<div class="vcard"><div class="label">Was heißt …</div><div class="vword">${esc(v.it)}</div>${canSpeak?`<button class="say" data-act="vsay">▶ Anhören</button>`:""}</div>
+        <div class="opts">${R.opts.map((o,i)=>{const cls=R.res==="ok"&&o===v.de?"ok":R.res==="bad"&&o===R.badAns?"bad":"";return `<button class="opt ${cls}" data-act="vopt" data-i="${i}" ${R.res==="ok"?'aria-disabled="true"':""}>${esc(o)}</button>`;}).join("")}</div>`;
+    }else{
+      body=`<div class="vcard"><div class="label">Schreib auf Italienisch</div><div class="vword de">${esc(v.de)}</div></div>
+        <form class="vform" id="vform"><input id="vin" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="auf Italienisch …" value="${R.res==="ok"?esc(R.typed):R.res==="bad"?esc(R.badAns||""):""}" ${R.res==="ok"?"readonly":""}>
+        ${R.res==="ok"?"":`<button class="serve" type="submit">Prüfen</button>`}</form>
+        <div class="accents">${["à","è","é","ì","ò","ù","'"].map(c=>`<button type="button" data-act="vacc" data-c="${c}">${c}</button>`).join("")}</div>
+        ${R.res==="bad"?`<div class="fb zero">Nicht ganz („${esc(R.badAns)}“). Versuch's nochmal!</div>`:""}`;
+    }
+    const tip=q.st===0?(v.ex?`Kam so vor: „${esc(v.ex[0])}“ – ${esc(v.ex[1])}`:`Hör es dir nochmal an.`):`Fängt an mit „${esc(v.it.slice(0,Math.min(3,Math.ceil(v.it.length/3))))}…“ und hat ${v.it.length} Zeichen.`;
+    const ctrl=R.res==="ok"
+      ?`<div class="fb good">${esc(R.msg||pick(["Esatto!","Bravo!","Perfetto!","Giusto!"]))}</div><button class="next" data-act="vnext">Avanti →</button>`
+      :`${R.showTip?`<div class="tipbox"><b>Tipp:</b> ${tip}</div>`:""}
+        <div class="ctrl">${R.wrong>0&&!R.showTip?`<button class="tipbtn" data-act="vtip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
+        <button class="idk" data-act="vidk" aria-label="Keine Ahnung">✕<small>K. Ahnung</small></button></div>`;
+    $("#screen").innerHTML=`<div class="hud"><button class="quit" data-act="vlist">Pause</button><span class="where">Vokabeln Tag ${R.day}</span><span class="money">${R.mastered}/${R.total}</span></div>
+      <div class="bar"><i style="width:${pct}%"></i></div>
+      <p class="note" style="margin:0">${q.st===0?"Runde 1: auswählen":"Runde 2: selbst schreiben"} · Falsche Wörter kommen wieder, bis alle sitzen.</p>
+      ${body}${ctrl}`;
+    if(q.st===1&&R.res!=="ok"){const i=$("#vin");if(i)setTimeout(()=>{try{i.focus();i.setSelectionRange(i.value.length,i.value.length);}catch(e){}},50);}
+    return;
+  }
+  const days=Object.keys(S.vocab.days).map(Number).sort((a,b)=>a-b);
+  $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button><h2 class="t">Vocabolario</h2>
+    <p class="note" style="margin:-6px 0 0">Jeder Spieltag bringt neue Wörter aus deinen Gesprächen. Erst auswählen, dann selbst schreiben. Was falsch ist, kommt wieder, bis alles sitzt.</p>
+    ${days.length?`<div class="items">${days.map(d=>{const done=S.vocab.done[d],un=vocabUnlocked(d),l=S.vocab.days[d];
+      return `<div class="item vday ${done?"done":un?"open":"locked"}"><span class="ic">${done?"✓":un?"▶":"🔒"}</span><span class="nm">Tag ${d}<small>${l.slice(0,4).map(v=>esc(v.it)).join(", ")}${l.length>4?" …":""}</small></span>
+      ${un?`<button class="buy" data-act="vstart" data-d="${d}">${done?"Nochmal":"Lernen"}</button>`:`<span class="owned" style="color:var(--chalk-dim)">erst Tag ${d-1}</span>`}</div>`;}).join("")}</div>`
+      :`<div class="panel"><p class="note" style="margin:0">Noch keine Vokabeln. Spiel deinen ersten Tag in der Pizzeria, dann sammle ich hier alle Wörter, die vorkamen.</p></div>`}`;
 }
 
 /* ---------- Render ---------- */
@@ -640,8 +1005,8 @@ function render(){
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
       <button class="next" data-act="vol">Fertig</button></div>`;
   }
-  else if(menuOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Menù"><h2>Il Menù</h2>${MENU.map(m=>`<div class="mi"><b>${cap(m.n)}</b><div>${m.ing.join(", ")}</div></div>`).join("")}<p class="note">Plural: margherita → margherite, diavola → diavole. Bei „prosciutto e funghi“ bleibt der Name gleich.</p><button class="next" data-act="menu">Zurück zur Küche</button></div>`;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,book:rBook})[screen]();
+  else if(menuOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Menù"><h2>Il Menù</h2>${MENU.map(m=>`<div class="mi"><b>${cap(m.n)} <span class="price">${m.p} €</span></b><div>${m.ing.join(", ")}</div></div>`).join("")}<p class="note">Plural: margherita → margherite, diavola → diavole. Bei „prosciutto e funghi“ bleibt der Name gleich.</p><button class="next" data-act="menu">Zurück zur Küche</button></div>`;
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,book:rBook,setup:rSetup,vocab:rVocab})[screen]();
 }
 function rHome(){
   const L=LEVELS[S.level], owned=SHOP.filter(i=>S.owned.includes(i.id)&&!i.up);
@@ -650,7 +1015,7 @@ function rHome(){
   <p class="savenote">${cloudState==="cloud"?"☁ Spielstand in deinem Konto gesichert":"✓ Spielstand auf diesem Gerät gespeichert"}</p>
   ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}
   ${musicOn||S.vol.music===0?"":`<p class="note" style="text-align:center;margin:0">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}
-  <div class="shelf">${owned.length?owned.map(i=>`<span title="${esc(i.de)}">${i.ic}</span>`).join(""):`<span class="empty">Dein Laden ist noch leer. Richte ihn ein!</span>`}</div>
+  ${S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
   <div class="stats">
     <div class="stat"><b>${S.coins}</b><span>Euro</span></div>
     <div class="stat"><b>${S.day}</b><span>Tag</span></div>
@@ -659,33 +1024,36 @@ function rHome(){
   </div>
   ${G&&!G.summary
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}</small></button>`
-    :`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · Tag ${S.day}</small></button>`}
-  <div class="row2"><button class="sec" data-act="shop">Einrichten</button><button class="sec" data-act="book">Notizbuch${Object.keys(S.book).length?` (${Object.keys(S.book).length})`:""}</button></div>
+    :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · Tag ${S.day}</small></button>`
+    :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
+  <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
+  <div class="row3"><button class="sec" data-act="shop">Kaufen</button><button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button><button class="sec" data-act="book">Notizbuch</button></div>
   <div class="how"><h3>So geht's</h3><ul>
     <li>Deine Gäste sprechen nur <b>Italienisch</b>. Wähle die richtige Antwort oder belege die Pizza.</li>
     <li>Einmal falsch? Dann erscheint ein <b>Tipp</b> zum Antippen.</li>
     <li>Das rote <b>✕</b> heißt „keine Ahnung“: Du siehst die Lösung, bekommst aber kein Trinkgeld.</li>
-    <li>Mit dem Trinkgeld richtest du den Laden ein und steigst auf: Chiosco → Pizzeria → Ristorante.</li>
+    <li>Deine Gäste zahlen ihre Rechnung, dazu Trinkgeld. Damit kaufst du Einrichtung und steigst auf.</li>
+    <li>Wörter in der Sprechblase antippen zeigt die Übersetzung. Bei den Antworten: Wort lange drücken.</li>
   </ul></div>
   <div class="how"><h3>Deine Stufen</h3><ol class="lvls">${LEVELS.map((l,i)=>`<li class="${i<S.level?"done":i===S.level?"now":""}"><b>${l.it}</b> <span>${esc(l.neu)}</span></li>`).join("")}</ol>
-  <p class="note" style="margin:6px 0 0">Aufsteigen kannst du unter „Einrichten“, sobald du genug Trinkgeld hast.</p></div>
+  <p class="note" style="margin:6px 0 0">Aufsteigen kannst du unter „Kaufen“, sobald du genug Geld hast.</p></div>
   <button class="sec" data-act="vol">♪ Lautstärke &amp; Musik</button>`;
 }
 function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
   const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name;
-  const av=mk?vendorFace():g.phone?`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="32" y="18" width="36" height="64" rx="8" fill="#e6ad5e"/><rect x="37" y="26" width="26" height="40" rx="3" fill="#1b221f"/><circle cx="50" cy="74" r="4" fill="#1b221f"/></svg>`:face(g.seed,g.mood);
+  const av=mk?vendorFace():g.phone?`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="32" y="18" width="36" height="64" rx="8" fill="#e6ad5e"/><rect x="37" y="26" width="26" height="40" rx="3" fill="#1b221f"/><circle cx="50" cy="74" r="4" fill="#1b221f"/></svg>`:face(g.name,g.mood);
   const hideText=st.phone&&!st.showText&&!st.done;
   let bubble=hideText
     ?`<div class="phone-call"><div class="ring">Squilla il telefono! Hör genau zu.</div><div><button class="say" data-act="speak">▶ Anhören</button><button class="say" data-act="text">Text zeigen (halbes Trinkgeld)</button></div></div>`
-    :`<div class="it">${esc(st.it)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`;
+    :`<div class="it">${wordsHTML(st.it,true)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`;
   if(st.done)bubble+=`<div class="tr">${esc(st.de)}</div>`;
   let action="";
   if(st.kind==="mc"){
     action=`<div class="opts">${st.opts.map((o,i)=>{
       const cls=st.done&&o.ok?"ok":st.bad.includes(i)?"bad":"";
       const sub=st.done&&o.ok&&st.corDe?`<small>${esc(st.corDe)}</small>`:"";
-      return `<button class="opt ${cls} ${st.shake&&st.bad[st.bad.length-1]===i?"shake":""}" data-act="opt" data-i="${i}" ${st.done||st.bad.includes(i)?"disabled":""}>${esc(o.t)}${sub}</button>`;}).join("")}</div>`;
+      return `<button class="opt ${cls} ${st.shake&&st.bad[st.bad.length-1]===i?"shake":""}" data-act="opt" data-i="${i}" ${st.done||st.bad.includes(i)?'aria-disabled="true"':""}>${st.corDe?wordsHTML(o.t,false):esc(o.t)}${sub}</button>`;}).join("")}</div>`;
   }else{
     action=`<div class="kitchen"><div class="pz-wrap">${pizzaSVG(st.cur)}${L>0&&st.curQty>1?`<span class="qtyb">×${st.curQty}</span>`:""}</div>
       <div class="pz-side">${L>0?`<div class="stepper"><button data-act="qty" data-d="-1" aria-label="Weniger" ${st.done?"disabled":""}>−</button><b>${st.curQty}</b><button data-act="qty" data-d="1" aria-label="Mehr" ${st.done?"disabled":""}>+</button><span>Anzahl</span></div>`:""}
@@ -699,7 +1067,7 @@ function rPlay(){
       <div class="ctrl">${st.wrong>0&&!st.showTip?`<button class="tipbtn" data-act="tip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
       <button class="idk" data-act="idk" aria-label="Keine Ahnung, Lösung zeigen">✕<small>K. Ahnung</small></button></div>`;
   $("#screen").innerHTML=`
-    <div class="hud"><button class="quit" data-act="quit">Pause</button><button class="quit" data-act="vol" aria-label="Lautstärke">♪</button><span class="where">${mk?"Mercato":`Gast ${G.gi+1}/${G.guests.length}`}</span>${starsHTML(G.stars)}<span class="money">€ ${G.earned}</span></div>
+    <div class="hud"><button class="quit" data-act="quit">Pause</button><button class="quit" data-act="vol" aria-label="Lautstärke">♪</button><span class="where">${mk?"Mercato":`Gast ${G.gi+1}/${G.guests.length}`}</span>${starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span></div>
     ${G.combo>=2?`<div class="combo">Combo ×${G.combo}</div>`:""}
     ${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}
     <div class="scene"><div class="av">${av}</div><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
@@ -713,8 +1081,10 @@ function rSummary(){
     <h2 class="t">Fine della giornata</h2><p class="note" style="margin:-8px 0 0">Ende von Tag ${sm.day}</p>
     <div class="panel" style="align-items:center">${starsHTML(G.stars)}<div class="review">„${esc(rv[1])}“<small>${esc(rv[2])}</small></div></div>
     <div class="panel">
+      <div class="line"><span>Rechnungen der Gäste</span><span>+${G.revenue||0} €</span></div>
       <div class="line"><span>Trinkgeld</span><span>+${G.earned} €</span></div>
-      <div class="line"><span>Zutaten vom Markt</span><span>−${LEVELS[S.level].cost} €</span></div>
+      <div class="line"><span>Zutaten vom Markt</span><span>−${sm.ing||0} €</span></div>
+      <div class="line"><span>Miete</span><span>−${sm.rent||0} €</span></div>
       ${G.saved?`<div class="line"><span>Beim Handeln gespart</span><span>+${G.saved} €</span></div>`:""}
       <div class="line total"><span>Gewinn heute</span><span>${sm.net>=0?"+":""}${sm.net} €</span></div>
     </div>
@@ -723,11 +1093,12 @@ function rSummary(){
       <div class="line"><span>Beste Combo</span><span>×${G.maxCombo}</span></div>
       <div class="line"><span>Tage in Folge gespielt</span><span>${S.streak}</span></div>
     </div>
+    <div class="panel"><div class="line"><span>Neue Vokabeln für dich</span><span>${(S.vocab.days[sm.day]||[]).length}</span></div><p class="note" style="margin:0">${(S.vocab.days[sm.day]||[]).slice(0,6).map(v=>esc(v.it)).join(", ")}</p></div>
     <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
 }
 function rShop(){
   $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button>
-    <h2 class="t">Einrichten</h2><p class="note" style="margin:-6px 0 0">Du hast <b style="color:var(--gold)">${S.coins} €</b>. Jede Einrichtung bringt mehr Trinkgeld (jetzt ×${mult().toFixed(2)}).</p>
+    <h2 class="t">Kaufen</h2><p class="note" style="margin:-6px 0 0">Du hast <b style="color:var(--gold)">${S.coins} €</b>. Jede Einrichtung bringt mehr Trinkgeld (jetzt ×${mult().toFixed(2)}). Gekaufte Sachen stellst du unter „Umstellen“ in deinen Laden.</p>
     <div class="items">${SHOP.filter(i=>!i.up||i.up>S.level||S.owned.includes(i.id)).map(i=>{
       const own=S.owned.includes(i.id)||(i.up&&S.level>=i.up), locked=i.lv>S.level;
       const btn=own?`<span class="owned">Gekauft</span>`:locked?`<span class="owned" style="color:var(--chalk-dim)">ab ${LEVELS[i.lv].it}</span>`:`<button class="buy" data-act="buy" data-id="${i.id}" ${S.coins<i.cost?"disabled":""}>${i.cost} €</button>`;
@@ -736,21 +1107,56 @@ function rShop(){
 function rBook(){
   const e=Object.entries(S.book).sort((a,b)=>b[1].miss-a[1].miss);
   $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button><h2 class="t">Il quaderno</h2>
-    <p class="note" style="margin:-6px 0 0">Alles, was dir schwer gefallen ist. Tippe einen Eintrag an, um ihn zu hören.</p>
-    ${e.length?`<div class="items">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}× falsch</span></div>`).join("")}</div>`
+    <p class="note" style="margin:-6px 0 0">Alles, was dir schwer gefallen ist oder was du nachgeschaut hast. Tippe einen Eintrag an, um ihn zu hören.</p>
+    ${e.length?`<div class="items">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}×</span></div>`).join("")}</div>`
       :`<div class="panel"><p class="note" style="margin:0">Noch leer. Sobald du etwas falsch hast oder das rote ✕ drückst, landet es hier zum Wiederholen.</p></div>`}`;
 }
 
 /* ---------- Events ---------- */
+let popTimer=null, pressTimer=null, suppressClick=false;
+function showWord(el){
+  const w=el.dataset.w, de=lookup(w); if(!de)return;
+  const pop=$("#pop"); pop.innerHTML=`${esc(w)} = ${esc(de)}<small>ins Notizbuch gelegt</small>`; pop.hidden=false;
+  const r=el.getBoundingClientRect(), pw=pop.offsetWidth;
+  pop.style.left=Math.max(8,Math.min(innerWidth-pw-8,r.left+r.width/2-pw/2))+"px";
+  pop.style.top=Math.max(8,r.top-pop.offsetHeight-8)+"px";
+  clearTimeout(popTimer); popTimer=setTimeout(()=>{pop.hidden=true;},2600);
+  if(de!=="Name"){note(w.toLowerCase(),de); if(G){G.seen=G.seen||new Set();G.seen.add(w.toLowerCase());G.tapped=G.tapped||new Set();G.tapped.add(w.toLowerCase());}}
+  if(G&&screen==="play"){const st=curStep();if(st&&!st.done)st.peeked=true;}
+  sfx("select"); save();
+}
+document.addEventListener("pointerdown",e=>{
+  const w=e.target.closest(".opt .w"); if(!w)return;
+  clearTimeout(pressTimer); pressTimer=setTimeout(()=>{suppressClick=true;showWord(w);},420);
+});
+["pointerup","pointercancel","pointermove"].forEach(ev=>document.addEventListener(ev,e=>{if(ev!=="pointermove"||Math.abs(e.movementX)+Math.abs(e.movementY)>6)clearTimeout(pressTimer);}));
+document.addEventListener("contextmenu",e=>{if(e.target.closest(".opt,.w"))e.preventDefault();});
 function handleClick(e){
-  const t=e.target.closest("[data-act]"); if(!t||t.disabled)return;
+  if(suppressClick){suppressClick=false;return;}
+  const t=e.target.closest("[data-act]"); if(!t||t.disabled||t.getAttribute("aria-disabled")==="true")return;
+  if(t.dataset.act==="word")return showWord(t);
   const a=t.dataset.act;
   if(a!=="opt"&&a!=="serve")sfx(a==="ing"||a==="qty"?"select":"click");
   if(a==="vol"){volOpen=!volOpen;return render();}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
-  if(a==="start"){if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
+  if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(a==="home"||a==="quit"){if(screen==="summary")G=null;screen="home";return render();}
   if(a==="shop"){screen="shop";return render();}
+  if(a==="setup"){screen="setup";return render();}
+  if(a==="setupCheck"){if(ROOM_ITEMS.every(i=>S.room.some(r=>r.id===i.id)))startSetupQuiz();return;}
+  if(a==="ritem"){return quizAnswer(+t.dataset.i);}
+  if(a==="qtip"){S.setupQuiz.showTip=true;return render();}
+  if(a==="qidk"){const Q=S.setupQuiz,it=roomItem(S.room[Q.queue[Q.qi]].id);note(it.it,it.de);sfx("wrong");Q.flash=Q.queue[Q.qi];Q.flashOk=true;Q.queue.push(Q.queue[Q.qi]);Q.qi++;Q.wrong=0;Q.showTip=false;Q.revealed=false;render();showName(document.querySelector(`.ri[data-i="${Q.queue[Q.queue.length-1]}"]`),it);return;}
+  if(a==="setupDone"){S.setupDone=true;S.setupQuiz=null;G=null;return startDay();}
+  if(a==="vocab"){screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;return render();}
+  if(a==="vlist"){if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="vocab";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
+  if(a==="vstart"){const d=+t.dataset.d;if(S.vocabPaused&&S.vocabPaused.day===d&&!S.vocab.done[d]){S.vocabRun=S.vocabPaused;S.vocabPaused=null;screen="vocab";return render();}S.vocabPaused=null;return startVocab(d);}
+  if(a==="vsay"){const R=S.vocabRun;return speak(S.vocab.days[R.day][R.queue[0].k].it);}
+  if(a==="vopt"){const R=S.vocabRun;if(R.res==="ok")return;return vocabAnswer(R.opts[+t.dataset.i]);}
+  if(a==="vtip"){S.vocabRun.showTip=true;return render();}
+  if(a==="vidk"){const R=S.vocabRun,v=S.vocab.days[R.day][R.queue[0].k];note(v.it,v.de);R.missed=true;R.res="ok";R.msg=`Das heißt: ${v.it} = ${v.de}. Kommt gleich nochmal.`;if(R.queue[0].st===1)R.typed=v.it;else R.badAns=null;speak(v.it);return render();}
+  if(a==="vnext")return vocabNext();
+  if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
   if(a==="sound"){S.sound=!S.sound;save();return render();}
   if(a==="sayit")return speak(t.dataset.t);
@@ -774,6 +1180,7 @@ function handleClick(e){
   if(a==="idk"){giveUp();if(st.phone)st.showText=true;return render();}
 }
 document.addEventListener("click",e=>{handleClick(e);save();});
+document.addEventListener("submit",e=>{if(e.target.id==="vform"){e.preventDefault();const R=S.vocabRun;if(R&&R.res!=="ok"){vocabAnswer($("#vin").value);save();}}});
 document.addEventListener("keydown",e=>{const t=e.target.closest&&e.target.closest('[role="button"][data-act]');if(t&&(e.key==="Enter"||e.key===" ")){e.preventDefault();t.click();}});
 $("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay"){menuOpen=false;volOpen=false;render();}});
 $("#overlay").addEventListener("input",e=>{
