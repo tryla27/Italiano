@@ -34,7 +34,7 @@ oder erst beim Spielen aufgerufen wird.
 | Datei | Inhalt |
 |---|---|
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
-| `inhalt/dialoge.js` | Zutaten, Speisekarte, alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
+| `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Markt-Stufe, Preis), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände, Versionen mit Umwandlung (`SAVE_V`, `MIGRATE`), Kopie im Handy-Speicher (Capacitor Preferences), tägliche Sicherheitskopie |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
@@ -64,6 +64,13 @@ Felder nie umbenennen oder löschen, sonst verlieren Spieler ihren Fortschritt.
 Der Spielstand liegt dreifach: im Browser-Speicher, im Handy-Speicher der App (Capacitor Preferences)
 und als tägliche Sicherheitskopie. Dazu kommt der Spielstand-Code in den Einstellungen zum Mitnehmen.
 App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, sonst geht kein Update.
+
+## Pizzen und Zutaten
+
+- Ein neues Spiel startet mit sechs Zutaten (`START_ING`). Weitere kauft man am Markttag beim Stand von Signor Esposito. Er bietet drei Zutaten an, die man noch nicht hat, aus der aktuellen Stufe oder darunter.
+- Eine Pizza ist freigeschaltet, sobald man alle ihre Zutaten besitzt. Gäste bestellen nur, was man backen kann. Eine neu freigeschaltete Pizza bestellt am nächsten Tag garantiert jemand (`S.newPz`).
+- Sterne: Für je drei fehlerfreie Pizzen einer Sorte gibt es einen Stern, höchstens drei (`S.pz`). Unter zwei Sternen steht das Rezept in der Aufgabe. Mit drei Sternen gibt es +1 € Trinkgeld.
+- Spielstände vor Version 4 behalten alle zwölf alten Zutaten plus die neuen Start-Zutaten.
 
 ## Testen
 

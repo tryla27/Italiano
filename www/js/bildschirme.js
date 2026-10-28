@@ -24,7 +24,7 @@ function render(){
       <button class="sec" data-act="${voc?"vlist":"quit"}">Zur ${voc?"Übersicht":"Pizzeria"}<small>später genau hier weitermachen</small></button>
       <button class="sec abort" data-act="${voc?"vabort":"abort"}">Abbrechen<small>${voc?"Fortschritt dieser Runde geht verloren":"ohne Belohnung: kein Trinkgeld, kein neuer Tag"}</small></button></div>`;}
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
-  else if(menuOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Menù"><h2>Il Menù</h2>${MENU.map(m=>`<div class="mi"><b>${cap(m.n)} <span class="price">${m.p} €</span></b><div>${m.ing.join(", ")}</div></div>`).join("")}<p class="note">Plural: margherita → margherite, diavola → diavole. Bei „prosciutto e funghi“ bleibt der Name gleich.</p><button class="next" data-act="menu">Zurück zur Küche</button></div>`;
+  else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
   ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab})[screen]();
   armBack();
@@ -66,8 +66,18 @@ function rHome(){
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
   ${S.setupDone?`<button class="mapbtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><span class="maptxt">${ICON.map}<b>La mappa</b><small>Karte: Pizzeria, Markt, Eisladen, Hafen</small></span></button>`:""}
   <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
-  <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
+  <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="menu">Rezepte</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
   ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
+}
+// Rezeptbuch: freigeschaltete Pizzen mit Rezept und Sternen, die anderen mit den fehlenden Zutaten
+function ricettarioHTML(){
+  const have=availPizze(), rest=PIZZE.filter(p=>!have.includes(p)).sort((a,b)=>a.lv-b.lv);
+  const st=n=>{const k=pzStars(n);return `<span class="pzst" aria-label="${k} von 3 Sternen">${"★".repeat(k)}<span class="off">${"★".repeat(3-k)}</span></span>`;};
+  return `<div class="sheet" role="dialog" aria-label="Rezeptbuch"><h2>Il ricettario<small>Rezeptbuch · Zutaten ${S.ing.length}/${Object.keys(ING).length}</small></h2>
+    <div class="recipes">${have.map(p=>`<div class="mi"><b>${cap(p.n)} ${st(p.n)} <span class="price">${p.p} €</span></b><div>${p.ing.map(k=>`<span title="${esc(ING[k][0])}">${ingIcon(k)}${k}</span>`).join(" ")}</div></div>`).join("")}
+    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}${p.lv>S.level?` · Markt ab ${esc(LEVELS[p.lv].it)}`:""}</div></div>`).join("")}</div>
+    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Neue Zutaten kaufst du am Markttag bei Signor Esposito.</p>
+    <button class="next" data-act="menu">Zurück</button></div>`;
 }
 // Spielregeln und Stufen: früher unten auf der Startseite, jetzt im Fenster „So geht's“
 function helpHTML(){
@@ -90,7 +100,13 @@ function rPlay(){
     :`<div class="it">${wordsHTML(st.it,true)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`;
   if(st.done)bubble+=`<div class="tr">${esc(st.de)}</div>`;
   let action="";
-  if(st.kind==="mc"){
+  if(st.kind==="stall"){const bud=stallBudget();
+    action=`<div class="stall">${st.offer.map(k=>{const own=hasIng(k),pz=pizzeWith(k);
+      return `<div class="card${own?" got":""}">${ingIcon(k)}<b>${k}</b><small>${esc(ING[k][0])}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
+      ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<ING[k][3]?"disabled":""}>${ING[k][3]} €</button>`}</div>`;}).join("")}</div>
+      <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
+  }
+  else if(st.kind==="mc"){
     action=`<div class="opts">${st.opts.map((o,i)=>{
       const cls=st.done&&o.ok?"ok":st.bad.includes(i)?"bad":"";
       const tr=o.ok?st.corDe:o.de, sub=(st.done||st.bad.includes(i))&&tr?`<small>${esc(tr)}</small>`:"";
@@ -98,11 +114,12 @@ function rPlay(){
   }else{
     action=`<div class="kitchen"><div class="pz-wrap">${pizzaSVG(st.cur)}${L>0&&st.curQty>1?`<span class="qtyb">×${st.curQty}</span>`:""}</div>
       <div class="pz-side">${L>0?`<div class="stepper"><button data-act="qty" data-d="-1" aria-label="Weniger" ${st.done?"disabled":""}>−</button><b>${st.curQty}</b><button data-act="qty" data-d="1" aria-label="Mehr" ${st.done?"disabled":""}>+</button><span>Anzahl</span></div>`:""}
-      <button class="menu-btn" data-act="menu">Il Menù</button></div></div>
-      <div class="ings ${st.shake?"shake":""}">${Object.keys(ING).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}>${ingIcon(k)}${ING[k][0]}</button>`).join("")}</div>
+      <button class="menu-btn" data-act="menu">Ricettario</button></div></div>
+      <div class="ings${S.ing.length>12?" many":""} ${st.shake?"shake":""}">${Object.keys(ING).filter(hasIng).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}>${ingIcon(k)}${ING[k][0]}</button>`).join("")}</div>
       ${st.done?"":`<button class="serve" data-act="serve">Servire!</button>`}`;
   }
-  const ctrl=st.done
+  const ctrl=st.kind==="stall"?`<button class="next" data-act="next">${st.bought.length?"Grazie, arrivederci! →":"Oggi niente, grazie →"}</button>`
+    :st.done
     ?`<div class="fb ${st.fb[0]}">${esc(st.fb[1])}</div><button class="next" data-act="next">Avanti →</button>`
     :`${st.showTip?`<div class="tipbox"><b>Tipp:</b> ${st.tip}</div>`:""}
       <div class="ctrl">${st.wrong>0&&!st.showTip?`<button class="tipbtn" data-act="tip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
@@ -131,6 +148,7 @@ function rSummary(){
       <div class="line"><span>Trinkgeld</span><span>+${G.earned} €</span></div>
       <div class="line"><span>Zutaten vom Markt</span><span>−${sm.ing||0} €</span></div>
       <div class="line"><span>Miete</span><span>−${sm.rent||0} €</span></div>
+      ${sm.buy?`<div class="line"><span>Neue Zutaten</span><span>−${sm.buy} €</span></div>`:""}
       ${G.saved?`<div class="line"><span>Beim Handeln gespart</span><span>+${G.saved} €</span></div>`:""}
       <div class="line total"><span>Gewinn heute</span><span>${sm.net>=0?"+":""}${sm.net} €</span></div>
     </div>

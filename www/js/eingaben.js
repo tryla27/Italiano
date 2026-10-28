@@ -72,6 +72,7 @@ function handleClick(e){
   if(a==="speak")return speak(st.it,speaker());
   if(a==="text"){st.showText=true;st.textShown=true;return render();}
   if(a==="next")return advance();
+  if(a==="stallbuy"){stallBuy(t.dataset.k);return render();}
   if(st.done)return;
   if(a==="opt"){const i=+t.dataset.i;if(st.opts[i].ok){sfx("right");finish();if(st.phone)st.showText=true;}else{sfx("wrong");wrongAnswer(i);}return render();}
   if(a==="ing"){const k=t.dataset.k;st.cur.has(k)?st.cur.delete(k):st.cur.add(k);return render();}

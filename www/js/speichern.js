@@ -3,8 +3,10 @@
 // Laden einrichten ist vorerst ausgeschaltet und wird später neu gebaut (Code in laden.js bleibt).
 // Auf true setzen, um es wieder einzuschalten.
 const LADEN_EINRICHTEN=false;
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null};
-let S=Object.assign({},S0,{vol:Object.assign({},S0.vol)});
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null};
+// Listen und Objekte aus S0 kopieren, damit ein neues Spiel S0 nie verändert
+const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko)});
+let S=fresh0(Object.assign({},S0));
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";
 const enc=(k,v)=>v instanceof Set?{__set:[...v]}:v;
@@ -13,10 +15,11 @@ let savedAt=0, lastBody="", dbRef=null, cloudState="local", writing=false, dirty
 /* Spielstand-Versionen: Jede Änderung am Aufbau bekommt eine Umwandlung von Version n auf n+1.
    Regeln: Felder nie umbenennen oder löschen, neue Felder bekommen Startwerte in S0.
    test/spielstaende/ hat ein Beispiel jeder alten Version; der Test lädt sie alle. */
-const SAVE_V=3;
+const SAVE_V=4;
 const MIGRATE={
   1:o=>({v:2,S:o.S||o,G:null,screen:"home"}),            // ganz alt: nur S ohne Hülle
-  2:o=>{o.v=3;return o;}                                  // 3: Truhe, Deko, Bonus (Startwerte aus S0)
+  2:o=>{o.v=3;return o;},                                 // 3: Truhe, Deko, Bonus (Startwerte aus S0)
+  3:o=>{if(!o.S.ing)o.S.ing=[...new Set([...START_ING,...OLD_ING])];o.v=4;return o;} // 4: eigene Zutaten; alte Stände behalten alle zwölf alten
 };
 function migrate(o){
   if(!o.v&&!o.S&&o.coins!==undefined)o={v:1,S:o};
@@ -49,7 +52,7 @@ function applySave(raw){
     if(!o)return false;
     o=migrate(o);
     if(!o.S)return false;
-    S=Object.assign({},S0,o.S); S.vol=Object.assign({},S0.vol,o.S.vol||{});
+    S=fresh0(Object.assign({},S0,o.S));
     S.level=Math.min(S.level||0,LEVELS.length-1);
     if(!LADEN_EINRICHTEN){S.setupDone=true;S.setupQuiz=null;}
     G=o.G||null; screen=o.screen||"home"; if(screen!=="home"&&!G)screen="home";

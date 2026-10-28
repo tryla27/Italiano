@@ -445,3 +445,21 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 #screen.s-home{justify-content:space-between}
 .rlist .rcard{display:grid;grid-template-columns:auto 1fr;column-gap:12px;align-items:center}
 .rlist .rcard .ic{grid-row:1/3}
+/* Rezepte und Markt-Stand */
+.row3{grid-template-columns:repeat(4,1fr)}
+.row3 .sec{font-size:.84rem}
+.recipes{display:flex;flex-direction:column;gap:8px}
+.recipes .mi div span{display:inline-flex;align-items:center;gap:2px;margin-right:6px;white-space:nowrap}
+.recipes .ing-ic{width:18px;height:18px}
+.mi.locked{opacity:.55}
+.mi.locked b{font-size:1.2rem}
+.pzst{color:var(--gold);font-size:1rem;margin-left:4px;letter-spacing:1px}
+.pzst .off{opacity:.25}
+.stall{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.stall .card{padding:8px 6px}
+.stall .ing-ic{width:34px;height:34px}
+.stall .card.got{outline:2px solid var(--basil,#3f9a45)}
+#screen.s-play .ings{flex:0 1 auto;min-height:84px;overflow-y:auto;padding:2px}
+.ings.many{grid-template-columns:repeat(4,1fr);gap:5px}
+.ings.many .ing{flex-direction:column;gap:1px;padding:4px 2px;font-size:.74rem;line-height:1.1}
+.ings.many .ing-ic{width:20px;height:20px}

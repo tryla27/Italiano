@@ -167,11 +167,27 @@ for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => 
   await page.goto(URL);
   await page.evaluate(r => { localStorage.clear(); localStorage.setItem("pizzeria-parola", JSON.stringify(r)); }, fx.raw);
   await page.reload();
-  const got = await page.evaluate(() => ({ coins: S.coins, day: S.day, level: S.level }));
-  check(got.coins === fx.expect.coins && got.day === fx.expect.day && got.level === fx.expect.level, `Spielstand ${fx.name} lädt falsch: ${JSON.stringify(got)}`);
+  const got = await page.evaluate(() => ({ coins: S.coins, day: S.day, level: S.level, ing: S.ing.length }));
+  check(got.coins === fx.expect.coins && got.day === fx.expect.day && got.level === fx.expect.level && (!fx.expect.ing || got.ing === fx.expect.ing), `Spielstand ${fx.name} lädt falsch: ${JSON.stringify(got)}`);
   check(await page.evaluate(() => { try { for (const s of ["home", "shop", "map", "book", "vocab"]) { screen = s; render(); } screen = "home"; render(); return true; } catch (e) { return String(e); } }) === true, `Spielstand ${fx.name}: Bildschirm bricht`);
   check(await page.evaluate(() => { S.streak++; save(); S.streak--; save(); return JSON.parse(JSON.parse(localStorage.getItem("pizzeria-parola")).state).v === SAVE_V; }), `Spielstand ${fx.name} wird nicht auf die neue Version gehoben`);
 }
+// Pizzen: neues Spiel startet mit sechs Zutaten, Bestellungen nutzen nur eigene Zutaten
+await fresh({ coins: 200, level: 1, day: 3, setupDone: true });
+check(await page.evaluate(() => { S.ing = [...START_ING]; for (let i = 0; i < 60; i++) { const o = orderStep(i % 3); if (![...o.want].every(hasIng)) return false; } return availPizze().length === 3; }), "Bestellung braucht Zutaten, die man nicht hat");
+// Markt-Stand: Salami kaufen schaltet die Diavola frei, am nächsten Tag wird sie bestellt
+check(await page.evaluate(() => { S.ing = [...START_ING]; S.level = 1; S.day = 3; startDay(); G.phase = "market"; G.mi = G.market.findIndex(m => m.kind === "stall"); render(); return G.mi >= 0 && !!document.querySelector('[data-act="stallbuy"][data-k="salame"]'); }), "Markt-Stand fehlt oder bietet keine Salami an");
+await page.locator('[data-act="stallbuy"][data-k="salame"]').click();
+check(await page.evaluate(() => hasIng("salame") && S.newPz === "diavola" && G.bought === 15 && /Diavola/.test(G.banner)), "Kauf am Markt-Stand klappt nicht");
+await shot("markt-stand");
+check(await page.evaluate(() => { while (G && screen === "play") advance(); return G.summary.buy === 15; }), "Zutatenkauf fehlt in der Abrechnung");
+check(await page.evaluate(() => { G = null; startDay(); return G.guests.some(g => g.steps.some(s => s.named === "diavola")) && S.newPz === null; }), "Neue Pizza wird am nächsten Tag nicht bestellt");
+// Rezeptbuch mit Sternen
+await page.evaluate(() => { G = null; screen = "home"; S.pz = { margherita: { ok: 9 } }; menuOpen = true; render(); });
+check(await page.evaluate(() => /Il ricettario/.test($("#overlay").textContent) && $("#overlay").querySelectorAll(".mi.locked").length > 0 && /Dir fehlen/.test($("#overlay").textContent)), "Rezeptbuch fehlt");
+await shot("rezeptbuch");
+await page.evaluate(() => { menuOpen = false; render(); });
+
 // Kaputter Hauptstand: die Sicherheitskopie springt ein
 await page.goto(URL);
 await page.evaluate(() => { localStorage.clear(); localStorage.setItem("pizzeria-parola-backup", JSON.stringify({ savedAt: 1, state: JSON.stringify({ v: 3, S: { coins: 321, day: 7, setupDone: true }, G: null, screen: "home" }) })); localStorage.setItem("pizzeria-parola", "{kaputt"); });
