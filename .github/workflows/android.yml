@@ -69,7 +69,7 @@ jobs:
           tail -20 android/app/build.gradle
 
       - name: App-Icon und Startbild
-        run: npx capacitor-assets generate --android --iconBackgroundColor '#1b221f' --splashBackgroundColor '#1b221f' || echo "Icons übersprungen"
+        run: npx capacitor-assets generate --android --iconBackgroundColor '#d99a4e' --splashBackgroundColor '#1b221f' || echo "Icons übersprungen"
 
       - name: Spiel in die App kopieren
         run: npx cap sync android
