@@ -30,7 +30,8 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,locale:rLocale})[screen]();
+  if(screen==="home"||screen==="shop")locThumbSoon();
   armBack();
 }
 // Kopfzeile für Untermenüs: zurück zur Pizzeria, Titel, Ton und Einstellungen in einer Zeile
@@ -68,7 +69,8 @@ function rHome(){
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · ${cap(giorno(S.day)[0])}, Tag ${S.day}</small></button>`
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
-  ${S.setupDone?`<button class="mapbtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><span class="maptxt">${ICON.map}<b>La mappa</b><small>Karte: Pizzeria, Markt, Eisladen, Hafen</small></span></button>`:""}
+  ${S.setupDone?`<div class="placerow"><button class="placebtn locbtn" data-act="locale"><span class="locthumb">${locThumbHTML()}</span><b>Il mio locale</b><small>Dein Restaurant in 3D</small></button>
+    <button class="placebtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><b>La mappa</b><small>Markt, Eisladen, Hafen</small></button></div>`:""}
   <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"Paare finden":"Bonus heute!"}</small></button></div>
   <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="menu">Rezepte</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
   ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
@@ -192,7 +194,7 @@ function rShop(){
   const pct=Math.round(Math.min(TIP_CAP,fx("tip"))*100);
   $("#screen").innerHTML=`${head("Il negozio","Einrichtung")}
     <p class="note">Du hast <b style="color:var(--gold)">${S.coins} €</b> · Trinkgeld +${pct} %${pct>=TIP_CAP*100?" (Maximum)":""}${fx("guest")?` · +${fx("guest")} Gäste`:""}${S.boost?` · 🍀 ×${S.boost.x} am nächsten Tag`:""}</p>
-    ${boardHTML()}
+    <button class="locshop" data-act="locale"><span class="locthumb">${locThumbHTML()}</span><span class="maptxt"><b>Il mio locale</b><small>Möbel im 3D-Restaurant aufstellen, drehen und einlagern</small></span></button>
     ${up?`<div class="item up"><span class="ic">${up.ic}</span><span class="nm">${esc(up.it)}<small>${esc(up.de)}</small></span><button class="buy" data-act="buy" data-id="${up.id}" ${S.coins<up.cost?"disabled":""}>${up.cost} €</button></div>`:`<div class="panel"><p class="note" style="margin:0">Höchste Stufe erreicht: ${esc(LEVELS[S.level].it)}!</p></div>`}
     <div class="cards scroll">${list.map(card).join("")||`<p class="note">Alles für diese Stufe gekauft. Steig auf, dann gibt es Neues.</p>`}
     ${Object.keys(S.deko).length?`<p class="note owned-row">Aus Truhen: ${Object.entries(S.deko).map(([id,n])=>{const d=decoById(id);return d?`<span title="${esc(d.it)} · ${esc(d.de)}" class="${d.rare?"rare":""}">${d.ic}${n>1?`<sub>${n}</sub>`:""}</span>`:"";}).join(" ")}</p>`:""}</div>`;

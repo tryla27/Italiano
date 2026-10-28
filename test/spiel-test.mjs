@@ -22,7 +22,7 @@ const OUT = join(ROOT, "test", "screenshots");
 const DEVICE = process.env.DEVICE || "Pixel 7";
 
 /* ---------- Kleiner Webserver für www/ ---------- */
-const TYPES = { ".html": "text/html", ".mp3": "audio/mpeg", ".png": "image/png", ".js": "text/javascript", ".css": "text/css", ".webp": "image/webp" };
+const TYPES = { ".html": "text/html", ".mp3": "audio/mpeg", ".png": "image/png", ".js": "text/javascript", ".css": "text/css", ".webp": "image/webp", ".glb": "model/gltf-binary" };
 const server = createServer(async (req, res) => {
   const path = normalize(decodeURIComponent(req.url.split("?")[0])).replace(/^(\.\.[/\\])+/, "");
   try {
@@ -59,9 +59,9 @@ async function act(a, extra = "") {
   return true;
 }
 async function fresh(state) {
-  await page.goto(URL);
+  await page.goto(URL + "leer"); // leere Seite: das Spiel speichert beim Verlassen nicht über den Test-Stand
   await page.evaluate(s => { localStorage.clear(); if (s) localStorage.setItem("pizzeria-parola", JSON.stringify({ savedAt: Date.now(), state: JSON.stringify({ v: 2, S: s, G: null, screen: "home" }) })); }, state);
-  await page.reload();
+  await page.goto(URL);
   await page.waitForLoadState("networkidle").catch(() => {});
 }
 
@@ -182,9 +182,9 @@ await page.evaluate(() => { volOpen = false; codeBox = null; render(); });
 // Jede alte Spielstand-Version aus test/spielstaende/ lädt, behält Geld, Tag und Stufe, und alle Bildschirme gehen
 for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => f.endsWith(".json")).sort()) {
   const fx = JSON.parse(await readFile(join(ROOT, "test", "spielstaende", f), "utf8"));
-  await page.goto(URL);
+  await page.goto(URL + "leer"); // leere Seite: das Spiel speichert beim Verlassen nicht über den Test-Stand
   await page.evaluate(r => { localStorage.clear(); localStorage.setItem("pizzeria-parola", JSON.stringify(r)); }, fx.raw);
-  await page.reload();
+  await page.goto(URL);
   const got = await page.evaluate(() => ({ coins: S.coins, day: S.day, level: S.level, ing: S.ing.length }));
   check(got.coins === fx.expect.coins && got.day === fx.expect.day && got.level === fx.expect.level && (!fx.expect.ing || got.ing === fx.expect.ing), `Spielstand ${fx.name} lädt falsch: ${JSON.stringify(got)}`);
   check(await page.evaluate(() => { try { for (const s of ["home", "shop", "map", "book", "vocab"]) { screen = s; render(); } screen = "home"; render(); return true; } catch (e) { return String(e); } }) === true, `Spielstand ${fx.name}: Bildschirm bricht`);
@@ -243,16 +243,46 @@ check(await page.evaluate(() => /Il ricettario/.test($("#overlay").textContent) 
 await shot("rezeptbuch");
 await page.evaluate(() => { menuOpen = false; render(); });
 
-// Einrichtung: kaufen, Moretti fragt nach dem Platz, auf ein grünes Feld stellen
-await fresh({ coins: 1000, level: 2, day: 5, setupDone: true });
+// Einrichtung im 3D-Restaurant: kaufen, Moretti fragt nach dem Platz, ziehen, drehen, einlagern, aufstellen
+await fresh({ coins: 1000, level: 2, day: 5, setupDone: true, place: { forno: [0, 0], frigo: [7, 0], tavoli: [2, 4], bancone: [3, 2] } });
 await page.evaluate(() => { screen = "shop"; render(); });
 await page.locator('[data-act="buy"][data-id="tavoli2"]').click();
-check(await page.evaluate(() => S.owned.includes("tavoli2") && S.coins === 970 && placing && placing.key === "tavoli" && /Dove mettiamo/.test($(".board-line").textContent)), "Möbel kaufen fragt nicht nach dem Platz");
-await shot("einrichtung");
-const okCell = await page.evaluate(() => { const c = document.querySelector(".board .cell.ok"); return c && [c.dataset.x, c.dataset.y]; });
-await page.locator(`.board .cell.ok[data-x="${okCell[0]}"][data-y="${okCell[1]}"]`).click();
-check(await page.evaluate(([x, y]) => S.place.tavoli[0] === +x && S.place.tavoli[1] === +y && !placing, okCell), "Möbel lässt sich nicht umstellen");
-check(await page.evaluate(() => { const before = S.place.tavoli + ""; placing = { key: "tavoli", msg: "" }; furnPut(0, 0); return S.place.tavoli + "" === before; }), "Tisch darf nicht an die Küchenwand");
+await page.waitForFunction(() => L3.items.length && !L3.building && L3.byKey.tavoli && L3.byKey.tavoli.obj, null, { timeout: 15000 }).catch(() => {});
+await page.waitForTimeout(300);
+check(await page.evaluate(() => S.owned.includes("tavoli2") && S.coins === 970 && screen === "locale" && L3.sel === "tavoli" && /Dove mettiamo/.test($(".loc-msg").textContent)), "Möbel kaufen fragt nicht nach dem Platz");
+check(await page.evaluate(() => L3.ok && !!document.querySelector("#loc3d canvas")), "3D-Restaurant startet nicht (WebGL)");
+// Alte Plätze vom Raster sind umgerechnet: Ofen links an der Rückwand, Kühlung rechts, Theke in der Mitte
+check(await page.evaluate(() => { const L = S.locale; return L.forno.x < -3 && L.forno.z < -2.5 && L.frigo.x > 3 && L.frigo.z < -2.5 && Math.abs(L.bancone.x + .56) < .3; }), "Alte Möbelplätze werden nicht übernommen");
+await shot("einrichtung-3d");
+const scr = k => page.evaluate(k => { const I = L3.byKey[k], v = new THREE.Vector3(I.pos.x, I.pos.y + .4, I.pos.z).project(L3.cam), r = L3.r.domElement.getBoundingClientRect(); return [r.left + (v.x + 1) / 2 * r.width, r.top + (1 - v.y) / 2 * r.height]; }, k);
+{
+  const before = await page.evaluate(() => JSON.stringify(S.locale.tavoli));
+  const [x, y] = await scr("tavoli");
+  await page.mouse.move(x, y); await page.mouse.down();
+  for (let i = 1; i <= 6; i++) await page.mouse.move(x + i * 8, y - i * 7);
+  await page.mouse.up(); await page.waitForTimeout(200);
+  check(await page.evaluate(b => JSON.stringify(S.locale.tavoli) !== b && placeOk(L3.byKey.tavoli, L3.byKey.tavoli.pos), before), "Tisch lässt sich nicht ziehen");
+  // Ins Gehwegfeld oder in die Tür darf der Tisch nicht
+  check(await page.evaluate(() => { const I = L3.byKey.tavoli; return !placeOk(I, { x: 0, z: LD / 2 - .5, r: 0, y: 0 }) && !placeOk(I, { x: 0, z: OUT_Z0 + 1, r: 0, y: 0 }) && !placeOk(I, Object.assign({}, L3.byKey.bancone.pos)); }), "Tisch darf in die Tür, nach draußen oder auf die Theke");
+}
+await page.locator('[data-act="lrot"]').click();
+check(await page.evaluate(() => S.locale.tavoli.r === 1 || S.locale.tavoli.r === 2), "Drehen geht nicht");
+await page.locator('[data-act="lstore"]').click();
+check(await page.evaluate(() => S.locale.tavoli.st === 1 && !L3.sel && document.querySelectorAll('[data-act="lput"]').length === 1), "Einlagern geht nicht");
+await page.locator('[data-act="lput"]').click();
+check(await page.evaluate(() => !S.locale.tavoli.st && L3.sel === "tavoli" && placeOk(L3.byKey.tavoli, L3.byKey.tavoli.pos)), "Aus dem Lager aufstellen geht nicht");
+// Kleine Sachen stehen auf der Theke, Wandstücke an der Wand, nach Neuladen alles am selben Platz
+await page.evaluate(() => { S.owned.push("moka", "foto"); save(); render(); });
+await page.waitForFunction(() => !L3.building && L3.byKey.caffe && L3.byKey.caffe.pos && L3.byKey.foto && L3.byKey.foto.pos, null, { timeout: 15000 }).catch(() => {});
+check(await page.evaluate(() => S.locale.caffe.y > .8 && S.locale.foto.y > 1), "Moka steht nicht auf der Theke oder Bild hängt nicht an der Wand");
+await shot("einrichtung-3d-moka");
+{
+  const keep = await page.evaluate(() => { flushSave(); return JSON.stringify(S.locale); });
+  await page.reload(); await page.evaluate(() => { screen = "locale"; render(); });
+  await page.waitForFunction(() => L3.items.length && !L3.building && L3.syncSig === locStruct(), null, { timeout: 15000 }).catch(() => {});
+  check(await page.evaluate(k => JSON.stringify(S.locale) === k, keep), "Möbelplätze gehen beim Neuladen verloren");
+}
+check(await page.evaluate(() => { screen = "home"; render(); return !!document.querySelector('.locbtn[data-act="locale"]'); }), "Startseite hat keinen Knopf zum Restaurant");
 check(await page.evaluate(() => { S.owned = SHOP.filter(i => i.fx && i.fx.tip).map(i => i.id); return mult() === 1 + TIP_CAP; }), "Trinkgeld-Deckel fehlt");
 check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
 // Holzofen: eine falsche Pizza pro Tag zählt nicht
@@ -288,9 +318,9 @@ check(await page.evaluate(() => __said.includes(curStep().opts[0].t)), "Angetipp
 await page.evaluate(() => { G = null; screen = "home"; render(); });
 
 // Kaputter Hauptstand: die Sicherheitskopie springt ein
-await page.goto(URL);
+await page.goto(URL + "leer"); // leere Seite: das Spiel speichert beim Verlassen nicht über den Test-Stand
 await page.evaluate(() => { localStorage.clear(); localStorage.setItem("pizzeria-parola-backup", JSON.stringify({ savedAt: 1, state: JSON.stringify({ v: 3, S: { coins: 321, day: 7, setupDone: true }, G: null, screen: "home" }) })); localStorage.setItem("pizzeria-parola", "{kaputt"); });
-await page.reload();
+await page.goto(URL);
 check(await page.evaluate(() => S.coins === 321), "Sicherheitskopie wird bei kaputtem Spielstand nicht genutzt");
 
 // Alter Spielstand ohne neue Felder muss weiter laden

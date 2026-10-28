@@ -464,17 +464,6 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .ings.many .ing{flex-direction:column;gap:1px;padding:4px 2px;font-size:.74rem;line-height:1.1}
 .ings.many .ing-ic{width:20px;height:20px}
 /* Einrichtung: der Laden auf dem Raster */
-.board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#3a2a1e;border-radius:12px;padding:4px;flex-shrink:0}
-.board .cell{aspect-ratio:1;border:0;border-radius:5px;background:#c9a77a;font-size:1.2rem;padding:0;display:flex;align-items:center;justify-content:center;min-width:0}
-.board .cell.wall{background:#8d6b52}
-.board .cell.room{background:#d9b98a}
-.board .cell.door{background:#5a4030;opacity:.8}
-.board .cell.has{background:#f3e3c3;box-shadow:inset 0 0 0 2px #7a5a3a}
-.board .cell.sel{box-shadow:inset 0 0 0 3px var(--gold);animation:pulse 1s infinite alternate}
-.board .cell.ok{background:#7fc27a}
-.board-line{font-size:.85rem;line-height:1.25;color:var(--chalk)}
-.board-line small{display:block;color:var(--chalk-dim);font-size:.78rem}
-.board-line.dim{color:var(--chalk-dim)}
 .cards.scroll{flex:1 1 auto !important;min-height:120px;overflow-y:auto;align-content:start}
 .card small.fx{color:var(--gold);flex:0}
 @keyframes pulse{to{filter:brightness(1.15)}}
@@ -486,7 +475,6 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .ing small{display:block;font-weight:600;font-size:.66rem;color:var(--chalk-dim)}
 .ing{position:relative}
 .ing .ord{position:absolute;top:2px;left:4px;background:var(--gold);color:#1e2420;border-radius:50%;width:16px;height:16px;font-size:.7rem;line-height:16px;font-weight:800}
-.board{max-width:260px;width:100%;align-self:center}
 .panel.letter{gap:4px;border:2px dashed var(--gold)}
 .panel.letter small{color:var(--chalk-dim);font-size:.8rem}
 /* Feilschen am Markt-Stand */
@@ -517,6 +505,38 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mcard .ing-ic{width:52%;height:52%}
 .mcard.found{border-color:var(--basil,#3f9a45);opacity:.85;transform:none}
 .mcard small{font-size:.72rem;color:#5a5a50}
+/* Restaurant in 3D (restaurant3d.js): Startseite, Shop und eigener Bildschirm */
+.placerow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.placebtn{display:flex;flex-direction:column;align-items:flex-start;gap:1px;border:2px solid var(--gold);background:var(--slate2);border-radius:16px;padding:6px 6px 7px;color:var(--chalk);text-align:left;min-width:0}
+.placebtn b{font-family:var(--game);font-weight:400;font-size:1.15rem;line-height:1.1;padding:0 4px}
+.placebtn small{color:var(--chalk-dim);font-size:.74rem;padding:0 4px}
+.placebtn .mapthumb,.locthumb{display:block;width:100%;height:74px;border-radius:10px;overflow:hidden;line-height:0;pointer-events:none;background:#141a17;margin-bottom:4px}
+.placebtn .mapthumb svg{width:100%;height:auto;transform:translateY(-28%)}
+.locthumb img{width:100%;height:100%;object-fit:cover;display:block}
+.locph{display:flex;width:100%;height:100%;align-items:center;justify-content:center;font-size:2rem;line-height:1}
+.locbtn{border-color:var(--tomato)}
+.locshop{display:grid;grid-template-columns:120px 1fr;gap:12px;align-items:center;border:2px solid var(--tomato);background:var(--slate2);border-radius:16px;padding:6px;color:var(--chalk);text-align:left}
+.locshop .locthumb{height:72px;margin:0}
+#screen.s-locale{gap:8px}
+#screen.s-locale>.loc-wrap{flex:1 1 0;min-height:0}
+.loc-wrap{position:relative;border-radius:16px;overflow:hidden;background:#1b221f;border:2px solid var(--line)}
+.loc3d{position:absolute;inset:0}
+.loc-canvas{width:100%!important;height:100%!important;display:block;touch-action:none}
+.loc-load,.loc-no3d{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;font-family:var(--hand);font-size:1.5rem;color:var(--chalk-dim);text-align:center;padding:20px}
+.loc-msg{position:absolute;left:8px;right:8px;top:8px;background:rgba(27,34,31,.9);border:1.5px solid var(--gold);border-radius:12px;padding:6px 10px;font-size:.85rem;line-height:1.25}
+.loc-hint{position:absolute;left:8px;right:8px;bottom:8px;margin:0;background:rgba(27,34,31,.78);border-radius:10px;padding:5px 8px;font-size:.76rem;color:var(--chalk-dim);text-align:center;pointer-events:none}
+.loc-sel{position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:6px;align-items:stretch}
+.loc-name{flex:1;min-width:0;text-align:left;border:2px solid var(--gold);background:rgba(27,34,31,.92);border-radius:12px;padding:5px 9px;color:var(--chalk)}
+.loc-name b{display:block;font-weight:800;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-name small{display:block;color:var(--chalk-dim);font-size:.74rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.loc-b{padding:4px 8px;font-size:1.15rem;line-height:1.1;background:rgba(27,34,31,.92)}
+.loc-b small{font-size:.66rem}
+.loc-store{display:flex;flex-direction:column;gap:3px}
+.loc-store b{font-family:var(--hand);font-size:1.25rem;color:var(--gold);line-height:1}
+.loc-store>small{color:var(--chalk-dim);font-size:.74rem}
+.loc-store .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.chip{flex:none;border:1.5px solid var(--line);background:var(--slate2);border-radius:999px;padding:5px 10px;font-size:.82rem;color:var(--chalk);white-space:nowrap}
+.chip.rare{border-color:var(--gold)}
 /* Reaktion des Gasts auf eine falsche Antwort */
 .bubble .react{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(0,0,0,.2);font-style:italic}
 .bubble .react .it{font-size:.95rem;font-weight:600}
