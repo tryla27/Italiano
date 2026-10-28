@@ -141,6 +141,9 @@ check(await page.evaluate(() => screen === "map" && /Markt/.test(mapMsg)), "Gesc
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
 check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
 
+// Wochentage: Tag 3 ist mercoledì (Markttag), Tag 4 nicht
+check(await page.evaluate(() => isMarketDay(3) && !isMarketDay(4) && giorno(1)[0] === "lunedì" && giorno(8)[0] === "lunedì"), "Wochentage oder Markttage stimmen nicht");
+
 // 2) Laden schon eingerichtet: einen Spieltag spielen
 await fresh({ setupDone: true, coins: 25, day: 1 });
 await act("start");

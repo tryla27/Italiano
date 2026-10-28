@@ -1,7 +1,7 @@
 /* Karte: alle Orte auf einen Blick. Antippen = Tür-Geräusch und sofort dorthin. */
 const PLACES=[
   {id:"pizzeria",it:"La Pizzeria",de:"Spieltag",x:112,y:250,img:"bilder/umgebungen/pizzeria.webp",vb:"60 400 280 280"},
-  {id:"mercato",it:"Il Mercato",de:"nach Feierabend",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
+  {id:"mercato",it:"Il Mercato",de:"mittwochs + samstags",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
   {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:"bilder/umgebungen/eisladen.webp",vb:"60 380 280 280"},
   {id:"porto",it:"Il Porto",de:"Ausflug",x:150,y:402,img:"bilder/umgebungen/hafen.webp",vb:"60 300 280 280"},
   {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true}
@@ -51,7 +51,7 @@ let mapMsg="";
 // Zum Ort gehen: Tür-Geräusch, dann sofort dort.
 function goPlace(id){
   const p=PLACES.find(q=>q.id===id); if(!p)return;
-  if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":"Der Markt öffnet nach dem letzten Gast eines Spieltags.";sfx("wrong");return render();}
+  if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":isMarketDay(S.day)?"Heute ist Markttag: der Markt öffnet nach dem letzten Gast.":`Markt ist nur mercoledì und sabato. Nächster Markttag: ${giorno(nextMarketDay(S.day))[0]}.`;sfx("wrong");return render();}
   mapMsg=""; sfx("door");
   if(id==="pizzeria"||id==="mercato"){if(G&&!G.summary&&!G.trip){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(G&&!G.summary&&G.trip===id){screen="play";render();autoSpeak();return;}

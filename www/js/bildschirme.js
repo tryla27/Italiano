@@ -41,9 +41,11 @@ function rHome(){
     <div class="stat"><b>${S.streak}</b><span>Serie</span></div>
     <div class="stat"><b>${S.learned.length}</b><span>Gelernt</span></div>
   </div>
+  <div class="week" aria-label="Woche">${GIORNI.map((g,i)=>{const d=S.day-wday(S.day)+i;return `<span class="wd${d===S.day?" now":""}${d<S.day?" past":""}${MARKT_TAGE.includes(i)?" mk":""}" title="${g[1]}${MARKT_TAGE.includes(i)?", Markttag":""}"><b>${g[2]}</b>${MARKT_TAGE.includes(i)?"🧺":""}</span>`;}).join("")}</div>
+  <p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>
   ${G&&!G.summary
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
-    :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · Tag ${S.day}</small></button>`
+    :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · ${cap(giorno(S.day)[0])}, Tag ${S.day}</small></button>`
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
   ${S.setupDone?`<button class="mapbtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><span class="maptxt">${ICON.map}<b>La mappa</b><small>Karte: Pizzeria, Markt, Eisladen, Hafen</small></span></button>`:""}
   <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>

@@ -29,6 +29,12 @@ h1,h2,h3{margin:0;font-weight:400}
 .sign .lvl-de{display:block;margin-top:6px;font-size:.82rem;color:var(--chalk-dim);text-transform:uppercase;letter-spacing:.1em}
 .shelf{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;font-size:1.6rem;min-height:2rem}
 .shelf .empty{font-family:var(--hand);font-size:1.2rem;color:var(--chalk-dim)}
+.week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.wd{background:var(--slate2);border:2px solid transparent;border-radius:10px;padding:5px 0 3px;text-align:center;font-size:.72rem;line-height:1.1;color:var(--chalk-dim);display:flex;flex-direction:column;align-items:center;min-height:42px}
+.wd b{font-weight:800;text-transform:uppercase;letter-spacing:.04em}
+.wd.past{opacity:.45}.wd.mk{color:var(--chalk)}
+.wd.now{border-color:var(--gold);color:var(--gold)}
+.weeknote{margin:-4px 0 0;text-align:center;font-size:.85rem;color:var(--chalk-dim)}.weeknote b{color:var(--chalk)}
 .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
 .stat{background:var(--slate2);border-radius:14px;padding:10px 4px;text-align:center}
 .stat b{display:block;font-family:var(--game);font-size:1.4rem;font-weight:400;font-variant-numeric:tabular-nums}

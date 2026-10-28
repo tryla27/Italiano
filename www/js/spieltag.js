@@ -22,6 +22,8 @@ function startDay(){
   G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
   screen="play"; render(); autoSpeak();
 }
+const wday=d=>(d-1)%7, giorno=d=>GIORNI[wday(d)], isMarketDay=d=>MARKT_TAGE.includes(wday(d));
+function nextMarketDay(d){for(let i=0;i<7;i++)if(isMarketDay(d+i))return d+i;return d;}
 const curStep=()=>G.phase==="market"?G.market[G.mi]:G.guests[G.gi].steps[G.si];
 const curGuest=()=>G.phase==="market"?null:G.guests[G.gi];
 function autoSpeak(){const st=curStep();if(st&&(S.sound||st.phone)&&(!st.phone||!st.showText||S.sound))setTimeout(()=>speak(st.it,speaker()),250);}
@@ -77,7 +79,9 @@ function advance(){
       G.banner=g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
       G.gi++; G.si=0;
       if(G.gi>=G.guests.length&&G.trip){endTrip();return;}
-      if(G.gi>=G.guests.length){G.phase="market";G.banner="Feierabend! Jetzt noch Zutaten auf dem Markt kaufen.";}
+      if(G.gi>=G.guests.length){
+        if(!isMarketDay(S.day)){endDay();return;}
+        G.phase="market";G.banner=`Feierabend! Heute ist ${giorno(S.day)[0]}, Markttag: jetzt noch Zutaten kaufen.`;}
     }else G.banner="";
   }
   render(); $("#screen").scrollTop=0; autoSpeak();

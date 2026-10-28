@@ -39,7 +39,7 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 
 Alle Orte erreichst du über **La mappa** (Karte) auf der Startseite: antippen, die Ladentür klingelt,
 und du bist dort. In der Pizzeria laufen die Gäste mit ganzem Körper herein und stehen neben der Bar.
-Nach Feierabend geht es auf den Markt mit mehreren Ständen. Als Ausflüge gibt es den **Eisladen** und
+An Markttagen (mercoledì und sabato) geht es nach Feierabend auf den Markt mit mehreren Ständen; die Woche mit den Markttagen steht auf der Startseite. Als Ausflüge gibt es den **Eisladen** und
 den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, aber noch zu.
 
 ## Einstellungen im Spiel

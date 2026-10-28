@@ -117,6 +117,9 @@ const LEVELS=[
  {it:"Sul Mare",rent:45,de:"Restaurant am Meer in Amalfi",guests:5,base:6,cost:65,phones:2,talk:[DIR,PROB],drinks:true,reserv:true,neu:"Touristen: Wegbeschreibungen, Wetter, Fähre"},
  {it:"Il Maestro",rent:60,de:"Meister-Pizzeria",guests:5,base:8,cost:80,phones:2,talk:[CRITIC,DIR],drinks:true,reserv:true,neu:"Restaurantkritiker und Zeitung, Vergangenheitsform"}
 ];
+// Wochentage: Tag 1 ist ein Montag. Markt ist nur mittwochs und samstags.
+const GIORNI=[["lunedì","Montag","lun"],["martedì","Dienstag","mar"],["mercoledì","Mittwoch","mer"],["giovedì","Donnerstag","gio"],["venerdì","Freitag","ven"],["sabato","Samstag","sab"],["domenica","Sonntag","dom"]];
+const MARKT_TAGE=[2,5];
 const SHOP=[
  {id:"basilico",ic:"🌿",it:"il basilico in vaso",de:"Basilikum im Topf",cost:25,bonus:.05,lv:0},
  {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:40,bonus:.05,lv:0},
