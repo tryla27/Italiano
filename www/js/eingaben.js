@@ -1,27 +1,30 @@
 /* Klicks, Antippen, langes Drücken und Tastatur. */
 /* ---------- Events ---------- */
-let popTimer=null, pressTimer=null, suppressClick=false;
-function showWord(el){
+let popTimer=null, pressTimer=null, suppressClick=false, lastTap={el:null,t:0};
+// Einmal tippen zeigt die Übersetzung, zweimal tippen (oder lang drücken) legt das Wort ins Notizbuch.
+function showWord(el,keep){
   const w=el.dataset.w, de=lookup(w); if(!de)return;
-  const pop=$("#pop"); pop.innerHTML=`${esc(w)} = ${esc(de)}<small>ins Notizbuch gelegt</small>`; pop.hidden=false;
+  const add=keep&&de!=="Name";
+  const pop=$("#pop"); pop.innerHTML=`${esc(w)} = ${esc(de)}<small>${add?"✓ ins Notizbuch gelegt":de==="Name"?"":"Doppeltipp: ins Notizbuch"}</small>`; pop.hidden=false;
   const r=el.getBoundingClientRect(), pw=pop.offsetWidth;
   pop.style.left=Math.max(8,Math.min(innerWidth-pw-8,r.left+r.width/2-pw/2))+"px";
   pop.style.top=Math.max(8,r.top-pop.offsetHeight-8)+"px";
   clearTimeout(popTimer); popTimer=setTimeout(()=>{pop.hidden=true;},2600);
-  if(de!=="Name"){note(w.toLowerCase(),de); if(G){G.seen=G.seen||new Set();G.seen.add(w.toLowerCase());G.tapped=G.tapped||new Set();G.tapped.add(w.toLowerCase());}}
+  if(add)note(w.toLowerCase(),de);
+  if(de!=="Name"){if(G){G.seen=G.seen||new Set();G.seen.add(w.toLowerCase());G.tapped=G.tapped||new Set();G.tapped.add(w.toLowerCase());}}
   if(G&&screen==="play"){const st=curStep();if(st&&!st.done)st.peeked=true;}
-  sfx("select"); save();
+  sfx(add?"right":"select"); save();
 }
 document.addEventListener("pointerdown",e=>{
   const w=e.target.closest(".opt .w"); if(!w)return;
-  clearTimeout(pressTimer); pressTimer=setTimeout(()=>{suppressClick=true;showWord(w);},420);
+  clearTimeout(pressTimer); pressTimer=setTimeout(()=>{suppressClick=true;showWord(w,true);},420);
 });
 ["pointerup","pointercancel","pointermove"].forEach(ev=>document.addEventListener(ev,e=>{if(ev!=="pointermove"||Math.abs(e.movementX)+Math.abs(e.movementY)>6)clearTimeout(pressTimer);}));
 document.addEventListener("contextmenu",e=>{if(e.target.closest(".opt,.w"))e.preventDefault();});
 function handleClick(e){
   if(suppressClick){suppressClick=false;return;}
   const t=e.target.closest("[data-act]"); if(!t||t.disabled||t.getAttribute("aria-disabled")==="true")return;
-  if(t.dataset.act==="word")return showWord(t);
+  if(t.dataset.act==="word"){const now=Date.now(),dbl=lastTap.el===t&&now-lastTap.t<350;lastTap=dbl?{el:null,t:0}:{el:t,t:now};return showWord(t,dbl);}
   const a=t.dataset.act;
   if(a!=="opt"&&a!=="serve")sfx(a==="ing"||a==="qty"?"select":"click");
   if(a==="mute"){S.muted=!S.muted;initAudio();applyVolume();if(S.muted){try{speechSynthesis.cancel();}catch(e){}}else if(vol("music")>0)startMusic();save();return render();}
@@ -41,11 +44,11 @@ function handleClick(e){
   if(a==="setupDone"){S.setupDone=true;S.setupQuiz=null;G=null;return startDay();}
   if(a==="vocab"){screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;return render();}
   if(a==="vlist"){if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="vocab";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
-  if(a==="vstart"){const d=+t.dataset.d;if(S.vocabPaused&&S.vocabPaused.day===d&&!S.vocab.done[d]){S.vocabRun=S.vocabPaused;S.vocabPaused=null;screen="vocab";return render();}S.vocabPaused=null;return startVocab(d);}
-  if(a==="vsay"){const R=S.vocabRun;return speak(S.vocab.days[R.day][R.queue[0].k].it);}
+  if(a==="vstart"){const d=t.dataset.d==="book"?"book":+t.dataset.d;if(S.vocabPaused&&S.vocabPaused.day===d&&!S.vocab.done[d]){S.vocabRun=S.vocabPaused;S.vocabPaused=null;screen="vocab";return render();}S.vocabPaused=null;return startVocab(d);}
+  if(a==="vsay"){const R=S.vocabRun;return speak(vList(R)[R.queue[0].k].it);}
   if(a==="vopt"){const R=S.vocabRun;if(R.res==="ok")return;return vocabAnswer(R.opts[+t.dataset.i]);}
   if(a==="vtip"){S.vocabRun.showTip=true;return render();}
-  if(a==="vidk"){const R=S.vocabRun,v=S.vocab.days[R.day][R.queue[0].k];note(v.it,v.de);R.missed=true;R.res="ok";R.msg=`Das heißt: ${v.it} = ${v.de}. Kommt gleich nochmal.`;if(R.queue[0].st===1)R.typed=v.it;else R.badAns=null;speak(v.it);return render();}
+  if(a==="vidk"){const R=S.vocabRun,v=vList(R)[R.queue[0].k];note(v.it,v.de);R.missed=true;R.res="ok";R.msg=`Das heißt: ${v.it} = ${v.de}. Kommt gleich nochmal.`;if(R.queue[0].st===1)R.typed=v.it;else R.badAns=null;speak(v.it);return render();}
   if(a==="vnext")return vocabNext();
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}

@@ -83,6 +83,15 @@ for (let i = 0; i < 2; i++) {
   if (i === 0) await shot("vokabel-richtung");
   await act("vnext");
 }
+// Klammer-Hinweise verraten die Antwort nicht
+await page.evaluate(() => { S.vocab.days[1] = [{ it: "per favore", de: "bitte" }, { it: "favore", de: "Gefallen (per favore = bitte)" }, { it: "mille", de: "tausend (grazie mille = vielen Dank)" }]; S.vocab.done = {}; startVocab(1); S.vocabRun.queue = [{ k: 1, st: 1, dir: "de" }]; prepVocabQ(); render(); });
+check(await page.evaluate(() => !/\(/.test(document.querySelector(".vword").textContent)), "Schreib-Frage verrät die Antwort in Klammern");
+// Notizbuch im Vokabelmodus üben
+await page.evaluate(() => { S.book = { grazie: { de: "danke", miss: 1 }, conto: { de: "Rechnung", miss: 2 } }; S.vocabRun = null; screen = "vocab"; render(); });
+await act("vstart", '[data-d="book"]');
+check(await page.evaluate(() => S.vocabRun && S.vocabRun.day === "book" && S.vocabRun.total === 2), "Notizbuch lässt sich nicht üben");
+await shot("notizbuch-ueben");
+await act("vlist");
 await act("home");
 if (await act("book")) await shot("heft");
 await act("home");
@@ -146,6 +155,21 @@ check(await page.evaluate(() => [GREET, TALK, PROB, DRINK, DIR, CRITIC, MARKET].
 
 // Wochentage: Tag 3 ist mercoledì (Markttag), Tag 4 nicht
 check(await page.evaluate(() => isMarketDay(3) && !isMarketDay(4) && giorno(1)[0] === "lunedì" && giorno(8)[0] === "lunedì"), "Wochentage oder Markttage stimmen nicht");
+
+// Wort antippen: einmal nur Übersetzung, doppelt ins Notizbuch
+await fresh({ setupDone: true, coins: 25, day: 1 });
+await act("start");
+{
+  const w = page.locator('[data-act="word"]').first();
+  if (await w.count()) {
+    const it = (await w.getAttribute("data-w")).toLowerCase();
+    await w.click();
+    check(await page.evaluate(k => !S.book[k] && !document.querySelector("#pop").hidden, it), "Einfaches Antippen legt Wort schon ins Notizbuch");
+    await page.waitForTimeout(500);
+    await w.click(); await w.click();
+    check(await page.evaluate(k => !!S.book[k], it), "Doppeltipp legt Wort nicht ins Notizbuch");
+  } else console.log("  (kein antippbares Wort gefunden)");
+}
 
 // 2) Laden schon eingerichtet: einen Spieltag spielen
 await fresh({ setupDone: true, coins: 25, day: 1 });

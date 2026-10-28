@@ -44,7 +44,7 @@ oder erst beim Spielen aufgerufen wird.
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt, Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
-| `vokabeln.js` | Vokabeltrainer nach Tagen |
+| `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
 | `bildschirme.js` | Alle Bildschirme, Leiste oben links, Einstellungsmenü |
 | `eingaben.js` | Klicks, Antippen, langes Drücken, Regler |
 | `start.js` | Start: Spielstand laden, Cloud abgleichen, nach App-Updates suchen |

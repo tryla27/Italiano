@@ -135,6 +135,7 @@ function rBook(){
   const e=Object.entries(S.book).sort((a,b)=>b[1].miss-a[1].miss);
   $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button><h2 class="t">Il quaderno</h2>
     <p class="note" style="margin:-6px 0 0">Alles, was dir schwer gefallen ist oder was du nachgeschaut hast. Tippe einen Eintrag an, um ihn zu hören.</p>
+    ${e.length>=2?`<button class="big" data-act="vstart" data-d="book">Notizbuch üben<small>${Math.min(e.length,12)} Wörter im Vokabelmodus</small></button>`:""}
     ${e.length?`<div class="items">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}×</span></div>`).join("")}</div>`
-      :`<div class="panel"><p class="note" style="margin:0">Noch leer. Sobald du etwas falsch hast oder das rote ✕ drückst, landet es hier zum Wiederholen.</p></div>`}`;
+      :`<div class="panel"><p class="note" style="margin:0">Noch leer. Sobald du etwas falsch hast, das rote ✕ drückst oder doppelt auf ein Wort tippst, landet es hier zum Wiederholen.</p></div>`}`;
 }
