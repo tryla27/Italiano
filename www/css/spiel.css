@@ -163,7 +163,9 @@ h2.t small{display:block;font-family:var(--body);font-size:.85rem;color:var(--ch
 @keyframes slidein{0%{transform:translateX(-160px);opacity:0}30%{opacity:1}100%{transform:none;opacity:1}}
 /* Laufende Figuren: ganze Körper (szenen.js walker), Beine und Arme schwingen, Körper wippt */
 .walker{transform:translate(var(--x),var(--y))}
-.walker .leg,.walker .arm{transform-box:fill-box;transform-origin:50% 0}
+.leg,.arm{transform-box:view-box}
+.leg.l{transform-origin:41px 148px}.leg.r{transform-origin:59px 148px}
+.arm.l{transform-origin:21.5px 90px}.arm.r{transform-origin:78.5px 90px}
 .walk .leg.l,.walk .arm.r{animation:swing .7s linear infinite}
 .walk .leg.r,.walk .arm.l{animation:swing .7s linear -.35s infinite}
 .walk .bob{animation:bob .35s ease-in-out infinite alternate}
@@ -175,12 +177,11 @@ h2.t small{display:block;font-family:var(--body);font-size:.85rem;color:var(--ch
 @keyframes walkin2{0%{transform:translate(calc(var(--x) - 280px),var(--y))}100%{transform:translate(var(--x),var(--y))}}
 .walkout{animation:walkout 1.4s ease-in both}
 @keyframes walkout{0%{transform:translate(var(--x),var(--y))}100%{transform:translate(calc(var(--x) + 320px),var(--y));visibility:hidden}}
-.street{animation:street 10s linear infinite both}
-.street.late{animation-delay:5s}
-@keyframes street{0%{transform:translate(268px,124px) scale(.28);opacity:0}8%{opacity:1}85%{opacity:1}100%{transform:translate(242px,266px) scale(1.2);opacity:0}}
-.quay{animation:quay 18s linear infinite both}
-.quay.late{animation:quay 18s linear 9s infinite both reverse}
-@keyframes quay{0%{transform:translate(430px,256px)}100%{transform:translate(120px,256px)}}
+/* Passanten (szenen.js crowdTick): Laufen, Kaufen (Arm hoch), Reden (wippen) */
+.actor.buy .arm.r{transform:rotate(-40deg)}
+.actor.talk .bob{animation:bob .45s ease-in-out infinite alternate}
+.actor.look .bob{animation:bob 1.6s ease-in-out infinite alternate}
+.crowd-say{font-family:var(--body);font-size:8px;font-weight:800;fill:#1e2420}
 .ring-phone{animation:ring .5s ease-in-out infinite;transform-origin:240px 143px}
 .ring-waves{animation:blink 1s steps(2) infinite}
 @keyframes ring{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
@@ -280,4 +281,4 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
 .mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
-@media (prefers-reduced-motion: reduce){.shake,.kasse-pop,.kasse-pop svg,.fig.enter,.fig.enter2,.walkin,.walk .leg,.walk .arm,.walk .bob,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}.walkout,.street,.quay{display:none}}
+@media (prefers-reduced-motion: reduce){.shake,.kasse-pop,.kasse-pop svg,.fig.enter,.fig.enter2,.walkin,.walk .leg,.walk .arm,.walk .bob,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}.walkout{display:none}}

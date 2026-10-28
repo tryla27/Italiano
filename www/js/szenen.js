@@ -211,22 +211,114 @@ function imageScene(id,person,enter,label,extra){
   else if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${figure(person,x,y,w,enter?"enter2":"")}</g>`;}
   return `<svg class="stage-svg" viewBox="0 0 400 ${SCENE_H}" role="img" aria-label="${label}">${s}</svg>`;
 }
-// Passanten, die im Hintergrund vorbeilaufen (Markt: die Gasse herunter, Hafen: an der Promenade entlang).
-function passersby(id){
-  const who=sample(NAMES,2);
-  if(id==="mercato")return who.map((n,i)=>walker(n,2,0,0,92,`walk street${i?" late":""}`)).join("");
-  if(id==="porto")return who.map((n,i)=>walker(n,2,0,0,46,`walk quay${i?" late":""}`)).join("");
-  return "";
+// Passanten auf Markt und Hafen: kommen von links, rechts oder aus der Gasse hinter den Häusern,
+// bleiben an Ständen stehen, kaufen, reden miteinander und gehen in beliebige Richtung wieder weg.
+// Der Zustand bleibt über Neuzeichnen hinweg erhalten; jedes Bild holt sich die Figuren in #crowd.
+const CROWD={
+  mercato:{
+    depth:y=>Math.min(1.15,Math.max(.24,.22+(y-110)*.0062)),
+    ends:{L:[-28,252],R:[428,250],A:[294,112]},
+    via:{A:[268,126]}, mid:[252,200],
+    hide:[252,284,128],            // hinter den Häusern der Gasse: nur zwischen x 252 und 284 sichtbar, solange y < 128
+    stops:[{at:[205,230],pose:"buy",say:["Quanto costano?","Un chilo, per favore.","Che belle pesche!","Sono freschi?"]},
+           {at:[322,224],pose:"buy",say:["Due limoni, grazie.","Avete basilico?","Mi dà quei pomodori?"]},
+           {at:[236,166],pose:"look",say:["Mmh…","Che profumo!"]},
+           {at:[290,200],pose:"look",say:["Quanto costa?","Vediamo…"]}],
+    chat:[[236,186],[262,186]],
+    talk:[["Ciao! Come stai?","Bene, grazie! E tu?"],["Buongiorno, signora!","Buongiorno! Che caldo oggi!"],["Hai visto i prezzi?","Sì, tutto caro!"]],
+    max:3
+  },
+  porto:{
+    depth:()=>.48, ends:{L:[-20,256],R:[420,256]}, via:{}, mid:[200,256], hide:null,
+    stops:[{at:[170,256],pose:"look",say:["Che bel mare!","Guarda le barche!"]},{at:[300,256],pose:"look",say:["Dov'è il traghetto?","A che ora parte?"]}],
+    chat:[[230,256],[252,256]], talk:[["Andiamo a Capri?","Sì, domani!"]], max:2
+  }
+};
+let crowdState={place:null,actors:[],next:0,el:null,raf:0};
+const reducedMotion=()=>{try{return matchMedia("(prefers-reduced-motion: reduce)").matches;}catch(e){return false;}};
+function crowdRoute(C,name,start,end,middle){
+  const pts=[];
+  if(C.via[start])pts.push({to:C.via[start]});
+  pts.push(...(middle.length?middle:[{to:C.mid}]));
+  if(C.via[end])pts.push({to:C.via[end]});
+  pts.push({to:C.ends[end],exit:true});
+  return {name,x:C.ends[start][0],y:C.ends[start][1],path:pts,seg:0,t:0};
+}
+function crowdSpawn(C){
+  const busy=new Set(crowdState.actors.map(a=>a.name)), free=NAMES.filter(n=>!busy.has(n)), ends=Object.keys(C.ends);
+  const other=e=>Math.random()<.8?pick(ends.filter(x=>x!==e)):e;
+  if(free.length>=2&&crowdState.actors.length<=C.max-2&&Math.random()<.35){
+    // Zwei treffen sich, reden abwechselnd und gehen wieder
+    const names=sample(free,2), lines=pick(C.talk), s1=pick(ends), s2=pick(ends.filter(x=>x!==s1));
+    [s1,s2].forEach((st,i)=>crowdState.actors.push(crowdRoute(C,names[i],st,other(st),
+      [{to:C.chat[i]},{wait:5400,pose:"talk",lines:i?[null,lines[1]]:[lines[0],null]}])));
+    return;
+  }
+  if(!free.length)return;
+  const start=pick(ends), stops=Math.random()<.8?sample(C.stops,Math.random()<.4?2:1):[];
+  crowdState.actors.push(crowdRoute(C,pick(free),start,other(start),
+    stops.flatMap(st=>[{to:st.at},{wait:3200+Math.random()*2500,pose:st.pose,say:st.say}])));
+}
+function crowdTick(now){
+  const el=document.getElementById("crowd");
+  if(!el){crowdState.raf=0;crowdState.el=null;return;}
+  const C=CROWD[el.dataset.place];
+  if(crowdState.place!==el.dataset.place){crowdState={place:el.dataset.place,actors:[],next:now+400,el:null,raf:0};}
+  if(crowdState.el!==el){crowdState.el=el;el.innerHTML="";crowdState.actors.forEach(a=>a.node=null);}
+  const dt=Math.min(.1,(now-(crowdState.last||now))/1000); crowdState.last=now;
+  if(now>=crowdState.next&&crowdState.actors.length<C.max){crowdSpawn(C);crowdState.next=now+2500+Math.random()*3500;}
+  crowdState.actors.forEach(a=>{
+    const step=a.path[a.seg]; if(!step){a.done=true;return;}
+    a.mode="walk";
+    if(step.to){
+      const dx=step.to[0]-a.x, dy=step.to[1]-a.y, d=Math.hypot(dx,dy), v=46*C.depth(a.y)*dt;
+      if(d<=v){a.x=step.to[0];a.y=step.to[1];a.seg++;a.t=0;if(step.exit)a.done=true;}
+      else{a.x+=dx/d*v;a.y+=dy/d*v;}
+      if(Math.abs(dx)>1)a.dir=dx<0?-1:1;
+    }else{
+      a.mode=step.pose; a.t+=dt*1000;
+      if(step.lines){a.say=step.lines[Math.floor(a.t/2600)%2]||null;}
+      else a.say=a.t>500&&a.t<step.wait-600?(a.sayPick=a.sayPick||pick(step.say)):null;
+      if(a.t>=step.wait){a.seg++;a.t=0;a.say=null;a.sayPick=null;}
+    }
+    if(a.mode==="walk")a.say=null;
+  });
+  crowdState.actors=crowdState.actors.filter(a=>{if(a.done&&a.node)a.node.remove();return !a.done;});
+  // Zeichnen, hintere Figuren zuerst
+  crowdState.actors.sort((p,q)=>p.y-q.y).forEach(a=>{
+    if(!a.node){
+      const g=document.createElementNS("http://www.w3.org/2000/svg","g");
+      g.innerHTML=`<g class="pos"><svg x="-21" y="-96" width="42" height="100" viewBox="0 0 100 250" overflow="visible">${bodyFigure(a.name,2).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg></g><g class="say"></g>`;
+      a.node=g;
+    }
+    el.appendChild(a.node);
+    const sc=C.depth(a.y), g=a.node;
+    g.setAttribute("class","actor "+(a.mode||"walk"));
+    g.firstChild.setAttribute("transform",`translate(${a.x.toFixed(1)} ${a.y.toFixed(1)}) scale(${sc.toFixed(3)})`);
+    const H=C.hide; g.setAttribute("clip-path",H&&a.y<H[2]?"url(#crowd-hide)":"");
+    const say=g.lastChild;
+    if(a.say!==a.shown){a.shown=a.say;
+      if(!a.say)say.innerHTML="";
+      else{const w=a.say.length*4.6+12;say.innerHTML=`<rect x="${-w/2}" y="-15" width="${w}" height="15" rx="7" fill="#fbf7ee" stroke="#1e2420" stroke-width=".8"/><path d="M-3 0 L0 5 L3 0Z" fill="#fbf7ee"/><text y="-4.5" text-anchor="middle" class="crowd-say">${esc(a.say)}</text>`;}}
+    if(a.say){const w=a.say.length*4.6+12, x=Math.min(400-w/2-2,Math.max(w/2+2,a.x));say.setAttribute("transform",`translate(${x.toFixed(1)} ${(a.y-100*sc-4).toFixed(1)})`);}
+  });
+  crowdState.raf=requestAnimationFrame(crowdTick);
+}
+function crowdLayer(id){
+  const C=CROWD[id]; if(!C||reducedMotion())return "";
+  if(!crowdState.raf)crowdState.raf=requestAnimationFrame(t=>{crowdState.last=t;crowdTick(t);});
+  const H=C.hide;
+  return (H?`<clipPath id="crowd-hide"><path d="M0 0 H${H[0]} V${H[2]} H${H[1]} V0 H400 V260 H0Z"/></clipPath>`:"")+`<g id="crowd" data-place="${id}"></g>`;
 }
 
 // Passende Szene für den aktuellen Schritt; der Gast „kommt herein“, wenn er neu ist.
 function stageHTML(){
   const mk=G.phase==="market", g=curGuest();
-  if(mk)return imageScene("mercato",null,false,"Markt",passersby("mercato"))||sceneMarket();
+  if(mk)return imageScene("mercato",null,false,"Markt",crowdLayer("mercato"))||sceneMarket();
   const enter=G.entered!==G.gi; G.entered=G.gi;
   const person=g&&!g.phone?face(g.name,g.mood):null;
   if(G.trip==="gelateria")return imageScene("gelateria",person,false,"Eisladen")||sceneGelateria(person,false);
-  if(G.trip==="porto")return imageScene("porto",null,false,"Hafen",passersby("porto"))||scenePorto(person,false);
+  if(G.trip==="porto")return imageScene("porto",null,false,"Hafen",crowdLayer("porto"))||scenePorto(person,false);
   // Pizzeria: der Gast läuft herein, der vorige geht zur gleichen Zeit hinaus.
   const prev=enter&&G.gi>0&&G.guests[G.gi-1], who=g&&!g.phone&&{name:g.name,mood:g.mood,prev:prev&&!prev.phone?prev.name:null};
   return (!(g&&g.phone)&&imageScene("pizzeria",who,enter,"Pizzeria"))||scenePizzeria(person,g&&g.phone,enter);
