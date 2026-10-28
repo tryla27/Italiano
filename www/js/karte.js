@@ -24,20 +24,8 @@ function mapSVG(){
       <text x="${p.x}" y="${p.y+r+21}" text-anchor="middle" class="mp-it">${p.it}</text>
       <text x="${p.x}" y="${p.y+r+34}" text-anchor="middle" class="mp-de">${p.de}</text></g>`;
   };
-  const road=(d)=>`<path d="${d}" fill="none" stroke="#e8d3a6" stroke-width="14" stroke-linecap="round"/><path d="${d}" fill="none" stroke="#fff6e0" stroke-width="2" stroke-dasharray="6 7"/>`;
-  let houses="";const rr=seeded(7);
-  for(let i=0;i<26;i++){const x=20+rr()*360,y=40+rr()*330;if(PLACES.some(p=>Math.hypot(p.x-x,p.y-y)<70))continue;
-    const c=["#e9b77a","#f0d39b","#e48a6a","#f3e0c0","#d9a07a"][i%5];houses+=`<rect x="${x}" y="${y}" width="16" height="12" fill="${c}"/><path d="M${x-2} ${y} L${x+8} ${y-7} L${x+18} ${y}Z" fill="#c0503f"/>`;}
-  let trees="";for(let i=0;i<14;i++){const x=10+rr()*380,y=30+rr()*340;if(PLACES.some(p=>Math.hypot(p.x-x,p.y-y)<62))continue;trees+=`<circle cx="${x}" cy="${y}" r="7" fill="#6f9e58"/><circle cx="${x+4}" cy="${y-3}" r="5" fill="#86b46c"/>`;}
   return `<svg class="map-svg" viewBox="0 0 400 540" role="img" aria-label="Karte">${DEFS}
-    <rect width="400" height="540" fill="#f1dfb8"/>
-    ${vesuvio(-20,110,240,"#a9927a")}<path d="M60 52 q8-10 16 0" stroke="#d8d0c4" stroke-width="5" fill="none" stroke-linecap="round"/>
-    <path d="M0 420 Q90 380 170 440 Q240 488 300 420 Q350 370 400 390 L400 540 L0 540Z" fill="url(#sz-sea)"/>
-    <path d="M0 420 Q90 380 170 440 Q240 488 300 420 Q350 370 400 390" fill="none" stroke="#fff6e0" stroke-width="4" opacity=".7"/>
-    <ellipse cx="336" cy="466" rx="58" ry="22" fill="#d9c79a"/>
-    ${road("M112 250 Q200 210 282 150")}${road("M112 250 Q210 280 296 300")}${road("M112 250 Q120 330 150 402")}
-    ${houses}${trees}
-    <path d="M70 470 l18 0 l-9 -14z M110 500 l14 0 l-7 -11z" fill="#f3eee2" opacity=".8"/>
+    <image href="bilder/karte.webp" width="400" height="540"/>
     <g transform="translate(360 40)"><circle r="18" fill="#1b221f" opacity=".75"/><path d="M0-13 L5 0 L0 13 L-5 0Z" fill="#f3eee2"/><path d="M0-13 L5 0 L-5 0Z" fill="#e5533f"/><text y="-21" text-anchor="middle" class="mp-de" style="fill:#1b221f">N</text></g>
     ${PLACES.map(pin).join("")}</svg>`;
 }
