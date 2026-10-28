@@ -31,7 +31,7 @@ Doppelklick auf **`Spiel-starten.bat`** im Projektordner.
 Das startet einen kleinen lokalen Server und öffnet das Spiel im Browser unter
 `http://localhost:5173`.
 
-Wichtig: Öffne `index.html` **nicht** per Doppelklick direkt aus dem Ordner. Dann laufen Musik,
+Wichtig: Öffne `www/index.html` **nicht** per Doppelklick direkt aus dem Ordner. Dann laufen Musik,
 Speichern und manche Browser-Funktionen nicht richtig. Immer über `Spiel-starten.bat`.
 
 **So siehst du es wie auf dem Handy:**
@@ -45,33 +45,15 @@ Hinweis: Der Spielstand am PC ist getrennt vom Spielstand auf dem Handy.
 
 ## 4. Wo ist was?
 
-```
-Italiano/
-├── www/index.html          ← DAS GANZE SPIEL (Aussehen, Texte, Logik)
-├── www/music/              ← die 3 Hintergrund-Lieder (MP3)
-├── assets/                 ← App-Icon und Startbild (PNG)
-├── signing/debug.keystore  ← App-Schlüssel. NIEMALS löschen oder ersetzen!
-├── .github/workflows/      ← Bauplan, mit dem GitHub die Android-App baut
-├── capacitor.config.json   ← App-Name und App-ID
-├── package.json            ← benötigte Pakete
-└── Spiel-starten.bat       ← Spiel am PC starten
-```
+Den kompletten Aufbau mit allen Dateien erklärt [AUFBAU.md](AUFBAU.md). Die wichtigsten Stellen:
 
-In `www/index.html` findest du die Bereiche über diese Überschriften
-(in VS Code mit `Strg + F` suchen):
-
-| Suchbegriff | Was dort steht |
+| Was du ändern willst | Datei |
 |---|---|
-| `/* Layout:` | Farben und Schriften (ganz oben im `<style>`) |
-| `---------- Content` | Alle Sätze der Gäste, Pizzen, Preise, Stufen, Einkaufsliste |
-| `const DICT=` | Wörterbuch für das Antippen von Wörtern |
-| `---------- Save state` | Speichern des Spielstands |
-| `---------- Music` | Musik und Geräusche |
-| `---------- Drawing` | Gesichter der Gäste (`const CHARS=`) und die Pizza-Grafik |
-| `---------- Game flow` | Ablauf eines Spieltags, Trinkgeld, Rechnung |
-| `---------- Laden einrichten` | Einrichten per Drag-and-drop, Gegenstände (`ROOM_ITEMS`) |
-| `---------- Vokabeln` | Vokabeltrainer nach Tagen |
-| `---------- Render` | Die einzelnen Bildschirme |
+| Sätze der Gäste, Pizzen, Preise, Stufen, Shop | `www/js/inhalt/dialoge.js` |
+| Übersetzung beim Antippen von Wörtern | `www/js/inhalt/woerterbuch.js` |
+| Farben, Schriften, Abstände | `www/css/spiel.css` |
+| Gesichter der Gäste und Pizza-Grafik | `www/js/grafik.js` |
+| Bildschirme und Einstellungsmenü | `www/js/bildschirme.js` |
 
 **Neuen Gast-Satz hinzufügen:** In `GREET`, `TALK`, `PROB`, `DRINK` usw. eine Zeile nach diesem Muster:
 
@@ -79,7 +61,7 @@ In `www/index.html` findest du die Bereiche über diese Überschriften
 ["Italienischer Satz","Deutsche Übersetzung","Richtige Antwort","Antwort auf Deutsch",["Falsch 1","Falsch 2","Falsch 3"],"Tipp-Text"],
 ```
 
-Neue italienische Wörter auch in `DICT` eintragen, damit das Antippen funktioniert.
+Neue italienische Wörter auch in `DICT` in `www/js/inhalt/woerterbuch.js` eintragen, damit das Antippen funktioniert.
 
 ## 5. Neue App-Version machen
 
@@ -124,7 +106,7 @@ löschen und der Spielstand ist weg. Für dein Handy immer die Version von GitHu
 | `Spiel-starten.bat` schließt sich sofort | Node.js ist nicht installiert oder der PC wurde danach nicht neu gestartet |
 | `git` wird nicht erkannt | Git installieren, Eingabeaufforderung neu öffnen |
 | GitHub-Bau ist rot (fehlgeschlagen) | Auf den roten Eintrag unter „Actions“ klicken, der rote Schritt zeigt den Fehler |
-| Spiel zeigt nur schwarzen Bildschirm | F12 drücken, Reiter „Console“, die rote Meldung zeigt den Fehler in `index.html` |
+| Spiel zeigt nur schwarzen Bildschirm | F12 drücken, Reiter „Console“, die rote Meldung zeigt die Datei und Zeile mit dem Fehler |
 
 ## Musik-Rechte
 

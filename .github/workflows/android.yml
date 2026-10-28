@@ -45,7 +45,8 @@ jobs:
         run: |
           sed -i "s/versionCode 1$/versionCode ${{ github.run_number }}/; s/versionName \"1.0\"/versionName \"1.${{ github.run_number }}\"/" android/app/build.gradle
           grep -E "versionCode|versionName" android/app/build.gradle
-          sed -i "s|__APP_BUILD__|${{ github.run_number }}|; s|__APP_REPO__|${{ github.repository }}|" www/index.html
+          sed -i "s|__APP_BUILD__|${{ github.run_number }}|; s|__APP_REPO__|${{ github.repository }}|" www/js/start.js
+          grep -q "__APP_BUILD__" www/js/start.js && { echo "Versionsnummer nicht eingesetzt"; exit 1; } || true
 
       - name: Immer denselben Signatur-Schlüssel nutzen (sonst geht kein Update)
         run: |

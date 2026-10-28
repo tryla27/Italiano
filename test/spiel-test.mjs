@@ -77,7 +77,30 @@ if (await act("vstart")) await shot("vokabel-frage");
 await act("home");
 if (await act("book")) await shot("heft");
 await act("home");
-if (await act("vol")) { await shot("lautstaerke"); await page.locator(`#overlay [data-act="vol"]`).click(); }
+
+// Einstellungen oben links: öffnen, alles stumm, nach Neuladen noch stumm, wieder laut
+const check = (ok, msg) => { if (!ok) errors.push(`Prüfung: ${msg}`); };
+await page.locator('#topbar [data-act="vol"]').click();
+await shot("einstellungen");
+await page.locator('#overlay [data-act="mute"]').click();
+await shot("einstellungen-stumm");
+check(await page.evaluate(() => S.muted && vol("music") === 0 && vol("sfx") === 0 && vol("voice") === 0), "Stumm setzt nicht alle Lautstärken auf 0");
+await page.locator('#overlay [data-act="vol"]').click();
+await page.reload();
+check(await page.evaluate(() => S.muted), "Stumm geht beim Neuladen verloren");
+await page.locator('#topbar [data-act="mute"]').click();
+check(await page.evaluate(() => !S.muted && vol("music") > 0), "Ton lässt sich oben links nicht wieder einschalten");
+
+// Stimmen: Männer bekommen eine Männerstimme, Frauen eine Frauenstimme, sonst tiefer/höher
+check(await page.evaluate(() => {
+  const list = [{ lang: "en-US", name: "English" }, { lang: "it-IT", name: "it-it-x-ita-local" }, { lang: "it-IT", name: "it-it-x-itd-local" }];
+  const m = pickVoice(list, sexOf("Zio Gennaro")), f = pickVoice(list, sexOf("Nonna Pina")), one = pickVoice([list[1]], "m");
+  return m.voice.i === 2 && f.voice.i === 1 && one.voice.i === 0 && one.pitch < 1 && pickVoice(list, null).pitch === 1;
+}), "Stimmenwahl nach Figur stimmt nicht");
+
+// Alter Spielstand ohne neue Felder muss weiter laden
+await fresh({ coins: 77, level: 1, day: 5, setupDone: true, vol: { music: .3 } });
+check(await page.evaluate(() => S.coins === 77 && S.level === 1 && S.muted === false && S.vol.sfx === .8), "Alter Spielstand wird nicht richtig übernommen");
 
 // 2) Laden schon eingerichtet: einen Spieltag spielen
 await fresh({ setupDone: true, coins: 25, day: 1 });
