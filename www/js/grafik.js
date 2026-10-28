@@ -52,7 +52,25 @@ function ingIcon(k){
     peperoni:`<path d="M7 8 Q12 5 17 8 Q20 15 15 21 Q12 22 9 21 Q4 15 7 8Z" fill="${c}" ${o}/><path d="M12 7 V3 l2 -1" stroke="#3f9a45" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 11 Q8 15 10 18" stroke="#fff" stroke-width="1.2" fill="none" opacity=".5"/>`,
     tonno:`<path d="M2 12 Q8 5 15 9 L21 5 L20 12 L21 19 L15 15 Q8 19 2 12Z" fill="${c}" ${o}/><circle cx="6.5" cy="11" r="1.1" fill="#1e2420"/>`,
     carciofi:`<path d="M12 3 Q18 7 17 14 Q15 20 12 21 Q9 20 7 14 Q6 7 12 3Z" fill="${c}" ${o}/><path d="M12 8 Q15 11 14 15 M12 8 Q9 11 10 15 M8 12 Q12 14 16 12" stroke="#5f7a35" stroke-width="1.2" fill="none"/><path d="M12 21 v2" stroke="#5f7a35" stroke-width="2"/>`,
-    rucola:`<path d="M12 21 L12 12 M12 21 C4 18 3 13 6 11 L5 9 L8 9 L7 6 L10 7 L11 3 L13 7 L16 6 L15 9 L18 9 L17 11 C21 13 20 18 12 21Z" fill="${c}" ${o}/><path d="M12 20 V8" stroke="#2f5a1a" stroke-width="1.2"/>`
+    rucola:`<path d="M12 21 L12 12 M12 21 C4 18 3 13 6 11 L5 9 L8 9 L7 6 L10 7 L11 3 L13 7 L16 6 L15 9 L18 9 L17 11 C21 13 20 18 12 21Z" fill="${c}" ${o}/><path d="M12 20 V8" stroke="#2f5a1a" stroke-width="1.2"/>`,
+    aglio:`<path d="M12 3 Q13 6 16 8 Q21 12 18 18 Q15 21 12 21 Q9 21 6 18 Q3 12 8 8 Q11 6 12 3Z" fill="${c}" ${o}/><path d="M12 8 V20 M9 10 Q8 15 9.5 20 M15 10 Q16 15 14.5 20" stroke="#cbbfa6" stroke-width="1" fill="none"/>`,
+    origano:`<path d="M12 21 V6" stroke="#4f6a2a" stroke-width="1.4"/><g fill="${c}" ${o}><ellipse cx="9" cy="8" rx="3" ry="2"/><ellipse cx="15" cy="10" rx="3" ry="2"/><ellipse cx="9" cy="13" rx="3" ry="2"/><ellipse cx="15" cy="16" rx="3" ry="2"/><ellipse cx="12" cy="5" rx="2" ry="2.6"/></g>`,
+    olio:`<path d="M10 2 h4 v4 q4 2 4 7 v7 q0 2 -2 2 h-8 q-2 0 -2 -2 v-7 q0 -5 4 -7z" fill="${c}" ${o}/><rect x="9" y="12" width="6" height="5" rx="1" fill="#fbf6ea"/><path d="M10 14.5 h4" stroke="#6f8a3a" stroke-width="1.2"/>`,
+    acciughe:`<path d="M2 12 Q10 7 18 11 L22 8 L21 12 L22 16 L18 13 Q10 17 2 12Z" fill="${c}" ${o}/><path d="M5 12 H17" stroke="#c8c3bf" stroke-width="1"/><circle cx="5" cy="11" r=".9" fill="#1e2420"/>`,
+    capperi:`<g fill="${c}" ${o}><circle cx="8" cy="9" r="4"/><circle cx="16" cy="10" r="4"/><circle cx="12" cy="16" r="4"/></g><g fill="#a8b870"><circle cx="7" cy="8" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="11" cy="15" r="1"/></g>`,
+    zucchine:`<circle cx="12" cy="12" r="9" fill="${c}" ${o}/><circle cx="12" cy="12" r="6.5" fill="#e8efc0"/><g fill="#c9d58a"><circle cx="10" cy="10" r=".9"/><circle cx="14" cy="11" r=".9"/><circle cx="12" cy="14" r=".9"/></g>`,
+    melanzane:`<path d="M15 5 Q21 9 19 16 Q16 22 9 20 Q3 17 6 11 Q8 7 12 7 Q13 5 15 5Z" fill="${c}" ${o}/><path d="M13 7 l2 -4 l2 1 l-1 3 Q17 8 15 8Z" fill="#3f9a45"/><ellipse cx="9" cy="13" rx="1.5" ry="3" fill="#fff" opacity=".25"/>`,
+    gorgonzola:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><g fill="#5f8fa8"><circle cx="11" cy="12" r="1.2"/><circle cx="14" cy="14" r="1"/><circle cx="9" cy="15" r="1"/><path d="M12 9 l1 2" stroke="#5f8fa8"/></g>`,
+    parmigiano:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><path d="M3 17 L21 17 L21 19 L3 19Z" fill="#c99a3a" ${o}/><g fill="#e3c060"><circle cx="11" cy="13" r=".8"/><circle cx="14" cy="15" r=".8"/></g>`,
+    fontina:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><g fill="#d9bb6a"><circle cx="11" cy="12" r="1.6"/><circle cx="15" cy="15" r="1.3"/><circle cx="8" cy="15.5" r="1.1"/></g>`,
+    crudo:`<path d="M3 15 Q5 6 12 7 Q19 4 21 11 Q19 19 11 18 Q5 20 3 15Z" fill="${c}" ${o}/><path d="M4 14 Q8 9 12 10 Q17 8 20 11" stroke="#fbeaea" stroke-width="2.4" fill="none"/>`,
+    salsiccia:`<g fill="${c}" ${o}><circle cx="8" cy="9" r="4.5"/><circle cx="16" cy="11" r="4"/><circle cx="10" cy="17" r="4"/></g><g fill="#c98a6a"><circle cx="7" cy="8" r="1"/><circle cx="16" cy="10" r="1"/><circle cx="10" cy="16" r="1"/></g>`,
+    friarielli:`<path d="M12 22 V9" stroke="#2a4a1a" stroke-width="1.6"/><path d="M12 12 C4 10 4 3 9 3 C11 3 12 6 12 9 C12 6 13 3 15 3 C20 3 20 10 12 12Z" fill="${c}" ${o}/><path d="M12 17 C7 17 5 13 7 12 C9 11 11 14 12 16" fill="${c}" ${o}/>`,
+    ricotta:`<path d="M4 13 Q4 6 12 6 Q20 6 20 13 Q20 19 12 19 Q4 19 4 13Z" fill="${c}" ${o}/><path d="M7 11 q2 -2 4 0 M12 14 q2 -2 4 0 M8 15 q1 -1 2 0" stroke="#e3dccb" stroke-width="1.2" fill="none"/>`,
+    cozze:`<path d="M5 19 Q2 9 10 3 Q14 2 15 6 Q19 14 13 21 Q8 22 5 19Z" fill="${c}" ${o}/><path d="M7 18 Q6 10 11 5" stroke="#5a6a8a" stroke-width="1.2" fill="none"/><ellipse cx="11" cy="14" rx="2.5" ry="3.5" fill="#f2a65a"/>`,
+    gamberi:`<path d="M6 7 Q16 3 19 11 Q20 18 13 19 Q9 19 9 16 Q14 16 15 12 Q14 8 8 10Z" fill="${c}" ${o}/><path d="M12 15 Q15 14 15 11 M14 16 Q17 14 17 11" stroke="#fbd1b8" stroke-width="1" fill="none"/><path d="M9 16 l-4 3 l1 -4z" fill="${c}" ${o}/>`,
+    prezzemolo:`<path d="M12 22 V12" stroke="#2a5a2a" stroke-width="1.6"/><g fill="${c}" ${o}><circle cx="12" cy="7" r="4"/><circle cx="7" cy="10" r="3.5"/><circle cx="17" cy="10" r="3.5"/><circle cx="9" cy="5" r="2.5"/><circle cx="15" cy="5" r="2.5"/></g>`,
+    bufala:`<circle cx="12" cy="13" r="8.5" fill="${c}" ${o}/><path d="M12 4.5 q-1 -2 1 -2.5 q2 0 1 2.5z" fill="${c}" ${o}/><path d="M7 15 q5 4 10 0" stroke="#e6dfcc" stroke-width="1.5" fill="none"/><circle cx="9" cy="10" r="1.8" fill="#fff"/>`
   }[k]||`<circle cx="12" cy="12" r="7" fill="${c}"/>`;
   return `<svg class="ing-ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 }
@@ -103,11 +121,18 @@ function pizzaSVG(set){
   if(set.has("mozzarella"))[[70,72],[128,68],[100,108],[62,128],[136,128],[100,148],[100,52]].forEach(([x,y],i)=>s+=`<ellipse cx="${x}" cy="${y}" rx="${13+i%3*2}" ry="${10+i%2*3}" fill="#fbf6ea"/>`);
   EXTRAS.forEach((k,ki)=>{ if(!set.has(k))return; const r=seeded(ki*131+7), c=ING[k][1];
     for(let j=0;j<7;j++){const a=r()*Math.PI*2, d=14+r()*56, x=100+Math.cos(a)*d, y=100+Math.sin(a)*d, rot=Math.floor(r()*180);
-      if(k==="basilico"||k==="rucola")s+=`<ellipse cx="${x}" cy="${y}" rx="${k==="rucola"?9:8}" ry="${k==="rucola"?3:5}" transform="rotate(${rot} ${x} ${y})" fill="${c}"/>`;
+      if(k==="olio"){if(j<3)s+=`<path d="M${x-14} ${y} q7 -6 14 0 t14 0" fill="none" stroke="${c}" stroke-width="2.4" opacity=".75" stroke-linecap="round"/>`;}
+      else if(k==="origano"||k==="capperi"){for(let q=0;q<3;q++)s+=`<circle cx="${x+q*5-5}" cy="${y+(q%2)*4}" r="${k==="capperi"?3:1.6}" fill="${c}"/>`;}
+      else if(k==="aglio")s+=`<ellipse cx="${x}" cy="${y}" rx="3.5" ry="2.5" transform="rotate(${rot} ${x} ${y})" fill="${c}" stroke="#cbbfa6"/>`;
+      else if(k==="gorgonzola"||k==="parmigiano"||k==="fontina"||k==="ricotta"||k==="bufala")s+=`<ellipse cx="${x}" cy="${y}" rx="${k==="bufala"?12:8}" ry="${k==="bufala"?10:6}" fill="${c}"/>${k==="gorgonzola"?`<circle cx="${x}" cy="${y}" r="1.6" fill="#5f8fa8"/>`:""}`;
+      else if(k==="zucchine")s+=`<circle cx="${x}" cy="${y}" r="7" fill="${c}"/><circle cx="${x}" cy="${y}" r="5" fill="#e8efc0"/>`;
+      else if(k==="gamberi")s+=`<path d="M${x-7} ${y-3} q10 -5 12 3 q0 6 -7 6" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round" transform="rotate(${rot} ${x} ${y})"/>`;
+      else if(k==="cozze")s+=`<ellipse cx="${x}" cy="${y}" rx="8" ry="5" transform="rotate(${rot} ${x} ${y})" fill="${c}"/><ellipse cx="${x}" cy="${y}" rx="4" ry="2.5" transform="rotate(${rot} ${x} ${y})" fill="#f2a65a"/>`;
+      else if(k==="basilico"||k==="rucola"||k==="prezzemolo"||k==="friarielli")s+=`<ellipse cx="${x}" cy="${y}" rx="${k==="rucola"?9:8}" ry="${k==="rucola"?3:5}" transform="rotate(${rot} ${x} ${y})" fill="${c}"/>`;
       else if(k==="olive")s+=`<circle cx="${x}" cy="${y}" r="5" fill="${c}"/><circle cx="${x}" cy="${y}" r="2" fill="#c93a24"/>`;
       else if(k==="cipolla")s+=`<circle cx="${x}" cy="${y}" r="7" fill="none" stroke="${c}" stroke-width="2.5"/>`;
       else if(k==="peperoni")s+=`<path d="M${x-8} ${y} q8 -8 16 0" fill="none" stroke="${c}" stroke-width="4" stroke-linecap="round" transform="rotate(${rot} ${x} ${y})"/>`;
-      else if(k==="salame")s+=`<circle cx="${x}" cy="${y}" r="9" fill="${c}"/><circle cx="${x-3}" cy="${y-2}" r="1.6" fill="#f3d0c0"/><circle cx="${x+3}" cy="${y+3}" r="1.6" fill="#f3d0c0"/>`;
+      else if(k==="salame"||k==="salsiccia")s+=`<circle cx="${x}" cy="${y}" r="9" fill="${c}"/><circle cx="${x-3}" cy="${y-2}" r="1.6" fill="#f3d0c0"/><circle cx="${x+3}" cy="${y+3}" r="1.6" fill="#f3d0c0"/>`;
       else if(k==="funghi")s+=`<path d="M${x-7} ${y} a7 7 0 0 1 14 0 z" fill="${c}"/><rect x="${x-2}" y="${y}" width="4" height="5" fill="#e8d8c0"/>`;
       else s+=`<ellipse cx="${x}" cy="${y}" rx="8" ry="5.5" transform="rotate(${rot} ${x} ${y})" fill="${c}"/>`;
     }});

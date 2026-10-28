@@ -1,20 +1,46 @@
 /* Alle Inhalte: Zutaten, Speisekarte, Gäste-Sätze, Stufen, Shop, Bewertungen.
    Neue Sätze hier eintragen (Muster siehe Kommentar über GREET). */
 /* ---------- Content ---------- */
-const ING={pomodoro:["Tomate","#d8402b"],mozzarella:["Mozzarella","#f6f0e2"],basilico:["Basilikum","#3f9a45"],funghi:["Pilze","#b08d6a"],
-  prosciutto:["Schinken","#e79a9a"],salame:["Salami","#a3262a"],olive:["Oliven","#2a2a2a"],cipolla:["Zwiebeln","#cfa6dc"],
-  peperoni:["Paprika","#f2b134"],tonno:["Thunfisch","#c8a17f"],carciofi:["Artischocken","#8aa357"],rucola:["Rucola","#4f8a2a"]};
+// Zutaten: [Deutsch, Farbe, Stufe ab der sie am Markt liegt (-1 = von Anfang an da), Preis am Markt]
+const ING={
+  pomodoro:["Tomate","#d8402b",-1],mozzarella:["Mozzarella","#f6f0e2",-1],basilico:["Basilikum","#3f9a45",-1],
+  aglio:["Knoblauch","#efe6d2",-1],origano:["Oregano","#6f8a3a",-1],olio:["Olivenöl","#d6b532",-1],
+  salame:["Salami","#a3262a",0,15],
+  prosciutto:["Kochschinken","#e79a9a",1,18],funghi:["Pilze","#b08d6a",1,15],carciofi:["Artischocken","#8aa357",1,20],
+  olive:["Oliven","#2a2a2a",1,14],tonno:["Thunfisch","#c8a17f",1,18],cipolla:["Zwiebeln","#cfa6dc",1,10],
+  acciughe:["Sardellen","#8f8a86",2,22],capperi:["Kapern","#7d8f4a",2,16],peperoni:["Paprika","#f2b134",2,14],
+  zucchine:["Zucchini","#5d9a3f",2,14],melanzane:["Auberginen","#5b2f63",2,16],gorgonzola:["Gorgonzola","#e3e0c6",2,24],
+  parmigiano:["Parmesan","#f1d98a",2,26],fontina:["Fontina","#f4e0a0",2,22],
+  crudo:["Rohschinken","#c75a5a",3,30],rucola:["Rucola","#4f8a2a",3,14],salsiccia:["Bratwurst","#9c5a3a",3,26],
+  friarielli:["Stielmus","#2f6b2a",3,20],ricotta:["Ricotta","#fbf8f0",3,22],
+  cozze:["Miesmuscheln","#2c2f3a",4,32],gamberi:["Garnelen","#f08a5a",4,38],prezzemolo:["Petersilie","#3a8a3a",4,10],
+  bufala:["Büffelmozzarella","#fffdf6",4,36]
+};
+const START_ING=Object.keys(ING).filter(k=>ING[k][2]<0);
+// Die zwölf Zutaten der alten Versionen: alte Spielstände behalten sie
+const OLD_ING=["pomodoro","mozzarella","basilico","funghi","prosciutto","salame","olive","cipolla","peperoni","tonno","carciofi","rucola"];
 const EXTRAS=Object.keys(ING).filter(k=>k!=="pomodoro"&&k!=="mozzarella");
-const MENU=[
-  {n:"margherita",p:7,pl:"margherite",ing:["pomodoro","mozzarella","basilico"]},
-  {n:"diavola",p:9,pl:"diavole",ing:["pomodoro","mozzarella","salame"]},
-  {n:"capricciosa",p:11,pl:"capricciose",ing:["pomodoro","mozzarella","prosciutto","funghi","carciofi","olive"]},
-  {n:"prosciutto e funghi",p:10,pl:"prosciutto e funghi",ing:["pomodoro","mozzarella","prosciutto","funghi"]},
-  {n:"tonno e cipolla",p:9,pl:"tonno e cipolla",ing:["pomodoro","mozzarella","tonno","cipolla"]},
-  {n:"ortolana",p:9,pl:"ortolane",ing:["pomodoro","mozzarella","peperoni","cipolla","funghi"]},
-  {n:"crudo e rucola",p:11,pl:"crudo e rucola",ing:["pomodoro","mozzarella","prosciutto","rucola"]}
+// Alle Pizzen mit echtem Namen. lv = Stufe, ab der man sie kennenlernt. Freigeschaltet ist eine Pizza,
+// sobald man alle ihre Zutaten besitzt.
+const PIZZE=[
+  {n:"marinara",p:5,pl:"marinare",lv:0,ing:["pomodoro","aglio","origano","olio"]},
+  {n:"margherita",p:6,pl:"margherite",lv:0,ing:["pomodoro","mozzarella","basilico","olio"]},
+  {n:"bianca",p:6,pl:"bianche",lv:0,ing:["mozzarella","aglio","olio"]},
+  {n:"diavola",p:8,pl:"diavole",lv:0,ing:["pomodoro","mozzarella","salame"]},
+  {n:"prosciutto e funghi",p:9,pl:"prosciutto e funghi",lv:1,ing:["pomodoro","mozzarella","prosciutto","funghi"]},
+  {n:"capricciosa",p:10,pl:"capricciose",lv:1,ing:["pomodoro","mozzarella","prosciutto","funghi","carciofi","olive"]},
+  {n:"tonno e cipolla",p:8,pl:"tonno e cipolla",lv:1,ing:["pomodoro","mozzarella","tonno","cipolla"]},
+  {n:"napoletana",p:8,pl:"napoletane",lv:2,ing:["pomodoro","mozzarella","acciughe","capperi","origano"]},
+  {n:"ortolana",p:9,pl:"ortolane",lv:2,ing:["pomodoro","mozzarella","peperoni","zucchine","melanzane"]},
+  {n:"quattro formaggi",p:10,pl:"quattro formaggi",lv:2,ing:["mozzarella","gorgonzola","parmigiano","fontina"]},
+  {n:"crudo e rucola",p:11,pl:"crudo e rucola",lv:3,ing:["pomodoro","mozzarella","crudo","rucola","parmigiano"]},
+  {n:"salsiccia e friarielli",p:10,pl:"salsiccia e friarielli",lv:3,ing:["mozzarella","salsiccia","friarielli"]},
+  {n:"calzone",p:10,pl:"calzoni",lv:3,ing:["pomodoro","mozzarella","ricotta","salame"]},
+  {n:"frutti di mare",p:12,pl:"frutti di mare",lv:4,ing:["pomodoro","aglio","cozze","gamberi","prezzemolo"]},
+  {n:"bufalina",p:11,pl:"bufaline",lv:4,ing:["pomodoro","bufala","basilico"]}
 ];
-const cap=s=>s.replace(/\b\w/g,c=>c.toUpperCase());
+const MENU=PIZZE; // alter Name, wird noch an einigen Stellen benutzt
+const cap=s=>s.replace(/\b\w/g,c=>c.toUpperCase()).replace(/ (E|Di) /g,m=>m.toLowerCase());
 const QIT=["","una","due","tre","quattro"], QDE=["","eine","zwei","drei","vier"];
 function numIt(n){
   const u=["zero","uno","due","tre","quattro","cinque","sei","sette","otto","nove","dieci","undici","dodici","tredici","quattordici","quindici","sedici","diciassette","diciotto","diciannove"];

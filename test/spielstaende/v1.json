@@ -27,6 +27,7 @@
  "expect": {
   "coins": 77,
   "day": 5,
-  "level": 1
+  "level": 1,
+  "ing": 15
  }
 }

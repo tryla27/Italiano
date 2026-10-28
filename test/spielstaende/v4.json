@@ -1,0 +1,13 @@
+{
+ "name": "v4: eigene Zutaten und Pizza-Sterne",
+ "raw": {
+  "savedAt": 1762000000000,
+  "state": "{\"v\": 4, \"S\": {\"coins\": 250, \"level\": 2, \"owned\": [\"basilico\", \"pizzeria\", \"trattoria\"], \"day\": 12, \"streak\": 4, \"last\": \"2026-10-20\", \"book\": {\"grazie\": {\"de\": \"danke\", \"miss\": 1}}, \"learned\": [\"ciao\", \"grazie\"], \"sound\": true, \"vol\": {\"music\": 0.6, \"sfx\": 0.8, \"voice\": 1}, \"room\": null, \"setupDone\": true, \"setupQuiz\": null, \"vocab\": {\"days\": {\"1\": [{\"it\": \"grazie\", \"de\": \"danke\", \"ex\": null}], \"2\": [{\"it\": \"conto\", \"de\": \"Rechnung\", \"ex\": null}]}, \"done\": {\"1\": true}}, \"vocabRun\": null, \"muted\": false, \"deko\": {\"sedia\": 2, \"presepe\": 1}, \"chest\": {\"day\": 2}, \"boost\": {\"x\": 1.5, \"days\": 1}, \"ing\": [\"pomodoro\", \"mozzarella\", \"basilico\", \"aglio\", \"origano\", \"olio\", \"salame\", \"funghi\"], \"pz\": {\"margherita\": {\"ok\": 7}}, \"newPz\": \"diavola\"}, \"G\": null, \"screen\": \"home\"}"
+ },
+ "expect": {
+  "coins": 250,
+  "day": 12,
+  "level": 2,
+  "ing": 8
+ }
+}

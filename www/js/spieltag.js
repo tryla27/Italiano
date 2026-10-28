@@ -6,11 +6,13 @@ function startDay(){
   G={guests:[],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0};
   const phoneSlots=new Set(sample([...Array(LV.guests).keys()].slice(1),LV.phones));
   const names=shuffle(NAMES);
+  // Gestern neu freigeschaltete Pizza: heute bestellt sie garantiert jemand
+  let force=S.newPz&&availPizze().find(p=>p.n===S.newPz); S.newPz=null;
   for(let i=0;i<LV.guests;i++){
     let steps;
     if(phoneSlots.has(i))steps=[LV.reserv&&Math.random()<.5?reservStep():phoneStep()];
     else{
-      const ord=orderStep(L===0?0:L<=2?1:2); let total=ord.price;
+      const ord=orderStep(L===0?0:L<=2?1:2,force); force=null; let total=ord.price;
       steps=[mcStep(pickFresh(GREET),"Was antwortest du?"),ord];
       if(LV.drinks){const di=pickFresh(DRINK);total+=DRINK_PRICE[DRINK.indexOf(di)]||0;steps.push(mcStep(di,"Was antwortest du?"));}
       if(!LV.talkChance||Math.random()<LV.talkChance)steps.push(mcStep(pickFresh(pick(LV.talk)),"Was antwortest du?"));
@@ -20,6 +22,7 @@ function startDay(){
     G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],mood:2,steps,tip:0,bill,phone:phoneSlots.has(i)});
   }
   G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
+  const stall=stallStep(); if(stall)G.market.push(stall);
   screen="play"; render(); autoSpeak();
 }
 const wday=d=>(d-1)%7, giorno=d=>GIORNI[wday(d)], isMarketDay=d=>MARKT_TAGE.includes(wday(d));
@@ -28,7 +31,7 @@ const curStep=()=>G.phase==="market"?G.market[G.mi]:G.guests[G.gi].steps[G.si];
 const curGuest=()=>G.phase==="market"?null:G.guests[G.gi];
 function autoSpeak(){const st=curStep();if(st&&(S.sound||st.phone)&&(!st.phone||!st.showText||S.sound))setTimeout(()=>speak(st.it,speaker()),250);}
 // Wer gerade spricht (für die passende Stimme).
-function speaker(){if(G.phase==="market")return "Signor Esposito";const g=curGuest();return g&&!g.phone?g.name:null;}
+function speaker(){if(!G)return null;if(G.phase==="market")return "Signor Esposito";const g=curGuest();return g&&!g.phone?g.name:null;}
 
 function wrongAnswer(i){
   const st=curStep(), g=curGuest();
@@ -48,9 +51,13 @@ function finish(){
     let base=LV.base*(st.kind==="pizza"?1.5:st.phone?2:1)*f*(st.textShown?.5:1);
     let bonus=0;
     if(st.wrong===0&&!st.peeked){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);bonus=G.combo>=3?Math.min(Math.floor(G.combo/3),3):0;}
+    // Pizza mit drei Sternen: +1 € Trinkgeld; jede fehlerfreie Pizza zählt für die Sterne
+    let star="";
+    if(st.named){const n=st.named;if(pzStars(n)>=3)bonus++;
+      if(st.wrong===0&&!st.peeked){const before=pzStars(n);S.pz[n]={ok:((S.pz[n]||{}).ok||0)+1};if(pzStars(n)>before)star=` ★ ${cap(n)}: ${pzStars(n)}. Stern!`;}}
     const tip=Math.max(1,Math.round(base*mult()*(S.boost&&!G.trip?S.boost.x:1)))+bonus;
     G.earned+=tip; if(g)g.tip+=tip; kasse(tip,"Trinkgeld");
-    st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`+(st.bill?` · Rechnung ${st.bill} €`:"")];
+    st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`+(st.bill?` · Rechnung ${st.bill} €`:"")+star];
   }
   if(st.wrong===0){G.firstTry++;learn(st.it);}
   if(st.kind==="pizza")st.cur=new Set(st.want);
@@ -98,13 +105,25 @@ function endTrip(){
   S.coins+=G.earned; save();
   screen="summary"; render(); kasse(G.earned,"in die Kasse");
 }
+// Was heute noch zum Einkaufen da ist: Kasse plus heutige Einnahmen, minus was heute schon fest weggeht
+function stallBudget(){return S.coins+(G.revenue||0)+G.earned+(G.saved||0)-Math.round((G.revenue||0)*.35)-LEVELS[S.level].rent-(G.bought||0);}
+function stallBuy(k){
+  const st=curStep(), price=ING[k][3];
+  if(!st||st.kind!=="stall"||hasIng(k)||!st.offer.includes(k)||stallBudget()<price)return;
+  const before=new Set(availPizze().map(p=>p.n));
+  S.ing.push(k); st.bought.push(k); G.bought=(G.bought||0)+price; learn(k); sfx("coins");
+  const neu=availPizze().filter(p=>!before.has(p.n));
+  if(neu.length){S.newPz=neu[0].n;G.banner=`Neu im Rezeptbuch: ${neu.map(p=>cap(p.n)).join(", ")}!`;}
+  else G.banner=`${cap(k)} (${ING[k][0]}) gehört jetzt zu deiner Küche.`;
+  save();
+}
 function endDay(){
   const LV=LEVELS[S.level];
-  const rev=G.revenue||0, ing=Math.round(rev*.35), rent=LV.rent, net=rev+G.earned-ing-rent+G.saved;
+  const rev=G.revenue||0, ing=Math.round(rev*.35), rent=LV.rent, buy=G.bought||0, net=rev+G.earned-ing-rent+G.saved-buy;
   const d=new Date(), today=d.toLocaleDateString("sv-SE"); d.setDate(d.getDate()-1); const yest=d.toLocaleDateString("sv-SE");
   if(S.last!==today)S.streak=S.last===yest?S.streak+1:1;
   S.last=today;
-  G.summary={ing,rent,net,day:S.day};
+  G.summary={ing,rent,net,buy,day:S.day};
   S.vocab.days[S.day]=buildVocab(S.day);
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   if(S.boost&&--S.boost.days<=0)S.boost=null; // Truhen-Bonus gilt für einen Spieltag
