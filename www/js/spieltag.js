@@ -17,19 +17,44 @@ function startDay(){
     if(phoneSlots.has(i))steps=[LV.reserv&&Math.random()<.5?reservStep():phoneStep()];
     else{
       const ord=orderStep(L===0?0:L<=2?1:2,force||daily,!!daily&&!force); force=null; daily=null; let total=ord.price+fx("bill");
-      steps=[mcStep(pickFresh(GREET),"Was antwortest du?"),ord];
+      // Stammgäste mit eigener Persönlichkeit: meist ihre eigenen Sätze (inhalt/gaeste.js)
+      const P=PERS[names[i%names.length]], own=pool=>P&&Math.random()<.65?pickFresh(P[pool]):null;
+      steps=[mcStep(own("greet")||pickFresh(GREET),"Was antwortest du?",{greet:true}),ord];
       if(LV.drinks){const di=pickFresh(DRINK);total+=DRINK_PRICE[DRINK.indexOf(di)]||0;steps.push(mcStep(di,"Was antwortest du?",{drink:true}));}
-      if(!LV.talkChance||Math.random()<LV.talkChance)steps.push(mcStep(pickFresh(tierOf("caffe")>=2&&Math.random()<.35?BAR:pick(LV.talk)),"Was antwortest du?"));
+      if(!LV.talkChance||Math.random()<LV.talkChance)steps.push(mcStep(own("talk")||pickFresh(tierOf("caffe")>=2&&Math.random()<.35?BAR:pick(LV.talk)),"Was antwortest du?",{talk:true}));
       if(tierOf("caffe")&&Math.random()<.5){const cf=coffeeStep();total+=cf.price;steps.push(cf);}
       steps.push(billStep(total));
     }
     const bill=steps.reduce((a,x)=>a+(x.bill||0),0)||(phoneSlots.has(i)&&steps[0].price?steps[0].price+fx("delivery"):0);
     G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],mood:2,steps,tip:0,bill,phone:phoneSlots.has(i),regular:i===regular});
   }
+  storyGuest();
   if(inspToday())G.guests.unshift({name:"Dottoressa Severini",mood:2,steps:sample(ISPEZIONE,4).map(m=>mcStep(m,"Was antwortest du?",{insp:true})),tip:0,bill:0,insp:true});
   G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
   const stall=stallStep(); if(stall)G.market.push(stall);
   screen="play"; render(); autoSpeak();
+}
+/* Geschichten über mehrere Tage (STORIES in inhalt/gaeste.js): ist heute ein Teil dran, kommt dessen Gast
+   und bringt seine Sätze statt Begrüßung und Plauderei mit. Weiter geht es erst, wenn der Tag zu Ende gespielt ist. */
+function storyNow(){
+  if(!S.story){const nx=STORIES.find(s=>!S.storiesDone.includes(s.id));if(!nx||S.day<(S.storyNext||3))return null;S.story={id:nx.id,part:0,day:S.day};}
+  const s=STORIES.find(x=>x.id===S.story.id);
+  return s&&S.day>=S.story.day?{s,part:s.parts[S.story.part]}:null;
+}
+function storyGuest(){
+  const now=storyNow(), idx=G.guests.map((g,i)=>i).filter(i=>!G.guests[i].phone);
+  if(!now||!now.part||!idx.length)return;
+  const g=G.guests[pick(idx)], who=now.part.who, twin=G.guests.find(x=>x!==g&&x.name===who);
+  if(twin)twin.name=NAMES.find(n=>!G.guests.some(x=>x.name===n))||twin.name;
+  g.name=who; g.story=now.s.id; g.regular=false;
+  g.steps=[...now.part.lines.map(l=>mcStep(l,"Was antwortest du?")),...g.steps.filter(x=>!x.greet&&!x.talk)];
+}
+// Nach einem fertig gespielten Tag mit Geschichte: nächster Teil frühestens übermorgen, nächste Geschichte drei Tage später
+function storyAdvance(){
+  if(!S.story||!G.guests.some(g=>g.story===S.story.id))return;
+  const s=STORIES.find(x=>x.id===S.story.id);
+  if(S.story.part+1>=s.parts.length){S.storiesDone=[...S.storiesDone,s.id];S.story=null;S.storyNext=S.day+4;}
+  else S.story={id:s.id,part:S.story.part+1,day:S.day+2};
 }
 // Gesundheitsamt: ab La Pizzeria etwa jeden fünften Tag, nie zwei Tage hintereinander (außer nach „bocciato“).
 // Am Abend davor kommt ein Brief.
@@ -57,6 +82,11 @@ function wrongAnswer(i){
   if(fx("piano")&&g&&!g.pianoUsed)g.pianoUsed=true; else G.combo=0; // Klavier: der erste Fehler pro Gast bricht die Combo nicht
   st.shake=true;
   if(st.kind==="mc")note(st.it,st.de);
+  // Der Gast reagiert: erst verwirrt, bei schlechter Laune verärgert, jeder auf seine Art
+  if(g&&!g.phone&&!st.insp){
+    const P=PERS[g.name], pool=st.kind==="pizza"?HUH_PIZZA:((P&&P.huh)||HUH)[g.mood>=1?0:1], r=pick(pool.filter(x=>!st.react||x[0]!==st.react[0]))||pick(pool);
+    st.react=r; collectWords(r[0],r[1],1); setTimeout(()=>speak(r[0],g.name),st.corDe?1500:300); // erst die eigene Antwort ausreden lassen
+  }
 }
 function finish(){
   const st=curStep(), g=curGuest(), LV=LEVELS[S.level];
@@ -197,6 +227,7 @@ function endDay(){
   if(S.last!==today)S.streak=S.last===yest?S.streak+1:1;
   S.last=today;
   G.summary={ing,rent,net,buy,day:S.day};
+  storyAdvance();
   S.vocab.days[S.day]=buildVocab(S.day);
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   if(S.boost&&--S.boost.days<=0)S.boost=null; // Truhen-Bonus gilt für einen Spieltag

@@ -162,6 +162,23 @@ await page.reload();
 check(await page.evaluate(() => S.coins === 123 && S.day === 4 && S.book.conto && S.book.conto.miss === 2), "Spielstand-Code stellt den Stand nicht wieder her");
 check(await page.evaluate(async () => !(await loadCode("Quatsch")) && S.coins === 123), "Falscher Code verändert den Spielstand");
 
+// Spielstand als Datei: speichern (Download), Stand ändern, Datei laden holt ihn zurück
+await page.locator('#screen [data-act="vol"]').first().click();
+const [dl] = await Promise.all([page.waitForEvent("download"), page.locator('#overlay [data-act="file-save"]').click()]);
+const saveFilePath = join(OUT, "spielstand.txt");
+await dl.saveAs(saveFilePath);
+check(/^ParlaPizza-Spielstand-.*\.txt$/.test(dl.suggestedFilename()) && /^PP[01]\./.test(await readFile(saveFilePath, "utf8")), "Spielstand-Datei wird nicht gespeichert");
+await page.waitForTimeout(200);
+await shot("spielstand-datei");
+await page.evaluate(() => { S.coins = 7; save(); });
+await page.locator("#savefile").setInputFiles(saveFilePath);
+await page.waitForTimeout(400);
+check(await page.evaluate(() => S.coins === 123 && /geladen/.test($("#overlay").textContent)), "Spielstand-Datei lädt den Stand nicht");
+await page.locator("#savefile").setInputFiles({ name: "falsch.txt", mimeType: "text/plain", buffer: Buffer.from("Hallo") });
+await page.waitForTimeout(300);
+check(await page.evaluate(() => S.coins === 123 && /kein Spielstand/.test($("#overlay").textContent)), "Falsche Datei verändert den Spielstand");
+await page.evaluate(() => { volOpen = false; codeBox = null; render(); });
+
 // Jede alte Spielstand-Version aus test/spielstaende/ lädt, behält Geld, Tag und Stufe, und alle Bildschirme gehen
 for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => f.endsWith(".json")).sort()) {
   const fx = JSON.parse(await readFile(join(ROOT, "test", "spielstaende", f), "utf8"));
@@ -207,6 +224,19 @@ check(await page.evaluate(() => { const before = S.coins, c = MEMO.cards; [...ne
 await shot("memory-fertig");
 check(await page.evaluate(() => { startMemo(); const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 0 && S.coins === before; }), "Memory belohnt mehrmals am selben Tag");
 await page.evaluate(() => { screen = "home"; render(); });
+// Stammgäste mit Persönlichkeit, Reaktionen auf falsche Antworten, Geschichten über mehrere Tage
+check(await page.evaluate(() => Object.keys(PERS).length === NAMES.length && NAMES.every(n => PERS[n].greet.length && PERS[n].talk.length && PERS[n].huh[0].length && PERS[n].huh[1].length)), "Nicht jeder Stammgast hat eigene Sätze");
+check(await page.evaluate(() => PERS_ITEMS.every(x => x[4].length === 3 && x[4].every(w => WRONG_DE[w]) && x[3] && x[5])), "Gästesätze ohne Übersetzung oder Tipp");
+check(await page.evaluate(() => { S.level = 1; S.story = null; S.storiesDone = []; S.storyNext = 99; let own = 0; for (let k = 0; k < 20; k++) { G = null; startDay(); G.guests.forEach(g => { const P = PERS[g.name]; if (P && g.steps.some(st => P.greet.concat(P.talk).some(x => x[0] === st.it))) own++; }); } return own > 10; }), "Stammgäste sagen nie ihre eigenen Sätze");
+await page.evaluate(() => { S.level = 0; S.story = null; S.storiesDone = []; S.storyNext = 1; S.day = 5; G = null; startDay(); G.gi = G.guests.findIndex(g => g.story); G.si = 0; G.entered = G.gi; screen = "play"; render(); });
+check(await page.evaluate(() => { const g = curGuest(); return g && g.story === "proposta" && g.name === "Marco" && /segreto/.test(curStep().it) && /Geschichte/.test($(".who").textContent) && G.guests.filter(x => x.name === "Marco").length === 1; }), "Geschichte startet nicht");
+check(await page.evaluate(() => { const st = curStep(), i = st.opts.findIndex(o => !o.ok); wrongAnswer(i); render(); return !!st.react && PERS.Marco.huh[0].some(r => r[0] === st.react[0]) && !!document.querySelector(".bubble .react"); }), "Gast reagiert nicht auf falsche Antwort");
+await shot("geschichte-reaktion");
+check(await page.evaluate(() => { const st = curStep(); wrongAnswer(st.opts.findIndex((o, i) => !o.ok && !st.bad.includes(i))); return PERS.Marco.huh[1].some(r => r[0] === st.react[0]); }), "Verärgerte Reaktion fehlt");
+check(await page.evaluate(() => { while (screen === "play" && G && !G.summary) { const st = curStep(); if (!st.done) { st.done = true; st.fb = ["good", ""]; } advance(); } return S.story && S.story.part === 1 && S.story.day === S.day + 1; }), "Geschichte geht nach dem Tag nicht weiter");
+check(await page.evaluate(() => { G = null; startDay(); return !G.guests.some(g => g.story); }), "Nächster Teil kommt zu früh");
+check(await page.evaluate(() => { G = null; S.day++; startDay(); const g = G.guests.find(x => x.story); return g && g.name === "Giulia"; }), "Zweiter Teil der Geschichte fehlt");
+await page.evaluate(() => { G = null; screen = "home"; S.story = null; S.storyNext = 99; render(); });
 // Rezeptbuch mit Sternen
 await page.evaluate(() => { G = null; screen = "home"; S.pz = { margherita: { ok: 9 } }; menuOpen = true; render(); });
 check(await page.evaluate(() => /Il ricettario/.test($("#overlay").textContent) && $("#overlay").querySelectorAll(".mi.locked").length > 0 && /Dir fehlen/.test($("#overlay").textContent)), "Rezeptbuch fehlt");

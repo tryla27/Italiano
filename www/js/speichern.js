@@ -3,9 +3,9 @@
 // Laden einrichten ist vorerst ausgeschaltet und wird später neu gebaut (Code in laden.js bleibt).
 // Auf true setzen, um es wieder einzuschalten.
 const LADEN_EINRICHTEN=false;
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null,place:{},inspDue:null,cert:0,memDay:0,locale:{}};
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null,place:{},inspDue:null,cert:0,memDay:0,story:null,storiesDone:[],storyNext:3,locale:{}};
 // Listen und Objekte aus S0 kopieren, damit ein neues Spiel S0 nie verändert
-const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko),place:Object.assign({},s.place),locale:Object.assign({},s.locale)});
+const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],storiesDone:[...(s.storiesDone||[])],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko),place:Object.assign({},s.place),locale:Object.assign({},s.locale)});
 let S=fresh0(Object.assign({},S0));
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";
@@ -92,5 +92,16 @@ async function loadCode(code){
   try{localStorage.setItem(KEY+"-vorher",before);}catch(e){} // alter Stand als Notfall-Kopie
   savedAt=Date.now(); lastBody=""; flushSave(); return true;
 }
+/* Spielstand als Datei: in der App unter Dokumente/ParlaPizza, im Browser als Download.
+   Die Datei enthält den Spielstand-Code und bleibt erhalten, auch wenn man die App deinstalliert. */
+const Files=()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()&&C.Plugins&&C.Plugins.Filesystem;}catch(e){return null;}};
+async function saveFile(){
+  const code=await saveCode(), name=`ParlaPizza-Spielstand-${new Date().toLocaleDateString("sv-SE")}.txt`, F=Files();
+  if(F){await F.writeFile({path:"ParlaPizza/"+name,data:code,directory:"DOCUMENTS",encoding:"utf8",recursive:true});return `Gespeichert unter Dokumente › ParlaPizza › ${name}`;}
+  const a=document.createElement("a"); a.href=URL.createObjectURL(new Blob([code],{type:"text/plain"})); a.download=name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),5000);
+  return `Heruntergeladen: ${name}`;
+}
+async function loadFile(file){try{return await loadCode(await file.text());}catch(e){return false;}}
 // Browser bitten, den Spielstand nicht von selbst zu löschen (Safari, Chrome)
 try{navigator.storage&&navigator.storage.persist&&navigator.storage.persist().catch(()=>{});}catch(e){}

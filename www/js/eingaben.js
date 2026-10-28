@@ -33,6 +33,8 @@ function handleClick(e){
     (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).catch(()=>{codeBox.msg="Halte den Code gedrückt und kopiere ihn.";render();});render();const b=$("#codebox");if(b)b.select();});return;}
   if(a==="code-paste"){codeBox={mode:"paste",text:""};render();const b=$("#codebox");if(b)b.focus();return;}
   if(a==="code-load"){const b=$("#codebox"),c=b?b.value:"";loadCode(c).then(ok=>{if(ok){codeBox=null;volOpen=false;screen=screen==="play"&&G?"play":"home";render();}else{codeBox={mode:"paste",text:c,msg:"Der Code passt nicht. Bitte ganz kopieren (fängt mit PP an)."};render();}});return;}
+  if(a==="file-save"){saveFile().then(m=>{codeBox={mode:"file",msg:m};render();}).catch(()=>{codeBox={mode:"file",msg:"Speichern ging nicht. Nimm stattdessen „Code kopieren“."};render();});return;}
+  if(a==="file-load"){const f=$("#savefile");if(f){f.value="";f.click();}return;}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
   if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(a==="home"||a==="quit"){pauseOpen=false;if(screen==="summary")G=null;screen="home";return render();}
@@ -142,4 +144,9 @@ $("#overlay").addEventListener("input",e=>{
 $("#overlay").addEventListener("change",e=>{
   if(e.target.id==="v-sfx")sfx("right");
   if(e.target.id==="v-voice")speak("Ciao! Benvenuto in pizzeria.");
+});
+// Spielstand-Datei ausgewählt: laden wie einen eingefügten Code
+document.addEventListener("change",e=>{
+  if(e.target.id!=="savefile"||!e.target.files[0])return;
+  loadFile(e.target.files[0]).then(ok=>{codeBox={mode:"file",msg:ok?"Spielstand geladen ✓":"Diese Datei ist kein Spielstand von Parla Pizza!"};if(ok){screen=screen==="play"&&G?"play":"home";}render();});
 });
