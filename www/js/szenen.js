@@ -199,7 +199,7 @@ function scenePorto(person,enter){
 const SCENE_H=260;
 const SCENE_IMG={
   pizzeria:{src:"bilder/umgebungen/pizzeria.webp",oy:390,stand:[62,250,206]},
-  mercato:{src:"bilder/umgebungen/markt.webp",oy:250},
+  mercato:{src:"bilder/umgebungen/markt.webp",oy:250,stand:[66,258,186]},
   gelateria:{src:"bilder/umgebungen/eisladen.webp",oy:300,fig:[150,30,100],clip:118},
   porto:{src:"bilder/umgebungen/hafen.webp",oy:250}
 };
@@ -314,7 +314,8 @@ function crowdLayer(id){
 // Passende Szene für den aktuellen Schritt; der Gast „kommt herein“, wenn er neu ist.
 function stageHTML(){
   const mk=G.phase==="market", g=curGuest();
-  if(mk)return imageScene("mercato",null,false,"Markt",crowdLayer("mercato"))||sceneMarket();
+  // Signor Esposito steht vorne an seinem Stand; beim Feilschen sieht man, wie viel Geduld er noch hat
+  if(mk){const st=curStep();return imageScene("mercato",{name:"Signor Esposito",mood:st&&st.hag?st.hag.pat:2},false,"Markt",crowdLayer("mercato"))||sceneMarket();}
   const enter=G.entered!==G.gi; G.entered=G.gi;
   const person=g&&!g.phone?face(g.name,g.mood):null;
   if(G.trip==="gelateria")return imageScene("gelateria",person,false,"Eisladen")||sceneGelateria(person,false);

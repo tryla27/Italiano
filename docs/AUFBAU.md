@@ -36,6 +36,7 @@ oder erst beim Spielen aufgerufen wird.
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
 | `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Markt-Stufe, Preis), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
+| `memory.js` | Zutaten-Memory: Bild und italienisches Wort als Paar finden, einmal pro Spieltag Geld (`S.memDay`) |
 | `einrichtung.js` | Möbel mit Ausbaustufen (`START_FURN`, Einrichtung in `SHOP`), ihre Boni (`fx`, Trinkgeld höchstens +50 %), Aufstellen auf dem Raster 8 × 6 (`S.place`) |
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände, Versionen mit Umwandlung (`SAVE_V`, `MIGRATE`), Kopie im Handy-Speicher (Capacitor Preferences), tägliche Sicherheitskopie |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
@@ -43,7 +44,7 @@ oder erst beim Spielen aufgerufen wird.
 | `szenen.js` | Umgebungen: Pizzeria, Markt, Eisladen, Hafen, laufende Figuren (`walker`: Gast kommt herein und geht, Passanten auf Markt und Hafen). Nutzt die Bilder aus `www/bilder/umgebungen/` (Ausschnitt und Platz der Figur in `SCENE_IMG`), sonst gezeichnete Ersatz-Szenen |
 | `karte.js` | Karte mit allen Orten: antippen spielt das Tür-Geräusch und geht direkt dorthin |
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
-| `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt, Abrechnung |
+| `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt mit Feilschen (`hagStart`, `hagOffer`), Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
 | `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
 | `truhe.js` | Belohnungs-Truhe nach bestandenem Vokabeltag: Belohnungen würfeln (4 % selten), Sprite-Animation, Karten |
@@ -72,6 +73,18 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 - Eine Pizza ist freigeschaltet, sobald man alle ihre Zutaten besitzt. Gäste bestellen nur, was man backen kann. Eine neu freigeschaltete Pizza bestellt am nächsten Tag garantiert jemand (`S.newPz`).
 - Sterne: Für je drei fehlerfreie Pizzen einer Sorte gibt es einen Stern, höchstens drei (`S.pz`). Unter zwei Sternen steht das Rezept in der Aufgabe. Mit drei Sternen gibt es +1 € Trinkgeld.
 - Spielstände vor Version 4 behalten alle zwölf alten Zutaten plus die neuen Start-Zutaten.
+
+## Feilschen am Markt
+
+- Signor Esposito (`CHARS`/`OUTFIT` in `grafik.js`) steht als ganze Figur im Markt. Beim Feilschen zeigt sein Gesicht, wie viel Geduld er noch hat.
+- Preis antippen startet das Feilschen. Er nennt den Preis auf Italienisch, du wählst ein Gegenangebot. Unter 70 % des Preises ist er beleidigt und verliert Geduld; nach zwei Frechheiten gilt sein Preis. Sonst trifft er dich in der Mitte, nach zwei Runden kommt sein letzter Preis.
+- „Übersetzen“ zeigt die Zahlen auf Deutsch. „Lascio stare“ geht weg, der letzte Preis bleibt für diesen Markttag (`st.asks`).
+- Das Gesparte steht in der Abrechnung bei „Neue Zutaten“ (`G.haggled`).
+
+## Zutaten-Memory
+
+- Auf der Startseite neben „Vocabolario“. Sechs Paare: Bild der Zutat und italienisches Wort, das Wort wird beim Aufdecken vorgelesen.
+- Eigene Zutaten zuerst. Einmal pro Spieltag gibt es 12 € minus Fehlversuche (mindestens 3 €).
 
 ## Einrichtung und Kaffee
 

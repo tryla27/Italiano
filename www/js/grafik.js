@@ -18,7 +18,8 @@ const CHARS={
  "Signor Moretti":{skin:"#e0a87e",hair:"#5a5a5a",style:"short",shirt:"#6b4a2b",mus:1,glasses:"round"},
  "Signora Lucia":{f:1,skin:"#f1c7a5",hair:"#6b2f1a",style:"bun",shirt:"#f39bb3",lips:"#c94a5a",ear:1},
  "Dottoressa Severini":{f:1,skin:"#efc4a2",hair:"#2b2420",style:"bun",shirt:"#f4f4f0",lips:"#a8323e",glasses:"square",tie:"#2f6b8f"},
- "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1}
+ "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1},
+ "Signor Esposito":{skin:"#e0a87e",hair:"#3a2416",style:"cap",cap:"#2f6b3a",shirt:"#2f6b3a",bigmus:1}
 };
 // Kleidung für die ganzen Körper (szenen.js bodyFigure)
 const OUTFIT={
@@ -37,7 +38,8 @@ const OUTFIT={
  "Signor Moretti":{low:"pants",legs:"#4a3a2a",shoe:"#2a1d14",vest:"#4a3420",belt:1},
  "Signora Lucia":{low:"skirt",legs:"#c46a85",shoe:"#f3f3f3",apron:1,short:1},
  "Dottoressa Severini":{low:"skirt",legs:"#34495e",shoe:"#1d1d1d",coat:"#fbfbf7",books:1},
- "Signor Marino":{low:"pants",legs:"#1f3355",shoe:"#2a1d14",stripes:1}
+ "Signor Marino":{low:"pants",legs:"#1f3355",shoe:"#2a1d14",stripes:1},
+ "Signor Esposito":{low:"pants",legs:"#4a3a2a",shoe:"#2a1d14",belly:1,apron:1,short:1}
 };
 // Kleine Bilder der Zutaten für die Knöpfe beim Pizza-Belegen, jeweils in der Farbe der Zutat.
 function ingIcon(k){
@@ -98,6 +100,7 @@ function face(name,mood){
   if(c.style==="bun")h+=`<circle cx="50" cy="21" r="10" fill="${hc}"/><path d="M25 48 Q28 26 50 26 Q72 26 75 48 Q62 36 50 36 Q38 36 25 48Z" fill="${hc}"/>`;
   if(c.style==="bald")h+=`<path d="M25 50 Q26 41 31 38 M75 50 Q74 41 69 38" stroke="${hc}" stroke-width="5" fill="none" stroke-linecap="round"/>`;
   if(c.style==="hat")h+=`<ellipse cx="50" cy="31" rx="36" ry="7" fill="#e9d8a6"/><path d="M32 31 Q34 12 50 12 Q66 12 68 31 Z" fill="#e9d8a6"/><rect x="32" y="25" width="36" height="5" fill="#c0503f"/>`;
+  if(c.style==="cap")h+=`<path d="M22 44 Q50 14 78 44 Z" fill="${c.cap}"/><rect x="20" y="41" width="60" height="6" rx="3" fill="rgba(0,0,0,.25)"/>`;
   if(c.old)h+=`<path d="M36 44 Q41 42 46 44 M54 44 Q59 42 64 44" stroke="#b08060" stroke-width="1.2" fill="none"/>`;
   // Augen
   if(c.glasses==="sun")h+=`<rect x="31" y="45" width="16" height="10" rx="4" fill="#1d1d1d"/><rect x="53" y="45" width="16" height="10" rx="4" fill="#1d1d1d"/><path d="M47 49 L53 49" stroke="#1d1d1d" stroke-width="2"/>`;

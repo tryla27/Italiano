@@ -63,6 +63,8 @@ function handleClick(e){
   if(a==="chest")return chestTap();
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
+  if(a==="memo")return startMemo();
+  if(a==="mflip")return memoFlip(+t.dataset.i);
   if(a==="sound"){S.sound=!S.sound;save();return render();}
   if(a==="sayit")return speak(t.dataset.t);
   if(a==="buy"){const i=SHOP.find(x=>x.id===t.dataset.id);if(i&&S.coins>=i.cost&&!S.owned.includes(i.id)){S.coins-=i.cost;S.owned.push(i.id);sfx("coins");if(i.up)S.level=i.up;else furnBought(i);save();}return render();}
@@ -71,10 +73,14 @@ function handleClick(e){
   if(a==="menu"){menuOpen=!menuOpen;return render();}
   if(!G)return;
   const st=curStep();
-  if(a==="speak")return speak(st.it,speaker());
+  if(a==="speak")return speak(st.hag?st.hag.say:st.it,speaker());
   if(a==="text"){st.showText=true;st.textShown=true;return render();}
   if(a==="next")return advance();
-  if(a==="stallbuy"){stallBuy(t.dataset.k);return render();}
+  if(a==="stallbuy"){hagStart(t.dataset.k);return render();}
+  if(a==="hoffer"){hagOffer(+t.dataset.n);return render();}
+  if(a==="hdeal"){hagDeal();return render();}
+  if(a==="hleave"){hagLeave();return render();}
+  if(a==="hpeek"){if(st.hag)st.hag.peek=true;return render();}
   if(a==="opt"&&st.done){if(st.corDe)speak(st.opts[+t.dataset.i].t);return;}
   if(st.done)return;
   // Italienische Antworten beim Antippen vorlesen

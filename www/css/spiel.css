@@ -489,3 +489,31 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .board{max-width:260px;width:100%;align-self:center}
 .panel.letter{gap:4px;border:2px dashed var(--gold)}
 .panel.letter small{color:var(--chalk-dim);font-size:.8rem}
+/* Feilschen am Markt-Stand */
+.hag{display:flex;flex-direction:column;gap:7px}
+.hag-item{display:flex;align-items:center;gap:10px;background:var(--slate2);border-radius:14px;padding:6px 12px}
+.hag-item .ing-ic{width:34px;height:34px}
+.hag-item b{display:block;font-weight:800}
+.hag-item small{color:var(--chalk-dim);font-size:.8rem}
+.hag-item .pat{margin-left:auto;color:var(--gold);font-size:.8rem;font-weight:700;white-space:nowrap}
+.hag-item .pat .off{opacity:.25}
+.hag-row{display:flex;gap:8px}
+.hag-row>*{flex:1}
+.hag-row .buy{padding:12px 8px;font-size:1rem}
+.hag-row .sec{padding:10px 6px;font-size:.9rem}
+.hag .tipbox{margin:0}
+.hag .note.tiny{margin:0}
+/* Zutaten-Memory */
+.learnrow{display:grid;grid-template-columns:2fr 1fr;gap:8px}
+.memobtn{border-color:var(--gold);background:none}
+.memo-line{margin:0;text-align:center}
+.memo-line b{color:var(--gold)}
+.memo{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;flex:1 1 auto;min-height:0;align-content:center}
+.mcard{aspect-ratio:1;max-height:21vh;width:100%;border:2px solid var(--line);border-radius:14px;background:var(--slate2);color:var(--chalk);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:4px;transition:transform .2s}
+.mcard .back{width:100%;text-align:center;font-family:var(--game);font-size:1.6rem;color:var(--gold);opacity:.8}
+.mcard:not(.up){background:repeating-linear-gradient(45deg,#2f3a35 0 8px,#26302b 8px 16px)}
+.mcard.up{background:#f3eee2;color:#1e2420;transform:scale(1.02)}
+.mcard.up b{font-size:1.05rem;font-weight:800;word-break:break-word}
+.mcard .ing-ic{width:52%;height:52%}
+.mcard.found{border-color:var(--basil,#3f9a45);opacity:.85;transform:none}
+.mcard small{font-size:.72rem;color:#5a5a50}
