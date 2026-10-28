@@ -76,4 +76,13 @@ function pizzaSVG(set){
     }});
   return s+`</svg>`;
 }
+// Kassen-Symbol, das kurz aufspringt, wenn Geld reinkommt (Trinkgeld, Rechnung, Tagesgewinn).
+const KASSE_SVG=`<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="12" width="30" height="16" rx="3" fill="#2f3a40"/><rect x="13" y="15" width="24" height="9" rx="1" fill="#7fe08a"/><path d="M6 30h52l-4 22H10z" fill="#e6ad5e"/><rect x="4" y="50" width="56" height="10" rx="3" fill="#b8562f"/><g fill="#fbf6ea"><rect x="14" y="34" width="8" height="5" rx="1"/><rect x="26" y="34" width="8" height="5" rx="1"/><rect x="38" y="34" width="8" height="5" rx="1"/><rect x="14" y="42" width="8" height="5" rx="1"/><rect x="26" y="42" width="8" height="5" rx="1"/><rect x="38" y="42" width="8" height="5" rx="1"/></g><rect x="44" y="6" width="12" height="16" rx="2" fill="#fbf6ea" transform="rotate(12 50 14)"/><circle cx="52" cy="28" r="6" fill="#f4c64f" stroke="#c99a2a" stroke-width="1.5"/><text x="52" y="31" font-family="Arial" font-size="7" font-weight="800" fill="#7a5a10" text-anchor="middle">€</text></svg>`;
+let kasseTimer=null;
+function kasse(amount,label){
+  if(!(amount>0))return;
+  const k=$("#kasse"); clearTimeout(kasseTimer);
+  k.innerHTML=`<div class="kasse-pop">${KASSE_SVG}<b>+${amount} €</b>${label?`<small>${esc(label)}</small>`:""}</div>`;
+  sfx("kasse"); kasseTimer=setTimeout(()=>{k.innerHTML="";},1900);
+}
 function starsHTML(n){let h="";for(let i=1;i<=5;i++)h+=n>=i?"★":n>=i-.5?`<span class="half">★</span>`:`<span class="off">★</span>`;return `<span class="stars" aria-label="${n} von 5 Sternen">${h}</span>`;}

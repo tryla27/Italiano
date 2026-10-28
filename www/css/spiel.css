@@ -216,6 +216,15 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mutebig.on{border-color:var(--tomato);background:var(--tomato-soft);color:var(--chalk)}
 .sheet.muted .vrow{opacity:.45}
 
+/* Kassen-Symbol beim Geldbekommen */
+#kasse{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:35;pointer-events:none}
+.kasse-pop{display:flex;align-items:center;gap:8px;background:var(--slate2);border:2px solid var(--gold);border-radius:16px;padding:6px 12px 6px 6px;box-shadow:0 8px 20px rgba(0,0,0,.45);animation:kasse 1.9s ease-out both}
+.kasse-pop svg{width:44px;height:44px;animation:kaching .5s ease-out}
+.kasse-pop b{font-family:var(--game);font-weight:400;font-size:1.35rem;color:var(--gold)}
+.kasse-pop small{display:block;font-size:.7rem;color:var(--chalk-dim)}
+@keyframes kasse{0%{transform:translateY(-20px) scale(.8);opacity:0}12%{transform:none;opacity:1}80%{opacity:1}100%{transform:translateY(-10px);opacity:0}}
+@keyframes kaching{40%{transform:rotate(-10deg) scale(1.15)}70%{transform:rotate(6deg)}}
+
 /* Overlay menu */
 #overlay{position:fixed;inset:0;background:rgba(10,14,12,.75);display:flex;align-items:flex-end;justify-content:center;z-index:20}
 .sheet{background:var(--slate2);width:100%;max-width:520px;border-radius:22px 22px 0 0;max-height:82%;overflow-y:auto;
@@ -231,4 +240,4 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
 .mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
-@media (prefers-reduced-motion: reduce){.shake,.fig.enter,.fig.enter2,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}}
+@media (prefers-reduced-motion: reduce){.shake,.kasse-pop,.kasse-pop svg,.fig.enter,.fig.enter2,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}}

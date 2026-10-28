@@ -47,7 +47,7 @@ function finish(){
     let bonus=0;
     if(st.wrong===0&&!st.peeked){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);bonus=G.combo>=3?Math.min(Math.floor(G.combo/3),3):0;}
     const tip=Math.max(1,Math.round(base*mult()))+bonus;
-    G.earned+=tip; if(g)g.tip+=tip;
+    G.earned+=tip; if(g)g.tip+=tip; kasse(tip,"Trinkgeld");
     st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`+(st.bill?` · Rechnung ${st.bill} €`:"")];
   }
   if(st.wrong===0){G.firstTry++;learn(st.it);}
@@ -73,7 +73,7 @@ function advance(){
   else{
     const g=G.guests[G.gi]; G.si++;
     if(G.si>=g.steps.length){
-      G.revenue=(G.revenue||0)+(g.bill||0);
+      G.revenue=(G.revenue||0)+(g.bill||0); if(!G.trip)kasse(g.bill,g.phone?"Lieferung":"Rechnung");
       G.banner=g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
       G.gi++; G.si=0;
       if(G.gi>=G.guests.length&&G.trip){endTrip();return;}
@@ -92,7 +92,7 @@ function endTrip(){
   G.summary={trip:G.trip};
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   S.coins+=G.earned; save();
-  screen="summary"; render(); sfx("coins");
+  screen="summary"; render(); kasse(G.earned,"in die Kasse");
 }
 function endDay(){
   const LV=LEVELS[S.level];
@@ -104,5 +104,5 @@ function endDay(){
   S.vocab.days[S.day]=buildVocab(S.day);
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   S.coins=Math.max(0,S.coins+net); S.day++; save();
-  screen="summary"; render(); sfx("coins");
+  screen="summary"; render(); if(net>0)kasse(net,"Gewinn heute"); else sfx("coins");
 }

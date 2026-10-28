@@ -116,6 +116,7 @@ for (const trip of ["gelateria", "porto"]) {
     const k = await page.evaluate(() => curStep().opts.findIndex(o => o.ok));
     await page.locator(`[data-act="opt"][data-i="${k}"]`).click();
   }
+  check(await page.locator("#kasse .kasse-pop").count() === 1, "Kassen-Symbol erscheint nicht beim Geldbekommen");
   await shot(`ausflug-${trip}-ende`);
   check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
 }

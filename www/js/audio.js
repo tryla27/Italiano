@@ -94,6 +94,7 @@ function sfx(kind){
   if(kind==="select")tone(t,700,.07,.3,"square",sfxGain,1050);
   if(kind==="right"){[72,76,79,84].forEach((n,i)=>pluck(t+i*.07,mtof(n),.35,.32,sfxGain));tone(t+.28,mtof(96),.4,.08,"sine",sfxGain);}
   if(kind==="wrong"){tone(t,180,.32,.35,"sawtooth",sfxGain,110);tone(t+.02,190,.3,.25,"square",sfxGain,120);}
+  if(kind==="kasse"){tone(t,mtof(96),.5,.18,"triangle",sfxGain);tone(t+.06,mtof(103),.6,.14,"triangle",sfxGain);[88,93].forEach((n,i)=>tone(t+.12+i*.08,mtof(n),.22,.12,"sine",sfxGain));}
   if(kind==="coins"){[88,93].forEach((n,i)=>tone(t+i*.09,mtof(n),.25,.2,"sine",sfxGain));}
 }
 document.addEventListener("pointerdown",()=>{
