@@ -100,7 +100,7 @@ function helpHTML(){
 }
 function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
-  const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name+(g.regular?" · Stammgast ★":"");
+  const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name+(g.story?" · 📖 Geschichte":g.regular?" · Stammgast ★":"");
   const hideText=st.phone&&!st.showText&&!st.done;
   const H=st.kind==="stall"&&st.hag;
   let bubble=H?`<div class="it">${wordsHTML(H.say,true)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`
@@ -108,6 +108,7 @@ function rPlay(){
     ?`<div class="phone-call"><div class="ring">Squilla il telefono! Hör genau zu.</div><div><button class="say" data-act="speak">▶ Anhören</button><button class="say" data-act="text">Text zeigen (halbes Trinkgeld)</button></div></div>`
     :`<div class="it">${wordsHTML(st.it,true)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`;
   if(st.done&&!H)bubble+=`<div class="tr">${esc(st.de)}</div>`;
+  else if(st.react)bubble+=`<div class="react"><span class="it">${wordsHTML(st.react[0],true)}</span><small>${esc(st.react[1])}</small></div>`;
   let action="";
   if(H){const bud=stallBudget();
     action=`<div class="hag"><div class="hag-item">${ingIcon(H.k)}<span><b>${H.k}</b><small>${esc(ING[H.k][0])}</small></span><span class="pat" aria-label="Geduld ${H.pat} von 2">Geduld ${"●".repeat(H.pat)}<span class="off">${"●".repeat(2-H.pat)}</span></span></div>

@@ -35,6 +35,7 @@ oder erst beim Spielen aufgerufen wird.
 |---|---|
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
 | `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Markt-Stufe, Preis), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
+| `inhalt/gaeste.js` | Stammgäste mit Persönlichkeit (`PERS`: eigene Begrüßungen, Plaudereien, Reaktionen auf Fehler) und Geschichten über mehrere Tage (`STORIES`) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
 | `memory.js` | Zutaten-Memory: Bild und italienisches Wort als Paar finden, einmal pro Spieltag Geld (`S.memDay`) |
 | `einrichtung.js` | Möbel mit Ausbaustufen (`START_FURN`, Einrichtung in `SHOP`), ihre Boni (`fx`, Trinkgeld höchstens +50 %), Aufstellen auf dem Raster 8 × 6 (`S.place`) |
@@ -73,6 +74,13 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 - Eine Pizza ist freigeschaltet, sobald man alle ihre Zutaten besitzt. Gäste bestellen nur, was man backen kann. Eine neu freigeschaltete Pizza bestellt am nächsten Tag garantiert jemand (`S.newPz`).
 - Sterne: Für je drei fehlerfreie Pizzen einer Sorte gibt es einen Stern, höchstens drei (`S.pz`). Unter zwei Sternen steht das Rezept in der Aufgabe. Mit drei Sternen gibt es +1 € Trinkgeld.
 - Spielstände vor Version 4 behalten alle zwölf alten Zutaten plus die neuen Start-Zutaten.
+
+## Stammgäste und Geschichten
+
+- Jeder der zwölf Stammgäste (`NAMES`) hat in `inhalt/gaeste.js` eigene Sätze: Begrüßung und Plauderei kommen zu etwa zwei Dritteln aus seinem eigenen Vorrat. Ein Satz hat dasselbe Format wie in `dialoge.js`, nur stehen die falschen Antworten gleich mit Übersetzung dabei.
+- Falsche Antwort: der Gast reagiert in der Sprechblase, beim ersten Fehler verwirrt, bei schlechter Laune verärgert (`huh`), jeder auf seine Art. Bei der Pizza gibt es eigene Sätze (`HUH_PIZZA`).
+- Geschichten (`STORIES`): Ab Tag 3 beginnt die erste. Jeder Teil kommt an einem eigenen Spieltag mit einem Tag Pause, der Gast bringt seine Sätze statt Begrüßung und Plauderei mit („📖 Geschichte“). Weiter geht es erst, wenn der Tag zu Ende gespielt ist. Spielstand: `S.story`, `S.storiesDone`, `S.storyNext`.
+- Neue Geschichte: einfach einen Eintrag in `STORIES_RAW` anhängen, `who` muss einer der `NAMES` sein.
 
 ## Feilschen am Markt
 
