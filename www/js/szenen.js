@@ -5,6 +5,23 @@
 function figure(svg,x,y,size,cls){
   return `<g class="fig ${cls||""}" style="transform-origin:${x+size/2}px ${y+size*.6}px"><svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100">${svg.replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg></g>`;
 }
+// Ganze Figur mit Körper, Armen und Beinen (100×230, Füße unten bei y=218). Kopf = Gesicht aus grafik.js.
+// Die Klassen leg/arm schwingen per CSS, solange die Figur die Klasse "walk" trägt.
+const PANTS=["#33415c","#4a3b2f","#2e4a3a","#5a4636","#3d3d48"];
+function bodyFigure(name,mood){
+  const c=CHARS[name]||CHARS.Marco, shirt=c.shirt==="hawaii"?"#1f9fb0":c.shirt;
+  const pants=c.shirt==="hawaii"?"#e9d8a6":PANTS[[...name].reduce((a,ch)=>a+ch.charCodeAt(0),0)%PANTS.length];
+  const leg=(x,k)=>`<g class="leg ${k}"><rect x="${x}" y="148" width="13" height="64" rx="6" fill="${c.f?c.skin:pants}"/><ellipse cx="${x+6.5}" cy="214" rx="9" ry="5" fill="#2a1d14"/></g>`;
+  const arm=(x,k)=>`<g class="arm ${k}"><rect x="${x}" y="90" width="11" height="54" rx="5.5" fill="${shirt}"/><circle cx="${x+5.5}" cy="146" r="6" fill="${c.skin}"/></g>`;
+  let b=leg(36,"l")+leg(51,"r")+arm(17,"l")+arm(72,"r")+`<rect x="26" y="84" width="48" height="74" rx="14" fill="${shirt}"/>`;
+  if(c.f)b+=`<path d="M27 140 L73 140 L80 176 Q50 182 20 176 Z" fill="${pants}"/>`;
+  return `<svg viewBox="0 0 100 230" aria-hidden="true"><g class="bob">${b}${face(name,mood).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</g></svg>`;
+}
+// Figur mit Füßen an (x,y), Höhe h. cls z. B. "walk walkin" (kommt herein) oder "walk walkout" (geht).
+function walker(name,mood,x,y,h,cls){
+  const w=h*100/230;
+  return `<g class="walker ${cls||""}" style="--x:${x}px;--y:${y}px"><svg x="${-w/2}" y="${-h*218/230}" width="${w}" height="${h}" viewBox="0 0 100 230">${bodyFigure(name,mood).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg></g>`;
+}
 const stripes=(x,y,w,h,n,a,b)=>{let s="";for(let i=0;i<n;i++)s+=`<rect x="${x+i*w/n}" y="${y}" width="${w/n+.5}" height="${h}" fill="${i%2?b:a}"/>`;return s;};
 const scallop=(x,y,w,n,a,b)=>{let s="";const r=w/n/2;for(let i=0;i<n;i++)s+=`<path d="M${x+i*2*r} ${y} a${r} ${r*.9} 0 0 0 ${2*r} 0z" fill="${i%2?b:a}"/>`;return s;};
 const checker=(x,y,w,h,c,a,b)=>{let s=`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${a}"/>`;for(let r=0;r*c<h;r++)for(let k=0;k*c<w;k++)if((r+k)%2)s+=`<rect x="${x+k*c}" y="${y+r*c}" width="${c}" height="${Math.min(c,h-r*c)}" fill="${b}"/>`;return s;};
@@ -147,20 +164,31 @@ const SCENE_IMG={
   gelateria:{src:"bilder/umgebungen/eisladen.webp",oy:300,fig:[150,30,100],clip:118},
   porto:{src:"bilder/umgebungen/hafen.webp",oy:250}
 };
-function imageScene(id,person,enter,label){
+function imageScene(id,person,enter,label,extra){
   const I=SCENE_IMG[id]; if(!I)return null;
-  let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="700"/>`;
-  if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${figure(person,x,y,w,enter?"enter2":"")}</g>`;}
+  let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="700"/>`+(extra||"");
+  if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${
+    person.name?walker(person.name,person.mood,x+w/2,y+w*218/100,w*2.3,enter?"walk walkin":"")+(person.prev?walker(person.prev,2,x+w/2,y+w*218/100,w*2.3,"walk walkout"):"")
+    :figure(person,x,y,w,enter?"enter2":"")}</g>`;}
   return `<svg class="stage-svg" viewBox="0 0 400 ${SCENE_H}" role="img" aria-label="${label}">${s}</svg>`;
+}
+// Passanten, die im Hintergrund vorbeilaufen (Markt: die Gasse herunter, Hafen: an der Promenade entlang).
+function passersby(id){
+  const who=sample(NAMES,2);
+  if(id==="mercato")return who.map((n,i)=>walker(n,2,0,0,92,`walk street${i?" late":""}`)).join("");
+  if(id==="porto")return who.map((n,i)=>walker(n,2,0,0,46,`walk quay${i?" late":""}`)).join("");
+  return "";
 }
 
 // Passende Szene für den aktuellen Schritt; der Gast „kommt herein“, wenn er neu ist.
 function stageHTML(){
   const mk=G.phase==="market", g=curGuest();
-  if(mk)return imageScene("mercato",null,false,"Markt")||sceneMarket();
+  if(mk)return imageScene("mercato",null,false,"Markt",passersby("mercato"))||sceneMarket();
   const enter=G.entered!==G.gi; G.entered=G.gi;
   const person=g&&!g.phone?face(g.name,g.mood):null;
   if(G.trip==="gelateria")return imageScene("gelateria",person,false,"Eisladen")||sceneGelateria(person,false);
-  if(G.trip==="porto")return imageScene("porto",null,false,"Hafen")||scenePorto(person,false);
-  return (!(g&&g.phone)&&imageScene("pizzeria",person,enter,"Pizzeria"))||scenePizzeria(person,g&&g.phone,enter);
+  if(G.trip==="porto")return imageScene("porto",null,false,"Hafen",passersby("porto"))||scenePorto(person,false);
+  // Pizzeria: der Gast läuft herein, der vorige geht zur gleichen Zeit hinaus.
+  const prev=enter&&G.gi>0&&G.guests[G.gi-1], who=g&&!g.phone&&{name:g.name,mood:g.mood,prev:prev&&!prev.phone?prev.name:null};
+  return (!(g&&g.phone)&&imageScene("pizzeria",who,enter,"Pizzeria"))||scenePizzeria(person,g&&g.phone,enter);
 }

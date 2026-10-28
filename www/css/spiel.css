@@ -143,6 +143,26 @@ body{-webkit-user-select:none;user-select:none}
 @keyframes walkin{0%{transform:translate(0,-34px) scale(.4);opacity:0}18%{opacity:1}100%{transform:none;opacity:1}}
 .fig.enter2{animation:slidein .9s cubic-bezier(.3,.7,.4,1) both}
 @keyframes slidein{0%{transform:translateX(-160px);opacity:0}30%{opacity:1}100%{transform:none;opacity:1}}
+/* Laufende Figuren: ganze Körper (szenen.js walker), Beine und Arme schwingen, Körper wippt */
+.walker{transform:translate(var(--x),var(--y))}
+.walker .leg,.walker .arm{transform-box:fill-box;transform-origin:50% 0}
+.walk .leg.l,.walk .arm.r{animation:swing .7s linear infinite}
+.walk .leg.r,.walk .arm.l{animation:swing .7s linear -.35s infinite}
+.walk .bob{animation:bob .35s ease-in-out infinite alternate}
+@keyframes swing{0%,50%,100%{transform:rotate(0)}25%{transform:rotate(16deg)}75%{transform:rotate(-16deg)}}
+@keyframes bob{to{transform:translateY(-5px)}}
+.walkin{animation:walkin2 1.4s ease-out both}
+.walkin .leg,.walkin .arm{animation-iteration-count:2!important}
+.walkin .bob{animation-iteration-count:4}
+@keyframes walkin2{0%{transform:translate(calc(var(--x) - 280px),var(--y))}100%{transform:translate(var(--x),var(--y))}}
+.walkout{animation:walkout 1.4s ease-in both}
+@keyframes walkout{0%{transform:translate(var(--x),var(--y))}100%{transform:translate(calc(var(--x) + 320px),var(--y));visibility:hidden}}
+.street{animation:street 10s linear infinite both}
+.street.late{animation-delay:5s}
+@keyframes street{0%{transform:translate(268px,124px) scale(.28);opacity:0}8%{opacity:1}85%{opacity:1}100%{transform:translate(242px,266px) scale(1.2);opacity:0}}
+.quay{animation:quay 18s linear infinite both}
+.quay.late{animation:quay 18s linear 9s infinite both reverse}
+@keyframes quay{0%{transform:translate(430px,256px)}100%{transform:translate(120px,256px)}}
 .ring-phone{animation:ring .5s ease-in-out infinite;transform-origin:240px 143px}
 .ring-waves{animation:blink 1s steps(2) infinite}
 @keyframes ring{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
@@ -240,4 +260,4 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
 .mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
-@media (prefers-reduced-motion: reduce){.shake,.kasse-pop,.kasse-pop svg,.fig.enter,.fig.enter2,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}}
+@media (prefers-reduced-motion: reduce){.shake,.kasse-pop,.kasse-pop svg,.fig.enter,.fig.enter2,.walkin,.walk .leg,.walk .arm,.walk .bob,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}.walkout,.street,.quay{display:none}}
