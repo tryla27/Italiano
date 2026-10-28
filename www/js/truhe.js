@@ -79,7 +79,9 @@ function chestTap(){
     return;
   }
   if(C.phase==="karten"){if(C.shown<C.items.length)showCard();else chestDone();return;}
-  if(C.phase==="fertig"){chestUI=null;$("#chest").hidden=true;$("#chest").innerHTML="";render();}
+  if(C.phase==="fertig"){chestUI=null;$("#chest").hidden=true;$("#chest").innerHTML="";
+    if(screen==="vocab"&&S.vocabRun&&S.vocabRun.finished){S.vocabRun=null;mapMsg="";screen="map";} // nach dem Vokabeltag weiter auf der Karte
+    render();}
 }
 function chestDone(){
   const C=chestUI; chestStage("fertig");
