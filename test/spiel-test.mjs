@@ -8,7 +8,7 @@
 // am PC einmalig: npm i -D playwright && npx playwright install chromium).
 
 import { createServer } from "node:http";
-import { readFile, mkdir, rm } from "node:fs/promises";
+import { readFile, mkdir, rm, readdir } from "node:fs/promises";
 import { extname, join, normalize, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
@@ -160,6 +160,23 @@ await page.waitForTimeout(300);
 await page.reload();
 check(await page.evaluate(() => S.coins === 123 && S.day === 4 && S.book.conto && S.book.conto.miss === 2), "Spielstand-Code stellt den Stand nicht wieder her");
 check(await page.evaluate(async () => !(await loadCode("Quatsch")) && S.coins === 123), "Falscher Code verändert den Spielstand");
+
+// Jede alte Spielstand-Version aus test/spielstaende/ lädt, behält Geld, Tag und Stufe, und alle Bildschirme gehen
+for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => f.endsWith(".json")).sort()) {
+  const fx = JSON.parse(await readFile(join(ROOT, "test", "spielstaende", f), "utf8"));
+  await page.goto(URL);
+  await page.evaluate(r => { localStorage.clear(); localStorage.setItem("pizzeria-parola", JSON.stringify(r)); }, fx.raw);
+  await page.reload();
+  const got = await page.evaluate(() => ({ coins: S.coins, day: S.day, level: S.level }));
+  check(got.coins === fx.expect.coins && got.day === fx.expect.day && got.level === fx.expect.level, `Spielstand ${fx.name} lädt falsch: ${JSON.stringify(got)}`);
+  check(await page.evaluate(() => { try { for (const s of ["home", "shop", "map", "book", "vocab"]) { screen = s; render(); } screen = "home"; render(); return true; } catch (e) { return String(e); } }) === true, `Spielstand ${fx.name}: Bildschirm bricht`);
+  check(await page.evaluate(() => { S.streak++; save(); S.streak--; save(); return JSON.parse(JSON.parse(localStorage.getItem("pizzeria-parola")).state).v === SAVE_V; }), `Spielstand ${fx.name} wird nicht auf die neue Version gehoben`);
+}
+// Kaputter Hauptstand: die Sicherheitskopie springt ein
+await page.goto(URL);
+await page.evaluate(() => { localStorage.clear(); localStorage.setItem("pizzeria-parola-backup", JSON.stringify({ savedAt: 1, state: JSON.stringify({ v: 3, S: { coins: 321, day: 7, setupDone: true }, G: null, screen: "home" }) })); localStorage.setItem("pizzeria-parola", "{kaputt"); });
+await page.reload();
+check(await page.evaluate(() => S.coins === 321), "Sicherheitskopie wird bei kaputtem Spielstand nicht genutzt");
 
 // Alter Spielstand ohne neue Felder muss weiter laden
 await fresh({ coins: 77, level: 1, day: 5, setupDone: true, vol: { music: .3 } });

@@ -1,0 +1,32 @@
+{
+ "name": "v1: alter Stand ohne Hülle",
+ "raw": {
+  "coins": 77,
+  "level": 1,
+  "owned": [
+   "basilico"
+  ],
+  "day": 5,
+  "streak": 2,
+  "last": "2026-10-01",
+  "book": {
+   "conto": {
+    "de": "Rechnung",
+    "miss": 2
+   }
+  },
+  "learned": [
+   "ciao"
+  ],
+  "sound": true,
+  "vol": {
+   "music": 0.3
+  },
+  "setupDone": true
+ },
+ "expect": {
+  "coins": 77,
+  "day": 5,
+  "level": 1
+ }
+}

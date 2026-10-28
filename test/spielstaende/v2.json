@@ -1,0 +1,12 @@
+{
+ "name": "v2: vor der Truhe",
+ "raw": {
+  "savedAt": 1761000000000,
+  "state": "{\"v\": 2, \"S\": {\"coins\": 140, \"level\": 2, \"owned\": [\"basilico\", \"pizzeria\", \"trattoria\"], \"day\": 9, \"streak\": 4, \"last\": \"2026-10-20\", \"book\": {\"grazie\": {\"de\": \"danke\", \"miss\": 1}}, \"learned\": [\"ciao\", \"grazie\"], \"sound\": true, \"vol\": {\"music\": 0.6, \"sfx\": 0.8, \"voice\": 1}, \"room\": null, \"setupDone\": true, \"setupQuiz\": null, \"vocab\": {\"days\": {\"1\": [{\"it\": \"grazie\", \"de\": \"danke\", \"ex\": null}], \"2\": [{\"it\": \"conto\", \"de\": \"Rechnung\", \"ex\": null}]}, \"done\": {\"1\": true}}, \"vocabRun\": null, \"muted\": false}, \"G\": null, \"screen\": \"home\"}"
+ },
+ "expect": {
+  "coins": 140,
+  "day": 9,
+  "level": 2
+ }
+}
