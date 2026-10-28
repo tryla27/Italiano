@@ -34,3 +34,11 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 
 - „Italian Tarantella – Loop“ und „Italian Sweetness – Tarantella Loop“ von Sonican (Pixabay)
 - „Tarantella Napoletana“ von PaoloArgento (Pixabay)
+
+## Automatisch testen
+
+`node test/spiel-test.mjs` startet das Spiel in einem unsichtbaren Handy-Browser (Pixel 7),
+klickt Startseite, Laden einrichten, Shop, Vokabeln, Notizbuch, Lautstärke und einen Spieltag durch,
+speichert Screenshots in `test/screenshots/` und meldet JavaScript-Fehler.
+Anderes Handy: `DEVICE="iPhone 13" node test/spiel-test.mjs`.
+Braucht Playwright (am PC einmalig: `npm i -D playwright && npx playwright install chromium`).
