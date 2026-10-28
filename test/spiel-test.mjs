@@ -188,6 +188,32 @@ check(await page.evaluate(() => /Il ricettario/.test($("#overlay").textContent) 
 await shot("rezeptbuch");
 await page.evaluate(() => { menuOpen = false; render(); });
 
+// Einrichtung: kaufen, Moretti fragt nach dem Platz, auf ein grünes Feld stellen
+await fresh({ coins: 1000, level: 2, day: 5, setupDone: true });
+await page.evaluate(() => { screen = "shop"; render(); });
+await page.locator('[data-act="buy"][data-id="tavoli2"]').click();
+check(await page.evaluate(() => S.owned.includes("tavoli2") && S.coins === 970 && placing && placing.key === "tavoli" && /Dove mettiamo/.test($(".board-line").textContent)), "Möbel kaufen fragt nicht nach dem Platz");
+await shot("einrichtung");
+const okCell = await page.evaluate(() => { const c = document.querySelector(".board .cell.ok"); return c && [c.dataset.x, c.dataset.y]; });
+await page.locator(`.board .cell.ok[data-x="${okCell[0]}"][data-y="${okCell[1]}"]`).click();
+check(await page.evaluate(([x, y]) => S.place.tavoli[0] === +x && S.place.tavoli[1] === +y && !placing, okCell), "Möbel lässt sich nicht umstellen");
+check(await page.evaluate(() => { const before = S.place.tavoli + ""; placing = { key: "tavoli", msg: "" }; furnPut(0, 0); return S.place.tavoli + "" === before; }), "Tisch darf nicht an die Küchenwand");
+check(await page.evaluate(() => { S.owned = SHOP.filter(i => i.fx && i.fx.tip).map(i => i.id); return mult() === 1 + TIP_CAP; }), "Trinkgeld-Deckel fehlt");
+check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
+// Holzofen: eine falsche Pizza pro Tag zählt nicht
+check(await page.evaluate(() => { S.owned = ["forno"]; G = null; startDay(); const gi = G.guests.findIndex(g => g.steps.some(x => x.kind === "pizza")); G.gi = gi; G.si = G.guests[gi].steps.findIndex(x => x.kind === "pizza"); render(); return true; }), "");
+await page.locator('[data-act="serve"]').click();
+check(await page.evaluate(() => G.ovenUsed && curStep().wrong === 0 && /forno/.test(G.banner)), "Holzofen verzeiht die falsche Pizza nicht");
+// Kaffee: Zutaten in der richtigen Reihenfolge und die richtige Tasse
+check(await page.evaluate(() => { S.owned = ["moka", "macchina"]; for (let n = 0; n < 30; n++) { G = null; startDay(); const gi = G.guests.findIndex(g => g.steps.some(x => x.kind === "coffee")); if (gi >= 0) { G.gi = gi; G.si = G.guests[gi].steps.findIndex(x => x.kind === "coffee"); render(); return true; } } return false; }), "Kein Kaffee bestellt, obwohl die Moka-Kanne da ist");
+await shot("kaffee");
+const cf = await page.evaluate(() => ({ want: curStep().want, cup: curStep().cup }));
+for (const k of cf.want) await page.locator(`[data-act="cing"][data-k="${k}"]`).click();
+await page.locator(`[data-act="cup"][data-k="${cf.cup}"]`).click();
+await page.locator('[data-act="cserve"]').click();
+check(await page.evaluate(() => curStep().done && curStep().wrong === 0), "Richtig zubereiteter Kaffee wird nicht angenommen");
+await page.evaluate(() => { G = null; screen = "home"; S.owned = []; render(); });
+
 // Kaputter Hauptstand: die Sicherheitskopie springt ein
 await page.goto(URL);
 await page.evaluate(() => { localStorage.clear(); localStorage.setItem("pizzeria-parola-backup", JSON.stringify({ savedAt: 1, state: JSON.stringify({ v: 3, S: { coins: 321, day: 7, setupDone: true }, G: null, screen: "home" }) })); localStorage.setItem("pizzeria-parola", "{kaputt"); });

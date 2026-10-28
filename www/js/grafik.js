@@ -138,6 +138,20 @@ function pizzaSVG(set){
     }});
   return s+`</svg>`;
 }
+// Tasse oder Glas mit den Zutaten als Schichten (unten zuerst)
+const CUP_SHAPE={tazzina:[100,80,70],tazza:[136,100,96],"tazza grande":[150,122,112],bicchiere:[88,150,78],bicchierino:[80,100,70],coppa:[150,110,60],coppetta:[150,72,104]};
+function cupSVG(cup,layers){
+  const [w,h,bw]=CUP_SHAPE[cup]||CUP_SHAPE.tazza, x0=96-w/2, y0=172-h, glass=/bicch|coppa/.test(cup);
+  const clip=`M${x0} ${y0} L${x0+w} ${y0} L${96+bw/2} 172 L${96-bw/2} 172 Z`;
+  let s=`<svg viewBox="0 0 200 200" class="pz cup" aria-hidden="true"><defs><clipPath id="cupc"><path d="${clip}"/></clipPath></defs>
+    <ellipse cx="96" cy="178" rx="${Math.min(96,w/2+16)}" ry="8" fill="#e8e1d2"/>`;
+  const n=layers.length, lh=n?(h-8)/Math.max(n,2):0;
+  s+=`<g clip-path="url(#cupc)"><rect x="0" y="0" width="200" height="200" fill="${glass?"#dfeef3":"#fbf8f1"}" opacity="${glass?.35:1}"/>`;
+  layers.forEach((k,i)=>{s+=`<rect x="0" y="${172-(i+1)*lh}" width="200" height="${lh+.5}" fill="${COF_ING[k][1]}"/>`;});
+  s+=`</g><path d="${clip}" fill="none" stroke="#3a3030" stroke-width="3"/>`;
+  if(!glass)s+=`<path d="M${x0+w-4} ${y0+12} q22 4 16 26 q-4 14 -${10+bw/10} 12" fill="none" stroke="#3a3030" stroke-width="5"/>`;
+  return s+`<text x="96" y="197" font-size="15" text-anchor="middle" fill="#cfc6b4" font-family="Nunito,sans-serif">${esc(cup)}</text></svg>`;
+}
 // Kassen-Symbol, das kurz aufspringt, wenn Geld reinkommt (Trinkgeld, Rechnung, Tagesgewinn).
 const KASSE_SVG=`<svg viewBox="0 0 64 64" aria-hidden="true"><rect x="10" y="12" width="30" height="16" rx="3" fill="#2f3a40"/><rect x="13" y="15" width="24" height="9" rx="1" fill="#7fe08a"/><path d="M6 30h52l-4 22H10z" fill="#e6ad5e"/><rect x="4" y="50" width="56" height="10" rx="3" fill="#b8562f"/><g fill="#fbf6ea"><rect x="14" y="34" width="8" height="5" rx="1"/><rect x="26" y="34" width="8" height="5" rx="1"/><rect x="38" y="34" width="8" height="5" rx="1"/><rect x="14" y="42" width="8" height="5" rx="1"/><rect x="26" y="42" width="8" height="5" rx="1"/><rect x="38" y="42" width="8" height="5" rx="1"/></g><rect x="44" y="6" width="12" height="16" rx="2" fill="#fbf6ea" transform="rotate(12 50 14)"/><circle cx="52" cy="28" r="6" fill="#f4c64f" stroke="#c99a2a" stroke-width="1.5"/><text x="52" y="31" font-family="Arial" font-size="7" font-weight="800" fill="#7a5a10" text-anchor="middle">€</text></svg>`;
 let kasseTimer=null;

@@ -3,9 +3,9 @@
 // Laden einrichten ist vorerst ausgeschaltet und wird später neu gebaut (Code in laden.js bleibt).
 // Auf true setzen, um es wieder einzuschalten.
 const LADEN_EINRICHTEN=false;
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null};
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null,place:{}};
 // Listen und Objekte aus S0 kopieren, damit ein neues Spiel S0 nie verändert
-const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko)});
+const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko),place:Object.assign({},s.place)});
 let S=fresh0(Object.assign({},S0));
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";
@@ -72,7 +72,6 @@ function backupDaily(rec){
 }
 window.addEventListener("pagehide",flushSave);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)flushSave();});
-const mult=()=>1+SHOP.filter(i=>S.owned.includes(i.id)&&i.bonus).reduce((a,i)=>a+i.bonus,0);
 function note(it,de){const e=S.book[it]||{de,miss:0};e.miss++;e.de=de;S.book[it]=e;}
 function learn(it){if(!S.learned.includes(it))S.learned.push(it);}
 /* Spielstand-Code: der ganze Spielstand als Text zum Kopieren, z. B. vom Android-Handy aufs iPhone.

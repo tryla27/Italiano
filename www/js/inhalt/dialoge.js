@@ -114,6 +114,36 @@ const DRINK=[
  ["Un limoncello per finire!","Zum Abschluss einen Limoncello!","Ottima scelta, offre la casa!","Gute Wahl, geht aufs Haus!",["Finito, arrivederci.","Il limone è finito.","Per finire il conto, sì."],"per finire = zum Abschluss. offre la casa = geht aufs Haus."]
 ];
 const DRINK_PRICE=[5,4,2,5,2,5,0]; // gleiche Reihenfolge wie DRINK
+// Kaffee wie in einer echten italienischen Bar. COF_ING: [Deutsch, Farbe]. Bei Kaffee zählt die Reihenfolge.
+const COF_ING={"caffè":["Espresso","#4a2c1a"],"acqua calda":["heißes Wasser","#9fc6d8"],"latte caldo":["heiße Milch","#f2e9d8"],
+  "schiuma":["Milchschaum","#fffaf0"],"cacao":["Kakao","#7a4a2a"],"zucchero":["Zucker","#e9e4da"],"ghiaccio":["Eis (Würfel)","#cfeaf5"],
+  "grappa":["Grappa","#efe2a0"],"gelato":["Speiseeis","#f6e3b4"]};
+const CUPS={tazzina:"Espressotasse",tazza:"Tasse","tazza grande":"große Tasse",bicchiere:"Glas",bicchierino:"kleines Glas",coppa:"Kelchglas",coppetta:"Schälchen"};
+// t = Kaffeemaschinen-Stufe: 1 Moka, 2 Espressomaschine, 3 Siebträger
+const CAFFE=[
+  {n:"caffè",de:"Espresso",ing:["caffè"],cup:"tazzina",t:1,p:2},
+  {n:"caffè lungo",de:"Espresso mit mehr Wasser",ing:["caffè","acqua calda"],cup:"tazzina",t:1,p:2},
+  {n:"caffè americano",de:"Americano",ing:["caffè","acqua calda"],cup:"tazza",t:2,p:3},
+  {n:"caffè macchiato",de:"Espresso mit etwas Milchschaum",ing:["caffè","schiuma"],cup:"tazzina",t:2,p:2},
+  {n:"cappuccino",de:"Cappuccino",ing:["caffè","latte caldo","schiuma"],cup:"tazza",t:2,p:3},
+  {n:"caffè latte",de:"Milchkaffee",ing:["latte caldo","caffè"],cup:"tazza grande",t:2,p:3},
+  {n:"latte macchiato",de:"Latte macchiato",ing:["latte caldo","schiuma","caffè"],cup:"bicchiere",t:3,p:4},
+  {n:"marocchino",de:"Marocchino",ing:["cacao","caffè","schiuma"],cup:"bicchierino",t:3,p:3},
+  {n:"caffè corretto",de:"Espresso mit Grappa",ing:["caffè","grappa"],cup:"tazzina",t:3,p:4},
+  {n:"caffè shakerato",de:"Geschüttelter Eiskaffee",ing:["caffè","zucchero","ghiaccio"],cup:"coppa",t:3,p:4},
+  {n:"affogato",de:"Vanilleeis mit Espresso",ing:["gelato","caffè"],cup:"coppetta",t:3,p:4}
+];
+// Gespräche an der Bar (ab Espressomaschine)
+const BAR=[
+  ["Un cappuccino e un cornetto, per favore.","Einen Cappuccino und ein Hörnchen, bitte.","Subito! Il cornetto vuoto o alla crema?","Sofort! Das Hörnchen ohne Füllung oder mit Creme?",["Subito! Il cornetto con il tonno?","Il cappuccino è finito, mi dispiace.","Certo, una pizza cornetto."],"cornetto = Hörnchen, vuoto = leer (ohne Füllung), alla crema = mit Creme."],
+  ["Un caffè macchiato, ma con latte freddo.","Einen Macchiato, aber mit kalter Milch.","Certo, macchiato freddo.","Natürlich, Macchiato kalt.",["Certo, latte caldo caldo.","Il caffè è freddo, mi dispiace.","Certo, un tè freddo."],"freddo = kalt, caldo = heiß."],
+  ["Avete latte senza lattosio?","Haben Sie laktosefreie Milch?","Sì, abbiamo anche latte di soia.","Ja, wir haben auch Sojamilch.",["Sì, abbiamo tanto zucchero.","No, il latte è nel caffè.","Sì, la pizza è senza pomodoro."],"senza lattosio = laktosefrei, soia = Soja."],
+  ["Un decaffeinato, per favore. Non dormo la notte!","Einen Entkoffeinierten, bitte. Ich schlafe nachts nicht!","Un deca, arriva!","Ein Entkoffeinierter, kommt!",["Un doppio caffè, arriva!","Buonanotte, signore!","Un caffè corretto, arriva!"],"decaffeinato (kurz deca) = entkoffeiniert."],
+  ["Un'acqua frizzante con ghiaccio e limone.","Ein Sprudelwasser mit Eis und Zitrone.","Ecco a lei, con ghiaccio e limone.","Bitte sehr, mit Eis und Zitrone.",["Ecco a lei, acqua naturale calda.","Ecco, un gelato al limone.","Ecco, senza ghiaccio e senza limone."],"frizzante = mit Kohlensäure, ghiaccio = Eis(würfel), limone = Zitrone."],
+  ["Che vino mi consiglia con la pizza?","Welchen Wein empfehlen Sie mir zur Pizza?","Il rosso della casa è ottimo.","Der Hausrotwein ist ausgezeichnet.",["La pizza della casa è chiusa.","Il vino è nel forno.","Consiglio un cappuccino."],"mi consiglia = empfehlen Sie mir, della casa = vom Haus, ottimo = ausgezeichnet."],
+  ["Vorrei una birra.","Ich hätte gern ein Bier.","Piccola o media?","Klein oder mittel?",["Rossa o bianca? Di pizza?","Birra? Sono le otto di mattina!","La birra è finita ieri, domani."],"piccola = klein, media = mittel (0,4 l)."],
+  ["One cappuccino, please! Sono le tre.","Einen Cappuccino, bitte! Es ist drei Uhr.","Un cappuccino adesso? Va bene…","Ein Cappuccino jetzt? Na gut …",["Un cappuccino? Sono le tre di notte!","No, il cappuccino è solo per i bambini.","Un caffè corretto, subito!"],"In Italien trinkt man Cappuccino nur morgens. adesso = jetzt. va bene = in Ordnung."]
+];
 const DIR=[
  ["Scusi, dov'è la spiaggia?","Entschuldigung, wo ist der Strand?","Vada dritto e poi giri a sinistra.","Gehen Sie geradeaus und dann links.",["La spiaggia è una pizza.","Vado a dormire.","Sì, è buonissima."],"spiaggia = Strand. dritto = geradeaus, a sinistra = links."],
  ["C'è una farmacia qui vicino?","Gibt es hier in der Nähe eine Apotheke?","Sì, a cento metri, sulla destra.","Ja, hundert Meter weiter rechts.",["Sì, vendiamo pizza.","No, sono in vacanza.","La farmacia è calda."],"farmacia = Apotheke, vicino = in der Nähe, a destra = rechts."],
@@ -146,24 +176,48 @@ const LEVELS=[
 // Wochentage: Tag 1 ist ein Montag. Markt ist nur mittwochs und samstags.
 const GIORNI=[["lunedì","Montag","lun"],["martedì","Dienstag","mar"],["mercoledì","Mittwoch","mer"],["giovedì","Donnerstag","gio"],["venerdì","Freitag","ven"],["sabato","Samstag","sab"],["domenica","Sonntag","dom"]];
 const MARKT_TAGE=[2,5];
+// Shop: Aufstiege (up) und Einrichtung. fx = Bonus (siehe einrichtung.js), txt = Bonus in Worten.
+// Stücke mit grp gibt es in Ausbaustufen (tier); Stufe 1 hat man von Anfang an (START_FURN).
+// Alte ids (basilico, tovaglie, forno, …) bleiben gleich, damit Gekauftes aus alten Spielständen erhalten bleibt.
+const START_FURN=[
+ {id:"forno1",grp:"forno",tier:1,ic:"🔥",it:"il forno elettrico",de:"Elektroofen",txt:"Backt einfache Pizzen"},
+ {id:"bancone1",grp:"bancone",tier:1,ic:"🪵",it:"il bancone",de:"Theke aus Brettern",txt:"Hier zahlen die Gäste"},
+ {id:"tavoli1",grp:"tavoli",tier:1,ic:"🪑",it:"il tavolo",de:"Plastiktisch",txt:"Ein Tisch für die ersten Gäste"},
+ {id:"frigo1",grp:"frigo",tier:1,ic:"🧊",it:"la borsa frigo",de:"Kühlbox",txt:"Hält die Zutaten frisch"}
+];
 const SHOP=[
- {id:"basilico",ic:"🌿",it:"il basilico in vaso",de:"Basilikum im Topf",cost:25,bonus:.05,lv:0},
- {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:40,bonus:.05,lv:0},
- {id:"mandolino",ic:"🎶",it:"il mandolino",de:"Musik vom Mandolinenspieler",cost:60,bonus:.1,lv:0},
+ {id:"tavoli2",grp:"tavoli",tier:2,ic:"🪑",it:"i tavoli di legno",de:"Zwei Holztische mit Tischdecken",cost:30,lv:0,fx:{guest:1},txt:"+1 Gast pro Tag"},
+ {id:"basilico",ic:"🌿",it:"il basilico in vaso",de:"Basilikum im Topf",cost:20,lv:0,fx:{tip:.05},txt:"+5 % Trinkgeld"},
+ {id:"lavagna",ic:"📋",it:"la lavagna",de:"Kreidetafel",cost:40,lv:0,fx:{daily:1},txt:"Ein Gast pro Tag nimmt den Piatto del giorno (Rezept steht dabei)"},
+ {id:"moka",grp:"caffe",tier:1,ic:"☕",it:"la moka",de:"Moka-Kanne",cost:30,lv:0,fx:{coffee:1},txt:"Gäste bestellen Kaffee: caffè, caffè lungo"},
+ {id:"mandolino",ic:"🎶",it:"il mandolino",de:"Musik vom Mandolinenspieler",cost:60,lv:0,fx:{tip:.05},txt:"+5 % Trinkgeld"},
  {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: mehr Gäste, Pizzen von der Karte, Telefon",cost:200,lv:0,up:1},
- {id:"forno",ic:"🔥",it:"il forno a legna",de:"Holzofen",cost:120,bonus:.15,lv:1},
- {id:"vespa",ic:"🛵",it:"la Vespa",de:"Vespa für Lieferungen",cost:150,bonus:.1,lv:1},
+ {id:"forno",grp:"forno",tier:2,ic:"🔥",it:"il forno a legna",de:"Holzofen aus Ziegeln",cost:120,lv:1,fx:{oven:1},txt:"Eine falsche Pizza pro Tag zählt nicht"},
+ {id:"frigo2",grp:"frigo",tier:2,ic:"🧊",it:"il frigorifero",de:"Kühlschrank",cost:90,lv:1,fx:{cheap:.15},txt:"Zutaten 15 % günstiger"},
+ {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:40,lv:1,fx:{tip:.05},txt:"+5 % Trinkgeld"},
+ {id:"vespa",ic:"🛵",it:"la Vespa",de:"Vespa für Lieferungen",cost:150,lv:1,fx:{delivery:1},txt:"+1 € auf jede Lieferung"},
  {id:"trattoria",ic:"🍷",it:"La Trattoria",de:"Aufsteigen: Getränke und Nachtisch",cost:450,lv:1,up:2},
- {id:"botti",ic:"🛢️",it:"le botti di vino",de:"Weinfässer",cost:200,bonus:.1,lv:2},
- {id:"insegna",ic:"💡",it:"l'insegna luminosa",de:"Leuchtschild",cost:170,bonus:.1,lv:2},
+ {id:"macchina",grp:"caffe",tier:2,ic:"☕",it:"la macchina del caffè",de:"Espressomaschine",cost:150,lv:2,fx:{coffee:2},txt:"Neu: americano, macchiato, cappuccino, caffè latte"},
+ {id:"bancone2",grp:"bancone",tier:2,ic:"🪵",it:"il bancone con la vetrina",de:"Holztheke mit Glasvitrine",cost:100,lv:2,fx:{tip:.05},txt:"+5 % Trinkgeld"},
+ {id:"botti",ic:"🛢️",it:"le botti di vino",de:"Weinfässer",cost:200,lv:2,fx:{wine:1},txt:"Getränke-Fragen zählen doppelt für die Combo"},
+ {id:"foto",ic:"🖼️",it:"le foto di Napoli",de:"Fotos von Neapel",cost:120,lv:2,fx:{regular:1},txt:"Ein Stammgast pro Tag: +50 % Trinkgeld"},
+ {id:"insegna",ic:"💡",it:"l'insegna luminosa",de:"Leuchtschild",cost:170,lv:2,fx:{tip:.05},txt:"+5 % Trinkgeld"},
  {id:"ristorante",ic:"⭐",it:"Il Ristorante",de:"Aufsteigen: Reservierungen, schwierigere Bestellungen",cost:800,lv:2,up:3},
- {id:"lampadari",ic:"✨",it:"i lampadari",de:"Kronleuchter",cost:300,bonus:.15,lv:3},
- {id:"pianoforte",ic:"🎹",it:"il pianoforte",de:"Klavier mit Live-Musik",cost:380,bonus:.15,lv:3},
+ {id:"agenda",ic:"📒",it:"l'agenda",de:"Reservierungsbuch",cost:180,lv:3,fx:{agenda:1},txt:"Telefon: den Namen schreibst du gleich mit"},
+ {id:"lampadari",ic:"✨",it:"i lampadari",de:"Kronleuchter",cost:300,lv:3,fx:{tip:.1},txt:"+10 % Trinkgeld"},
+ {id:"pianoforte",ic:"🎹",it:"il pianoforte",de:"Klavier mit Live-Musik",cost:380,lv:3,fx:{piano:1},txt:"Der erste Fehler pro Gast bricht die Combo nicht"},
+ {id:"tavoli3",grp:"tavoli",tier:3,ic:"🕯️",it:"i tavoli con le candele",de:"Vier Tische mit Kerzen",cost:250,lv:3,fx:{guest:1},txt:"+1 Gast pro Tag"},
+ {id:"forno3",grp:"forno",tier:3,ic:"🔥",it:"il forno a cupola",de:"Kuppelofen mit Mosaik",cost:400,lv:3,fx:{oven:1,tip:.1},txt:"+10 % Trinkgeld, eine falsche Pizza pro Tag zählt nicht"},
  {id:"mare",ic:"🌊",it:"Sul Mare",de:"Aufsteigen: Umzug an die Amalfiküste, viele Touristen",cost:1300,lv:3,up:4},
- {id:"terrazza",ic:"🏖️",it:"la terrazza sul mare",de:"Terrasse mit Meerblick",cost:500,bonus:.2,lv:4},
- {id:"barca",ic:"⛵",it:"la barca",de:"Eigenes Boot für Ausflügler",cost:620,bonus:.2,lv:4},
+ {id:"terrazza",ic:"🏖️",it:"la terrazza sul mare",de:"Terrasse mit Meerblick",cost:500,lv:4,fx:{guest:1},txt:"+1 Gast pro Tag"},
+ {id:"ombrellone",ic:"⛱️",it:"l'ombrellone",de:"Sonnenschirm",cost:250,lv:4,fx:{tourist:.2},txt:"Touristen geben +20 % Trinkgeld"},
+ {id:"barca",ic:"⛵",it:"la barca",de:"Eigenes Boot für Ausflügler",cost:620,lv:4,fx:{tip:.1},txt:"+10 % Trinkgeld"},
+ {id:"frigo3",grp:"frigo",tier:3,ic:"🧊",it:"la vetrina frigo",de:"Kühltheke mit Glastür",cost:300,lv:4,fx:{cheap:.25},txt:"Zutaten 25 % günstiger"},
+ {id:"leva",grp:"caffe",tier:3,ic:"☕",it:"la macchina a leva",de:"Siebträger aus Messing mit Milchdüse",cost:350,lv:4,fx:{coffee:3},txt:"Neu: latte macchiato, marocchino, corretto, shakerato, affogato"},
+ {id:"bancone3",grp:"bancone",tier:3,ic:"🏛️",it:"il bancone di marmo",de:"Marmortheke",cost:350,lv:4,fx:{tip:.05},txt:"+5 % Trinkgeld"},
  {id:"maestro",ic:"👑",it:"Il Maestro",de:"Aufsteigen: Die berühmteste Pizzeria Italiens",cost:2000,lv:4,up:5},
- {id:"forno_oro",ic:"🏆",it:"il forno d'oro",de:"Goldener Ofen",cost:1000,bonus:.3,lv:5}
+ {id:"forno_oro",ic:"🏆",it:"il forno d'oro",de:"Goldener Ofen",cost:1000,lv:5,fx:{critic:.5},txt:"Die Bewertung am Abend fällt einen halben Stern besser aus"},
+ {id:"stella",ic:"🌟",it:"la stella sulla porta",de:"Stern an der Tür",cost:800,lv:5,fx:{bill:1},txt:"+1 € auf jede Rechnung"}
 ];
 const REVIEWS=[
  [4.5,"Ottimo! Torneremo sicuramente.","Hervorragend! Wir kommen bestimmt wieder."],
@@ -221,3 +275,13 @@ const WRONG_DE={
 "Sì, posso portare il pistacchio?":"Ja, kann ich die Pistazie mitbringen?","Sì, posso prenotare il pistacchio?":"Ja, kann ich die Pistazie reservieren?","Al caffè, per favore.":"Zum Café, bitte.","A cavallo, per favore.":"Zu Pferd, bitte.","A carte, per favore.":"Mit Karten (Spielkarten), bitte.","Andata e ristorante, grazie.":"Hinfahrt und Restaurant, danke.","Arrivo e ritardo, grazie.":"Ankunft und Verspätung, danke.","Andiamo al ritorno, grazie.":"Gehen wir zur Rückfahrt, danke.","Due bicchieri, per favore.":"Zwei Gläser, bitte.","Due bagagli, per favore.":"Zwei Gepäckstücke, bitte.",
 "Due biciclette, per favore.":"Zwei Fahrräder, bitte.","No, solo uno zio.":"Nein, nur ein Onkel.","No, solo un bagno.":"Nein, nur eine Toilette.","No, solo uno zucchino.":"Nein, nur eine Zucchini."
 };
+// Bar
+Object.assign(WRONG_DE,{"Subito! Il cornetto con il tonno?":"Sofort! Das Hörnchen mit Thunfisch?","Il cappuccino è finito, mi dispiace.":"Der Cappuccino ist aus, tut mir leid.","Certo, una pizza cornetto.":"Natürlich, eine Hörnchen-Pizza.",
+ "Certo, latte caldo caldo.":"Natürlich, ganz heiße Milch.","Il caffè è freddo, mi dispiace.":"Der Kaffee ist kalt, tut mir leid.","Certo, un tè freddo.":"Natürlich, ein Eistee.",
+ "Sì, abbiamo tanto zucchero.":"Ja, wir haben viel Zucker.","No, il latte è nel caffè.":"Nein, die Milch ist im Kaffee.","Sì, la pizza è senza pomodoro.":"Ja, die Pizza ist ohne Tomate.",
+ "Un doppio caffè, arriva!":"Ein doppelter Espresso, kommt!","Buonanotte, signore!":"Gute Nacht, mein Herr!","Un caffè corretto, arriva!":"Ein Espresso mit Grappa, kommt!",
+ "Ecco a lei, acqua naturale calda.":"Bitte sehr, warmes stilles Wasser.","Ecco, un gelato al limone.":"Bitte, ein Zitroneneis.","Ecco, senza ghiaccio e senza limone.":"Bitte, ohne Eis und ohne Zitrone.",
+ "La pizza della casa è chiusa.":"Die Hauspizza ist geschlossen.","Il vino è nel forno.":"Der Wein ist im Ofen.","Consiglio un cappuccino.":"Ich empfehle einen Cappuccino.",
+ "Rossa o bianca? Di pizza?":"Rot oder weiß? Aus Pizza?","Birra? Sono le otto di mattina!":"Bier? Es ist acht Uhr morgens!","La birra è finita ieri, domani.":"Das Bier ist gestern ausgegangen, morgen.",
+ "Un cappuccino? Sono le tre di notte!":"Ein Cappuccino? Es ist drei Uhr nachts!","No, il cappuccino è solo per i bambini.":"Nein, Cappuccino ist nur für Kinder.","Un caffè corretto, subito!":"Einen Espresso mit Grappa, sofort!"});
+

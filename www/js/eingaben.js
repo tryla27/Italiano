@@ -35,7 +35,7 @@ function handleClick(e){
   if(a==="code-load"){const b=$("#codebox"),c=b?b.value:"";loadCode(c).then(ok=>{if(ok){codeBox=null;volOpen=false;screen=screen==="play"&&G?"play":"home";render();}else{codeBox={mode:"paste",text:c,msg:"Der Code passt nicht. Bitte ganz kopieren (fängt mit PP an)."};render();}});return;}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
   if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
-  if(a==="home"||a==="quit"){pauseOpen=false;if(screen==="summary")G=null;screen="home";return render();}
+  if(a==="home"||a==="quit"){pauseOpen=false;placing=null;if(screen==="summary")G=null;screen="home";return render();}
   if(a==="pause"){pauseOpen=!pauseOpen;return render();}
   if(a==="help"){helpOpen=!helpOpen;return render();}
   // Abbrechen ohne Belohnung: Trinkgeld und Tag kommen erst am Ende dazu, also einfach verwerfen
@@ -65,7 +65,9 @@ function handleClick(e){
   if(a==="book"){screen="book";return render();}
   if(a==="sound"){S.sound=!S.sound;save();return render();}
   if(a==="sayit")return speak(t.dataset.t);
-  if(a==="buy"){const i=SHOP.find(x=>x.id===t.dataset.id);if(i&&S.coins>=i.cost){S.coins-=i.cost;S.owned.push(i.id);sfx("coins");if(i.up)S.level=i.up;save();}return render();}
+  if(a==="buy"){const i=SHOP.find(x=>x.id===t.dataset.id);if(i&&S.coins>=i.cost&&!S.owned.includes(i.id)){S.coins-=i.cost;S.owned.push(i.id);sfx("coins");if(i.up)S.level=i.up;else furnBought(i);save();}return render();}
+  if(a==="fsel"){furnSelect(t.dataset.k);return render();}
+  if(a==="fput"){furnPut(+t.dataset.x,+t.dataset.y);save();return render();}
   if(a==="menu"){menuOpen=!menuOpen;return render();}
   if(!G)return;
   const st=curStep();
@@ -76,10 +78,21 @@ function handleClick(e){
   if(st.done)return;
   if(a==="opt"){const i=+t.dataset.i;if(st.opts[i].ok){sfx("right");finish();if(st.phone)st.showText=true;}else{sfx("wrong");wrongAnswer(i);}return render();}
   if(a==="ing"){const k=t.dataset.k;st.cur.has(k)?st.cur.delete(k):st.cur.add(k);return render();}
+  if(a==="cing"){const k=t.dataset.k,i=st.cur.indexOf(k);i>=0?st.cur.splice(i,1):st.cur.push(k);sfx("click");return render();}
+  if(a==="cup"){st.curCup=t.dataset.k;sfx("click");return render();}
+  if(a==="cserve"){
+    const okIng=st.cur.join("|")===st.want.join("|"), okCup=st.curCup===st.cup;
+    if(okIng&&okCup){sfx("right");finish();}
+    else if(okIng){sfx("wrong");wrongAnswer();note(st.cup,CUPS[st.cup]);st.curCup=st.cup;finish();st.fb[1]=`Falsche Tasse: ${st.named} kommt in die ${st.cup}. `+st.fb[1];} // falsche Tasse kostet Trinkgeld, nicht die Bestellung
+    else{sfx("wrong");wrongAnswer();note(st.named,st.want.join(" → "));save();}
+    return render();
+  }
   if(a==="qty"){st.curQty=Math.min(4,Math.max(1,st.curQty+ +t.dataset.d));return render();}
   if(a==="serve"){
     const same=st.cur.size===st.want.size&&[...st.want].every(k=>st.cur.has(k))&&(S.level===0||st.curQty===st.qty);
-    if(same){sfx("right");finish();} else{sfx("wrong");wrongAnswer();[...new Set([...st.want,...st.cur])].filter(k=>st.want.has(k)!==st.cur.has(k)).forEach(k=>note(k,ING[k][0]));save();}
+    if(same){sfx("right");finish();}
+    else if(fx("oven")&&!G.ovenUsed){G.ovenUsed=true;sfx("wrong");st.shake=true;G.banner="Il forno ti salva! Diese falsche Pizza zählt nicht, versuch's nochmal.";}
+    else{sfx("wrong");wrongAnswer();[...new Set([...st.want,...st.cur])].filter(k=>st.want.has(k)!==st.cur.has(k)).forEach(k=>note(k,ING[k][0]));save();}
     return render();
   }
   if(a==="tip"){st.showTip=true;return render();}

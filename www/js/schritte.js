@@ -5,7 +5,7 @@
 let ANSWERS=null;
 function answerPools(){
   if(ANSWERS)return ANSWERS;
-  const all=[GREET,TALK,PROB,BILL,MARKET,DRINK,DIR,CRITIC,GELATERIA,PORTO].flat().filter(x=>Array.isArray(x)&&Array.isArray(x[4]));
+  const all=[GREET,TALK,PROB,BILL,MARKET,DRINK,BAR,DIR,CRITIC,GELATERIA,PORTO].flat().filter(x=>Array.isArray(x)&&Array.isArray(x[4]));
   const ok=t=>!t.includes("{");
   ANSWERS={it:[...new Set(all.filter(x=>x[3]).map(x=>x[2]).filter(ok))],de:[...new Set(all.filter(x=>!x[3]).map(x=>x[2]).filter(ok))],
     tr:Object.assign(Object.fromEntries(all.filter(x=>x[3]).map(x=>[x[2],x[3]])),WRONG_DE)};
@@ -39,7 +39,7 @@ const myExtras=()=>EXTRAS.filter(hasIng);
 const pzStars=n=>Math.min(3,Math.floor(((S.pz[n]||{}).ok||0)/3));
 const recipe=p=>p.ing.map(k=>`${k} (${ING[k][0]})`).join(", ");
 
-function orderStep(L,force){
+function orderStep(L,force,daily){
   const ops=[["Vorrei","Ich hätte gern"],["Per me","Für mich"],["Allora, prendo","Also, ich nehme"],["Mi porta","Bringen Sie mir"]];
   const [op,opDe]=pick(ops);
   let qty=L===0?1:rnd(1,L===1?2:3), want, it, de, words=[], named=null, senza=null, con=null;
@@ -65,9 +65,9 @@ function orderStep(L,force){
   if(named)tip+=` <b>${cap(named.n)}:</b> ${recipe(named)}.`;
   if(L>0)tip+=` Anzahl: una = 1, due = 2, tre = 3.`;
   // Bis zum zweiten Stern steht das Rezept noch dabei, danach nur der Name
-  const task=named&&pzStars(named.n)<2?`Belege: ${named.ing.join(", ")}`:"Belege die Pizza und servier sie!";
+  const task=named&&(daily||pzStars(named.n)<2)?`Belege: ${named.ing.join(", ")}`:"Belege die Pizza und servier sie!";
   const each=named?named.p+(con?1:0):5+want.size;
-  return {kind:"pizza",it,de,task,tip,want,qty,price:each*qty,cur:new Set(),curQty:1,wrong:0,done:false,named:named&&named.n};
+  return {kind:"pizza",it,de,task:daily?`Piatto del giorno! ${task}`:task,tip,want,qty,price:each*qty,cur:new Set(),curQty:1,wrong:0,done:false,named:named&&named.n};
 }
 // Markt-Stand von Signor Esposito: drei neue Zutaten zum Kaufen, die günstigsten Stufen zuerst
 function stallStep(){
@@ -76,6 +76,15 @@ function stallStep(){
   return {kind:"stall",it:"Oggi ho prodotti freschissimi! Cosa prende?",de:"Heute habe ich ganz frische Ware! Was nehmen Sie?",task:"Neue Zutaten kaufen? Sie bleiben für immer in deiner Küche.",offer,bought:[],wrong:0,bad:[],done:true,fb:["good","Fertig mit Einkaufen?"]};
 }
 const pizzeWith=k=>PIZZE.filter(p=>p.ing.includes(k)&&p.ing.every(x=>x===k||hasIng(x)));
+// Kaffee bestellen: Zutaten in der richtigen Reihenfolge und die passende Tasse
+const myCaffe=()=>CAFFE.filter(c=>c.t<=tierOf("caffe"));
+function coffeeStep(){
+  const c=pick(myCaffe()), [op,opDe]=pick([["E per finire, un","Und zum Schluss einen"],["Mi fa un","Machen Sie mir einen"],["Prendo anche un","Ich nehme auch einen"],["Per me un","Für mich einen"]]);
+  const it=`${op} ${c.n}, per favore.`, de=`${opDe} ${c.de}, bitte.`;
+  const rec=`${c.ing.join(" → ")}, in die ${c.cup}`;
+  const tip=`<b>${c.n}:</b> ${c.ing.map(k=>`${k} (${COF_ING[k][0]})`).join(" → ")}. Tasse: <b>${c.cup}</b> (${CUPS[c.cup]}). Die Reihenfolge zählt!`;
+  return {kind:"coffee",it,de,task:pzStars(c.n)<2?`Bereite zu: ${rec}`:"Bereite den Kaffee zu und servier ihn!",tip,want:c.ing,cup:c.cup,cur:[],curCup:null,wrong:0,done:false,named:c.n,price:c.p};
+}
 function phoneStep(){
   const q=rnd(1,4), p=pick(availPizze()), t=pick(TIMES), st=pick(STREETS), n=pick(NUMS);
   const pz=q===1?`una ${p.n}`:`${QIT[q]} ${p.pl}`;
@@ -93,7 +102,7 @@ function reservStep(){
   const NW=["","","due","tre","quattro","cinque","sei","sette","otto"];
   const it=`Buonasera, vorrei prenotare un tavolo per ${NW[n]} persone, ${d[0]} sera alle ${t[0]}. A nome ${nm}.`;
   const de=`Guten Abend, ich möchte einen Tisch für ${n} Personen reservieren, ${d[1]}abend um ${t[1]} Uhr. Auf den Namen ${nm}.`;
-  const kind=pick(["pers","day","time","name"]); let task,opts,tip;
+  const kind=pick(fx("agenda")?["pers","day","time"]:["pers","day","time","name"]); let task,opts,tip; // Reservierungsbuch: Name steht schon da
   if(kind==="pers"){task="Für wie viele Personen?";const o=shuffle([n,...sample([2,3,4,5,6,7,8].filter(x=>x!==n),3)]);opts=o.map(x=>({t:x+" Personen",ok:x===n}));tip="Die Zahl steht vor „persone“. due 2, tre 3, quattro 4, cinque 5, sei 6, sette 7, otto 8.";}
   if(kind==="day"){task="An welchem Tag?";opts=shuffle([d,...sample(DAYS.filter(x=>x!==d),3)]).map(x=>({t:x[1],ok:x===d}));tip="Wochentage: lunedì Mo, martedì Di, mercoledì Mi, giovedì Do, venerdì Fr, sabato Sa, domenica So.";}
   if(kind==="time"){task="Um wie viel Uhr?";opts=shuffle([t,...sample(TIMES.filter(x=>x!==t),3)]).map(x=>({t:x[1]+" Uhr",ok:x===t}));tip="Die Uhrzeit kommt nach „alle“. sette = 7, otto = 8, nove = 9, e mezza = halb.";}

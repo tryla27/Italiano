@@ -463,3 +463,27 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .ings.many{grid-template-columns:repeat(4,1fr);gap:5px}
 .ings.many .ing{flex-direction:column;gap:1px;padding:4px 2px;font-size:.74rem;line-height:1.1}
 .ings.many .ing-ic{width:20px;height:20px}
+/* Einrichtung: der Laden auf dem Raster */
+.board{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;background:#3a2a1e;border-radius:12px;padding:4px;flex-shrink:0}
+.board .cell{aspect-ratio:1;border:0;border-radius:5px;background:#c9a77a;font-size:1.2rem;padding:0;display:flex;align-items:center;justify-content:center;min-width:0}
+.board .cell.wall{background:#8d6b52}
+.board .cell.room{background:#d9b98a}
+.board .cell.door{background:#5a4030;opacity:.8}
+.board .cell.has{background:#f3e3c3;box-shadow:inset 0 0 0 2px #7a5a3a}
+.board .cell.sel{box-shadow:inset 0 0 0 3px var(--gold);animation:pulse 1s infinite alternate}
+.board .cell.ok{background:#7fc27a}
+.board-line{font-size:.85rem;line-height:1.25;color:var(--chalk)}
+.board-line small{display:block;color:var(--chalk-dim);font-size:.78rem}
+.board-line.dim{color:var(--chalk-dim)}
+.cards.scroll{flex:1 1 auto !important;min-height:120px;overflow-y:auto;align-content:start}
+.card small.fx{color:var(--gold);flex:0}
+@keyframes pulse{to{filter:brightness(1.15)}}
+/* Kaffee */
+.cups{display:flex;flex-wrap:wrap;gap:4px}
+.cupb{border:2px solid var(--line);background:var(--slate2);border-radius:9px;padding:4px 6px;font-size:.74rem;font-weight:700;color:var(--chalk)}
+.cupb[aria-pressed="true"]{border-color:var(--gold);color:var(--gold)}
+.ing .dot{width:16px;height:16px;border-radius:50%;border:1.5px solid #1e2420;flex-shrink:0}
+.ing small{display:block;font-weight:600;font-size:.66rem;color:var(--chalk-dim)}
+.ing{position:relative}
+.ing .ord{position:absolute;top:2px;left:4px;background:var(--gold);color:#1e2420;border-radius:50%;width:16px;height:16px;font-size:.7rem;line-height:16px;font-weight:800}
+.board{max-width:260px;width:100%;align-self:center}
