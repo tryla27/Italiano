@@ -72,7 +72,7 @@ function rPlay(){
   if(st.kind==="mc"){
     action=`<div class="opts">${st.opts.map((o,i)=>{
       const cls=st.done&&o.ok?"ok":st.bad.includes(i)?"bad":"";
-      const sub=st.done&&o.ok&&st.corDe?`<small>${esc(st.corDe)}</small>`:"";
+      const tr=o.ok?st.corDe:o.de, sub=(st.done||st.bad.includes(i))&&tr?`<small>${esc(tr)}</small>`:"";
       return `<button class="opt ${cls} ${st.shake&&st.bad[st.bad.length-1]===i?"shake":""}" data-act="opt" data-i="${i}" ${st.done||st.bad.includes(i)?'aria-disabled="true"':""}>${st.corDe?wordsHTML(o.t,false):esc(o.t)}${sub}</button>`;}).join("")}</div>`;
   }else{
     action=`<div class="kitchen"><div class="pz-wrap">${pizzaSVG(st.cur)}${L>0&&st.curQty>1?`<span class="qtyb">×${st.curQty}</span>`:""}</div>

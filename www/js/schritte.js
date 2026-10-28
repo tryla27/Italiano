@@ -7,7 +7,8 @@ function answerPools(){
   if(ANSWERS)return ANSWERS;
   const all=[GREET,TALK,PROB,BILL,MARKET,DRINK,DIR,CRITIC,GELATERIA,PORTO].flat().filter(x=>Array.isArray(x)&&Array.isArray(x[4]));
   const ok=t=>!t.includes("{");
-  ANSWERS={it:[...new Set(all.filter(x=>x[3]).map(x=>x[2]).filter(ok))],de:[...new Set(all.filter(x=>!x[3]).map(x=>x[2]).filter(ok))]};
+  ANSWERS={it:[...new Set(all.filter(x=>x[3]).map(x=>x[2]).filter(ok))],de:[...new Set(all.filter(x=>!x[3]).map(x=>x[2]).filter(ok))],
+    tr:Object.assign(Object.fromEntries(all.filter(x=>x[3]).map(x=>[x[2],x[3]])),WRONG_DE)};
   return ANSWERS;
 }
 function mixWrong(cor,wr,german){
@@ -18,9 +19,15 @@ function mixWrong(cor,wr,german){
   }
   return out;
 }
+// Deutsche Übersetzung einer Antwort; Zahlen (Rechnung) werden über {W} eingesetzt.
+function deOf(t){
+  const tr=answerPools().tr; if(tr[t])return tr[t];
+  const n=(t.match(/\d+(?:,\d+)?/)||[])[0], k=n&&t.replace(n,"{W}");
+  return k&&tr[k]?tr[k].replace("{W}",n):"";
+}
 function mcStep(item,task,extra){
   const [it,de,cor,corDe,wr,tip,q]=item;
-  return Object.assign({kind:"mc",it,de,task:q||task,tip,corDe,opts:shuffle([{t:cor,ok:true},...mixWrong(cor,wr,!corDe).map(t=>({t,ok:false}))]),wrong:0,bad:[],done:false},extra||{});
+  return Object.assign({kind:"mc",it,de,task:q||task,tip,corDe,opts:shuffle([{t:cor,ok:true,de:corDe},...mixWrong(cor,wr,!corDe).map(t=>({t,ok:false,de:corDe?deOf(t):""}))]),wrong:0,bad:[],done:false},extra||{});
 }
 function pickFresh(pool){const fresh=pool.filter(p=>!G.used.has(p[0]));const p=pick(fresh.length?fresh:pool);G.used.add(p[0]);return p;}
 

@@ -141,6 +141,9 @@ check(await page.evaluate(() => screen === "map" && /Markt/.test(mapMsg)), "Gesc
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
 check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
 
+// Jede Antwortmöglichkeit hat eine deutsche Übersetzung, auch bei der Rechnung mit Zahl
+check(await page.evaluate(() => [GREET, TALK, PROB, DRINK, DIR, CRITIC, MARKET].flat().filter(x => x[3]).every(x => mcStep(x, "x").opts.every(o => o.de)) && deOf("Subito! Sono 12 euro.") === "Sofort! Das macht 12 Euro."), "Antworten ohne Übersetzung");
+
 // Wochentage: Tag 3 ist mercoledì (Markttag), Tag 4 nicht
 check(await page.evaluate(() => isMarketDay(3) && !isMarketDay(4) && giorno(1)[0] === "lunedì" && giorno(8)[0] === "lunedì"), "Wochentage oder Markttage stimmen nicht");
 

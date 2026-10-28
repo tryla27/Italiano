@@ -15,7 +15,9 @@ function collectWords(text,de,weight){
 function collectStep(st){
   if(st.kind==="pizza"){collectWords(st.it,st.de,1);[...st.want].forEach(k=>collectWords(k,ING[k][0],1));return;}
   collectWords(st.it,st.de,st.wrong||st.gaveUp?3:1);
-  if(st.corDe){const c=st.opts.find(o=>o.ok);if(c)collectWords(c.t,st.corDe,st.wrong||st.gaveUp?3:1);}
+  if(st.corDe){const c=st.opts.find(o=>o.ok);if(c)collectWords(c.t,st.corDe,st.wrong||st.gaveUp?3:1);
+    // auch die falschen Antworten samt Übersetzung: ihre Wörter kommen in die Vokabeln
+    st.opts.forEach((o,i)=>{if(!o.ok&&o.de)collectWords(o.t,o.de,st.bad.includes(i)?2:1);});}
 }
 function buildVocab(dayN){
   const before=new Set(); Object.entries(S.vocab.days).forEach(([d,l])=>{if(+d<dayN)l.forEach(v=>before.add(v.it));});
