@@ -83,7 +83,7 @@ function vocabNext(){
   if(R.missed){R.queue.push({k:q.k,st:q.st,dir:q.dir==="de"?"it":"de"});}
   else if(q.st===0){const pos=Math.min(R.queue.length,2+Math.floor(Math.random()*Math.max(1,R.queue.length-1)));R.queue.splice(pos,0,{k:q.k,st:1,dir:q.dir});}
   else R.mastered++;
-  if(!R.queue.length){if(R.day!=="book")S.vocab.done[R.day]=true;R.finished=true;sfx("coins");render();return;}
+  if(!R.queue.length){if(R.day!=="book"){if(!S.vocab.done[R.day])S.chest={day:R.day};S.vocab.done[R.day]=true;}R.finished=true;sfx("coins");render();return;}
   prepVocabQ(); render(); const nq=R.queue[0]; if(nq.st===0&&nq.dir!=="de"){const w=vList(R)[nq.k].it;setTimeout(()=>speak(w),200);}
 }
 function rVocab(){
@@ -95,6 +95,7 @@ function rVocab(){
   }
   if(R&&R.finished){
     $("#screen").innerHTML=`<h2 class="t">Bravissimo!</h2><div class="panel" style="align-items:center;text-align:center"><div class="review">Tag ${R.day} geschafft ✓<small>Alle ${R.total} Wörter sitzen.</small></div></div>
+      ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Deine Belohnung: Truhe öffnen</small></button>`:""}
       ${S.vocab.days[R.day+1]?`<button class="big" data-act="vstart" data-d="${R.day+1}">Weiter mit Tag ${R.day+1}<small>${S.vocab.days[R.day+1].length} Wörter</small></button>`:`<p class="note">Die Vokabeln für Tag ${R.day+1} bekommst du, sobald du Spieltag ${R.day+1} gespielt hast.</p>`}
       <button class="sec" data-act="vlist">Zur Übersicht</button>`;
     return;

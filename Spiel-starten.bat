@@ -1,5 +1,5 @@
 @echo off
-title Pizzeria Parola - lokaler Server
+title Parla Pizza! - lokaler Server
 cd /d "%~dp0"
 where node >nul 2>nul
 if errorlevel 1 (
@@ -10,7 +10,7 @@ if errorlevel 1 (
   exit /b 1
 )
 echo.
-echo Pizzeria Parola startet auf http://localhost:5173
+echo Parla Pizza! startet auf http://localhost:5173
 echo Dieses Fenster offen lassen. Zum Beenden einfach schliessen.
 echo.
 start "" http://localhost:5173

@@ -1,4 +1,4 @@
-# Pizzeria Parola am PC weiterentwickeln
+# Parla Pizza! am PC weiterentwickeln
 
 Diese Anleitung ist für Windows. Du brauchst nur zwei Programme, beide kostenlos.
 

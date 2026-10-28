@@ -80,6 +80,15 @@ function tone(t,f,dur,vol,type,out,f2){
   g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(vol,t+.005);g.gain.exponentialRampToValueAtTime(.001,t+dur);
   o.connect(g);g.connect(out);o.start(t);o.stop(t+dur+.02);
 }
+// Rauschen mit Bandpass, der von f0 nach f1 gleitet (Zischen, Glitzern)
+function noise(t,dur,vol,f0,f1){
+  const n=Math.ceil(AC.sampleRate*dur), b=AC.createBuffer(1,n,AC.sampleRate), d=b.getChannelData(0);
+  for(let i=0;i<n;i++)d[i]=Math.random()*2-1;
+  const s=AC.createBufferSource(), f=AC.createBiquadFilter(), g=AC.createGain();
+  s.buffer=b; f.type="bandpass"; f.Q.value=1.2; f.frequency.setValueAtTime(f0,t); f.frequency.exponentialRampToValueAtTime(f1,t+dur);
+  g.gain.setValueAtTime(0,t); g.gain.linearRampToValueAtTime(vol,t+dur*.3); g.gain.exponentialRampToValueAtTime(.001,t+dur);
+  s.connect(f); f.connect(g); g.connect(sfxGain); s.start(t); s.stop(t+dur+.02);
+}
 function startMusic(){
   if(!initAudio()||musicOn)return;
   if(AC.state==="suspended")AC.resume();
@@ -97,6 +106,14 @@ function sfx(kind){
   if(kind==="kasse"){tone(t,mtof(96),.5,.18,"triangle",sfxGain);tone(t+.06,mtof(103),.6,.14,"triangle",sfxGain);[88,93].forEach((n,i)=>tone(t+.12+i*.08,mtof(n),.22,.12,"sine",sfxGain));}
   // Ladentür: Knarren, Türglöckchen, Zufallen
   if(kind==="door"){tone(t,140,.35,.12,"sawtooth",sfxGain,220);[100,105,100].forEach((n,i)=>tone(t+.18+i*.07,mtof(n),.5,.12,"triangle",sfxGain));tone(t+.5,90,.12,.35,"sine",sfxGain,50);}
+  // Truhe: Holz knarzt, Luft zischt nach oben, warmer Akkord mit Glitzern
+  if(kind==="chestopen"){tone(t,90,.18,.4,"sine",sfxGain,60);tone(t+.25,110,.15,.35,"sine",sfxGain,70);tone(t+.45,160,.35,.1,"sawtooth",sfxGain,260);
+    noise(t+.55,.7,.25,500,4000);tone(t+.62,55,.6,.45,"sine",sfxGain,40);
+    [60,64,67,72,76,79,84].forEach((n,i)=>pluck(t+.65+i*.06,mtof(n),.9,.22,sfxGain));tone(t+.7,mtof(72),1.4,.07,"sine",sfxGain);tone(t+.7,mtof(79),1.4,.05,"sine",sfxGain);
+    [96,100,103,108].forEach((n,i)=>tone(t+1.05+i*.09,mtof(n),.35,.05,"sine",sfxGain));}
+  if(kind==="reveal"){noise(t,.25,.12,1500,6000);[79,84,88].forEach((n,i)=>pluck(t+.05+i*.07,mtof(n),.5,.25,sfxGain));}
+  if(kind==="rare"){noise(t,.5,.18,800,7000);[67,72,76,79,84,88,91,96].forEach((n,i)=>pluck(t+i*.065,mtof(n),.8,.24,sfxGain));
+    [72,76,79,84].forEach(n=>tone(t+.55,mtof(n),1.6,.06,"triangle",sfxGain));[100,103,108].forEach((n,i)=>tone(t+.7+i*.12,mtof(n),.4,.05,"sine",sfxGain));}
   if(kind==="coins"){[88,93].forEach((n,i)=>tone(t+i*.09,mtof(n),.25,.2,"sine",sfxGain));}
 }
 document.addEventListener("pointerdown",()=>{

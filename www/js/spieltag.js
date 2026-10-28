@@ -48,7 +48,7 @@ function finish(){
     let base=LV.base*(st.kind==="pizza"?1.5:st.phone?2:1)*f*(st.textShown?.5:1);
     let bonus=0;
     if(st.wrong===0&&!st.peeked){G.combo++;G.maxCombo=Math.max(G.maxCombo,G.combo);bonus=G.combo>=3?Math.min(Math.floor(G.combo/3),3):0;}
-    const tip=Math.max(1,Math.round(base*mult()))+bonus;
+    const tip=Math.max(1,Math.round(base*mult()*(S.boost&&!G.trip?S.boost.x:1)))+bonus;
     G.earned+=tip; if(g)g.tip+=tip; kasse(tip,"Trinkgeld");
     st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`+(st.bill?` · Rechnung ${st.bill} €`:"")];
   }
@@ -107,6 +107,7 @@ function endDay(){
   G.summary={ing,rent,net,day:S.day};
   S.vocab.days[S.day]=buildVocab(S.day);
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
+  if(S.boost&&--S.boost.days<=0)S.boost=null; // Truhen-Bonus gilt für einen Spieltag
   S.coins=Math.max(0,S.coins+net); S.day++; save();
   screen="summary"; render(); if(net>0)kasse(net,"Gewinn heute"); else sfx("coins");
 }
