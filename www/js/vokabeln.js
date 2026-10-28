@@ -120,7 +120,7 @@ function rVocab(){
       :`${R.showTip?`<div class="tipbox"><b>Tipp:</b> ${tip}</div>`:""}
         <div class="ctrl">${R.wrong>0&&!R.showTip?`<button class="tipbtn" data-act="vtip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
         <button class="idk" data-act="vidk" aria-label="Keine Ahnung">✕<small>K. Ahnung</small></button></div>`;
-    $("#screen").innerHTML=`<div class="hud"><button class="quit" data-act="vlist">Pause</button><span class="where">${R.day==="book"?"Notizbuch":`Vokabeln Tag ${R.day}`}</span><span class="money">${R.mastered}/${R.total}</span></div>
+    $("#screen").innerHTML=`<div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${R.day==="book"?"Notizbuch":`Vokabeln Tag ${R.day}`}</span><span class="money">${R.mastered}/${R.total}</span>${tools()}</div>
       <div class="bar"><i style="width:${pct}%"></i></div>
       <p class="note" style="margin:0">${q.st===0?(q.dir==="de"?"Runde 1: Deutsch → Italienisch":"Runde 1: Italienisch → Deutsch"):"Runde 2: selbst schreiben"} · Falsche Wörter kommen wieder, bis alle sitzen.</p>
       ${body}${ctrl}`;
@@ -128,10 +128,10 @@ function rVocab(){
     return;
   }
   const days=Object.keys(S.vocab.days).map(Number).sort((a,b)=>a-b), nb=Object.keys(S.book).length;
-  $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button><h2 class="t">Vocabolario</h2>
-    <p class="note" style="margin:-6px 0 0">Jeder Spieltag bringt neue Wörter aus deinen Gesprächen. Erst auswählen, dann selbst schreiben. Was falsch ist, kommt wieder, bis alles sitzt.</p>
+  $("#screen").innerHTML=`${head("Vocabolario")}
+    <p class="note">Jeder Spieltag bringt neue Wörter. Erst auswählen, dann selbst schreiben. Was falsch ist, kommt wieder.</p>
     ${bookItem(nb)}
-    ${days.length?`<div class="items">${days.map(d=>{const done=S.vocab.done[d],un=vocabUnlocked(d),l=S.vocab.days[d];
+    ${days.length?`<div class="items scroll">${days.map(d=>{const done=S.vocab.done[d],un=vocabUnlocked(d),l=S.vocab.days[d];
       return `<div class="item vday ${done?"done":un?"open":"locked"}"><span class="ic">${done?"✓":un?"▶":"🔒"}</span><span class="nm">Tag ${d}<small>${l.slice(0,4).map(v=>esc(v.it)).join(", ")}${l.length>4?" …":""}</small></span>
       ${un?`<button class="buy" data-act="vstart" data-d="${d}">${done?"Nochmal":"Lernen"}</button>`:`<span class="owned" style="color:var(--chalk-dim)">erst Tag ${d-1}</span>`}</div>`;}).join("")}</div>`
       :`<div class="panel"><p class="note" style="margin:0">Noch keine Vokabeln. Spiel deinen ersten Tag in der Pizzeria, dann sammle ich hier alle Wörter, die vorkamen.</p></div>`}`;

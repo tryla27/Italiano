@@ -39,6 +39,7 @@ await mkdir(OUT, { recursive: true });
 const browser = await chromium.launch();
 const ctx = await browser.newContext({ ...devices[DEVICE], locale: "de-DE" });
 const page = await ctx.newPage();
+page.setDefaultTimeout(8000);
 const errors = [];
 page.on("pageerror", e => errors.push(`Seitenfehler: ${e.message}`));
 page.on("console", m => { if (m.type() === "error" && !/fonts\.g|ERR_|Failed to load resource/.test(m.text())) errors.push(`Konsole: ${m.text()}`); });
@@ -91,13 +92,20 @@ await page.evaluate(() => { S.book = { grazie: { de: "danke", miss: 1 }, conto: 
 await act("vstart", '[data-d="book"]');
 check(await page.evaluate(() => S.vocabRun && S.vocabRun.day === "book" && S.vocabRun.total === 2), "Notizbuch lässt sich nicht üben");
 await shot("notizbuch-ueben");
+await act("pause");
 await act("vlist");
 await act("home");
 if (await act("book")) await shot("heft");
 await act("home");
 
+// Handy-Zurück-Knopf: aus dem Shop zurück zur Pizzeria
+await act("shop");
+await page.goBack();
+await page.waitForTimeout(200);
+check(await page.evaluate(() => screen === "home"), "Zurück-Knopf führt nicht aus dem Shop zur Pizzeria");
+
 // Einstellungen oben links: öffnen, alles stumm, nach Neuladen noch stumm, wieder laut
-await page.locator('#topbar [data-act="vol"]').click();
+await page.locator('#screen [data-act="vol"]').first().click();
 await shot("einstellungen");
 await page.locator('#overlay [data-act="mute"]').click();
 await shot("einstellungen-stumm");
@@ -105,7 +113,7 @@ check(await page.evaluate(() => S.muted && vol("music") === 0 && vol("sfx") === 
 await page.locator('#overlay [data-act="vol"]').click();
 await page.reload();
 check(await page.evaluate(() => S.muted), "Stumm geht beim Neuladen verloren");
-await page.locator('#topbar [data-act="mute"]').click();
+await page.locator('#screen [data-act="mute"]').first().click();
 check(await page.evaluate(() => !S.muted && vol("music") > 0), "Ton lässt sich oben links nicht wieder einschalten");
 
 // Stimmen: Männer bekommen eine Männerstimme, Frauen eine Frauenstimme, sonst tiefer/höher
@@ -123,7 +131,7 @@ check(await page.evaluate(() => S.setupDone && !S.setupQuiz), "Alter Stand häng
 
 // Spielstand-Code: kopieren, Stand ändern, Code einfügen holt den alten Stand zurück
 await fresh({ setupDone: true, coins: 123, day: 4, book: { conto: { de: "Rechnung", miss: 2 } } });
-await page.locator('#topbar [data-act="vol"]').click();
+await page.locator('#screen [data-act="vol"]').first().click();
 await page.locator('#overlay [data-act="code-copy"]').click();
 await page.waitForTimeout(300);
 const code = await page.locator("#codebox").inputValue();
@@ -187,6 +195,22 @@ await act("start");
     check(await page.evaluate(k => !!S.book[k], it), "Doppeltipp legt Wort nicht ins Notizbuch");
   } else console.log("  (kein antippbares Wort gefunden)");
 }
+
+// Lektion abbrechen: Pause-Fenster per Zurück-Knopf, Abbrechen gibt keine Belohnung und keinen neuen Tag
+await fresh({ setupDone: true, coins: 25, day: 2 });
+await act("start");
+await page.locator('[data-act="opt"]').first().click().catch(() => {});
+await page.goBack();
+await page.waitForTimeout(200);
+check(await page.evaluate(() => pauseOpen && screen === "play"), "Zurück-Knopf im Spiel öffnet keine Pause");
+await shot("pause");
+await page.locator('#overlay [data-act="abort"]').click();
+check(await page.evaluate(() => screen === "home" && !G && S.coins === 25 && S.day === 2), "Abbrechen gibt doch Belohnung oder neuen Tag");
+
+// Kein Scrollen nötig: Startseite, Shop und erster Gast passen auf den Bildschirm
+await fresh({ setupDone: true, coins: 25, day: 3 });
+const fits = async name => check(await page.evaluate(() => { const s = document.querySelector("#screen"); return s.scrollHeight - s.clientHeight <= 2; }), `${name} muss gescrollt werden`);
+await fits("Startseite"); await act("shop"); await fits("Shop"); await act("home"); await act("start"); await fits("Spiel");
 
 // 2) Laden schon eingerichtet: einen Spieltag spielen
 await fresh({ setupDone: true, coins: 25, day: 1 });

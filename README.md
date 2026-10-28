@@ -47,6 +47,8 @@ den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, a
 Oben links auf jedem Bildschirm:
 
 - **Zahnrad:** Lautstärke für Musik, Geräusche und Vorlese-Stimme, automatisches Vorlesen an/aus
+- **Pause / Zurück-Knopf am Handy:** weiterspielen, später weitermachen oder abbrechen (ohne Belohnung)
+- **Spielstand-Code:** in den Einstellungen kopieren und auf einem anderen Gerät einfügen
 - **Lautsprecher:** alles mit einem Tipp stumm schalten und wieder an
 
 Männliche Figuren sprechen mit Männerstimme, weibliche mit Frauenstimme, wenn das Handy passende

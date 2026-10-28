@@ -35,7 +35,12 @@ function handleClick(e){
   if(a==="code-load"){const b=$("#codebox"),c=b?b.value:"";loadCode(c).then(ok=>{if(ok){codeBox=null;volOpen=false;screen=screen==="play"&&G?"play":"home";render();}else{codeBox={mode:"paste",text:c,msg:"Der Code passt nicht. Bitte ganz kopieren (fängt mit PP an)."};render();}});return;}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
   if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
-  if(a==="home"||a==="quit"){if(screen==="summary")G=null;screen="home";return render();}
+  if(a==="home"||a==="quit"){pauseOpen=false;if(screen==="summary")G=null;screen="home";return render();}
+  if(a==="pause"){pauseOpen=!pauseOpen;return render();}
+  if(a==="help"){helpOpen=!helpOpen;return render();}
+  // Abbrechen ohne Belohnung: Trinkgeld und Tag kommen erst am Ende dazu, also einfach verwerfen
+  if(a==="abort"){pauseOpen=false;G=null;screen="home";save();return render();}
+  if(a==="vabort"){pauseOpen=false;S.vocabRun=null;S.vocabPaused=null;screen="vocab";save();return render();}
   if(a==="shop"){screen="shop";return render();}
   if(a==="map"){mapMsg="";screen="map";return render();}
   if(a==="place")return goPlace(t.dataset.p);
@@ -47,7 +52,7 @@ function handleClick(e){
   if(a==="qidk"){const Q=S.setupQuiz,it=roomItem(S.room[Q.queue[Q.qi]].id);note(it.it,it.de);sfx("wrong");Q.flash=Q.queue[Q.qi];Q.flashOk=true;Q.queue.push(Q.queue[Q.qi]);Q.qi++;Q.wrong=0;Q.showTip=false;Q.revealed=false;render();showName(document.querySelector(`.ri[data-i="${Q.queue[Q.queue.length-1]}"]`),it);return;}
   if(a==="setupDone"){S.setupDone=true;S.setupQuiz=null;G=null;return startDay();}
   if(a==="vocab"){screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;return render();}
-  if(a==="vlist"){if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="vocab";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
+  if(a==="vlist"){pauseOpen=false;if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="vocab";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
   if(a==="vstart"){const d=t.dataset.d==="book"?"book":+t.dataset.d;if(S.vocabPaused&&S.vocabPaused.day===d&&!S.vocab.done[d]){S.vocabRun=S.vocabPaused;S.vocabPaused=null;screen="vocab";return render();}S.vocabPaused=null;return startVocab(d);}
   if(a==="vsay"){const R=S.vocabRun;return speak(vList(R)[R.queue[0].k].it);}
   if(a==="vopt"){const R=S.vocabRun;if(R.res==="ok")return;return vocabAnswer(R.opts[+t.dataset.i]);}
@@ -80,7 +85,23 @@ function handleClick(e){
 document.addEventListener("click",e=>{handleClick(e);save();});
 document.addEventListener("submit",e=>{if(e.target.id==="vform"){e.preventDefault();const R=S.vocabRun;if(R&&R.res!=="ok"){vocabAnswer($("#vin").value);save();}}});
 document.addEventListener("keydown",e=>{const t=e.target.closest&&e.target.closest('[role="button"][data-act]');if(t&&(e.key==="Enter"||e.key===" ")){e.preventDefault();t.click();}});
-$("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay"){menuOpen=false;volOpen=false;render();}});
+$("#overlay").addEventListener("click",e=>{if(e.target.id==="overlay"){menuOpen=false;volOpen=false;pauseOpen=false;helpOpen=false;codeBox=null;render();}});
+/* Zurück-Knopf am Handy (und Wischen zurück im Browser): ein Eintrag im Verlauf fängt ihn ab.
+   Android-App: Capacitor geht im Verlauf zurück, solange es einen gibt, sonst schließt sich die App. */
+let backArmed=false;
+function armBack(){
+  if(backArmed||(screen==="home"&&!menuOpen&&!volOpen&&!pauseOpen&&!helpOpen))return;
+  try{history.pushState({pp:1},"");backArmed=true;}catch(e){}
+}
+function goBack(){
+  if(volOpen||menuOpen||pauseOpen||helpOpen){volOpen=menuOpen=pauseOpen=helpOpen=false;codeBox=null;}
+  else if(screen==="play"&&G&&!G.summary)pauseOpen=true;
+  else if(screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished)pauseOpen=true;
+  else if(screen==="vocab"&&S.vocabRun){S.vocabRun=null;}
+  else if(screen!=="home"){if(screen==="summary")G=null;screen="home";}
+  sfx("click"); render();
+}
+window.addEventListener("popstate",()=>{backArmed=false;goBack();});
 $("#overlay").addEventListener("input",e=>{
   const id=e.target.id;
   if(id==="v-auto"){S.sound=e.target.checked;save();return;}
