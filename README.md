@@ -1,8 +1,11 @@
 # Pizzeria Parola
 
-**Am PC weiterentwickeln:** siehe [ANLEITUNG-PC.md](ANLEITUNG-PC.md)
+Italienisch lernen als Pizzeria-Spiel in Neapel. Du begrüßt Gäste, belegst Pizzen, nimmst Telefon-
+bestellungen an und handelst auf dem Markt, alles auf Italienisch. Mit dem verdienten Geld richtest
+du deinen Laden ein und steigst vom Imbissstand bis zur berühmtesten Pizzeria Italiens auf.
 
-Italienisch lernen als Pizzeria-Spiel in Neapel. Android-App, gebaut mit Capacitor.
+Android-App, gebaut mit [Capacitor](https://capacitorjs.com). Das Spiel selbst ist eine Webseite im
+Ordner `www/` und läuft auch in jedem Browser.
 
 ## App bekommen
 
@@ -23,12 +26,31 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 - steigende Versionsnummer bei jedem Bau
 - Das Repo muss **öffentlich** sein, damit die App die neue Version findet.
 
-## Aufbau
+## Weiterentwickeln
 
-- `www/index.html`: das komplette Spiel
-- `www/music/`: Hintergrundmusik (Pixabay, frei nutzbar)
-- `assets/`: Quellbilder für App-Icon und Startbild
-- `.github/workflows/android.yml`: baut die APK
+| Thema | Wo |
+|---|---|
+| Am Windows-PC starten und ändern | [docs/ANLEITUNG-PC.md](docs/ANLEITUNG-PC.md) |
+| Ordner, Dateien, Spielstand, Bau | [docs/AUFBAU.md](docs/AUFBAU.md) |
+| Neue Sätze und Wörter | `www/js/inhalt/` |
+| Automatischer Test | `node test/spiel-test.mjs` |
+
+## Orte
+
+Alle Orte erreichst du über **La mappa** (Karte) auf der Startseite: antippen, die Ladentür klingelt,
+und du bist dort. In der Pizzeria laufen die Gäste mit ganzem Körper herein und stehen neben der Bar.
+An Markttagen (mercoledì und sabato) geht es nach Feierabend auf den Markt mit mehreren Ständen; die Woche mit den Markttagen steht auf der Startseite. Als Ausflüge gibt es den **Eisladen** und
+den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, aber noch zu.
+
+## Einstellungen im Spiel
+
+Oben links auf jedem Bildschirm:
+
+- **Zahnrad:** Lautstärke für Musik, Geräusche und Vorlese-Stimme, automatisches Vorlesen an/aus
+- **Lautsprecher:** alles mit einem Tipp stumm schalten und wieder an
+
+Männliche Figuren sprechen mit Männerstimme, weibliche mit Frauenstimme, wenn das Handy passende
+italienische Stimmen hat. Sonst klingt dieselbe Stimme tiefer bzw. höher.
 
 ## Musik
 
