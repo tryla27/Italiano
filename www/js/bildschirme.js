@@ -74,7 +74,7 @@ function rPlay(){
     action=`<div class="kitchen"><div class="pz-wrap">${pizzaSVG(st.cur)}${L>0&&st.curQty>1?`<span class="qtyb">×${st.curQty}</span>`:""}</div>
       <div class="pz-side">${L>0?`<div class="stepper"><button data-act="qty" data-d="-1" aria-label="Weniger" ${st.done?"disabled":""}>−</button><b>${st.curQty}</b><button data-act="qty" data-d="1" aria-label="Mehr" ${st.done?"disabled":""}>+</button><span>Anzahl</span></div>`:""}
       <button class="menu-btn" data-act="menu">Il Menù</button></div></div>
-      <div class="ings ${st.shake?"shake":""}">${Object.keys(ING).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}><i style="background:${ING[k][1]}"></i>${k}</button>`).join("")}</div>
+      <div class="ings ${st.shake?"shake":""}">${Object.keys(ING).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}><i style="background:${ING[k][1]}"></i><span>${k}<small>${ING[k][0]}</small></span></button>`).join("")}</div>
       ${st.done?"":`<button class="serve" data-act="serve">Servire!</button>`}`;
   }
   const ctrl=st.done

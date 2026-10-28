@@ -184,6 +184,8 @@ body{-webkit-user-select:none;user-select:none}
 .ings{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
 .ing{border:2px solid var(--line);background:var(--slate2);border-radius:12px;padding:9px 4px;font-size:.88rem;font-weight:700;display:flex;align-items:center;justify-content:center;gap:6px;min-width:0}
 .ing i{width:11px;height:11px;border-radius:50%;flex:none;box-shadow:0 0 0 1px rgba(0,0,0,.4)}
+.ing span{display:flex;flex-direction:column;line-height:1.15;min-width:0;text-align:left}
+.ing small{font-weight:600;font-size:.72rem;color:var(--chalk-dim);overflow-wrap:anywhere}
 .ing[aria-pressed="true"]{border-color:var(--gold);background:var(--slate3)}
 .serve{border:0;border-radius:14px;padding:14px;background:var(--basil);color:#10240f;font-family:var(--game);font-size:1.35rem;box-shadow:0 4px 0 #3d7a35}
 .serve:active{transform:translateY(3px);box-shadow:0 1px 0 #3d7a35}
