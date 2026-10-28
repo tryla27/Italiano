@@ -59,6 +59,8 @@ function handleClick(e){
   if(a==="vtip"){S.vocabRun.showTip=true;return render();}
   if(a==="vidk"){const R=S.vocabRun,v=vList(R)[R.queue[0].k];note(v.it,v.de);R.missed=true;R.res="ok";R.msg=`Das heißt: ${v.it} = ${v.de}. Kommt gleich nochmal.`;if(R.queue[0].st===1)R.typed=v.it;else R.badAns=null;speak(v.it);return render();}
   if(a==="vnext")return vocabNext();
+  if(a==="chestopen")return openChest();
+  if(a==="chest")return chestTap();
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
   if(a==="sound"){S.sound=!S.sound;save();return render();}
@@ -94,6 +96,7 @@ function armBack(){
   try{history.pushState({pp:1},"");backArmed=true;}catch(e){}
 }
 function goBack(){
+  if(chestUI){chestTap();return;}
   if(volOpen||menuOpen||pauseOpen||helpOpen){volOpen=menuOpen=pauseOpen=helpOpen=false;codeBox=null;}
   else if(screen==="play"&&G&&!G.summary)pauseOpen=true;
   else if(screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished)pauseOpen=true;

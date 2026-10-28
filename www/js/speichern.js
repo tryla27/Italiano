@@ -3,7 +3,7 @@
 // Laden einrichten ist vorerst ausgeschaltet und wird später neu gebaut (Code in laden.js bleibt).
 // Auf true setzen, um es wieder einzuschalten.
 const LADEN_EINRICHTEN=false;
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false};
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null};
 let S=Object.assign({},S0,{vol:Object.assign({},S0.vol)});
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";

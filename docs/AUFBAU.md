@@ -45,6 +45,7 @@ oder erst beim Spielen aufgerufen wird.
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt, Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
 | `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
+| `truhe.js` | Belohnungs-Truhe nach bestandenem Vokabeltag: Belohnungen würfeln (4 % selten), Sprite-Animation, Karten |
 | `bildschirme.js` | Alle Bildschirme (jeder passt ohne Scrollen), Kopfzeile mit Zurück, Ton und Zahnrad, Einstellungen, Pause-Fenster, „So geht's“ |
 | `eingaben.js` | Klicks, Antippen, langes Drücken, Regler |
 | `start.js` | Start: Spielstand laden, Cloud abgleichen, nach App-Updates suchen |

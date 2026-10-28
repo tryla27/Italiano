@@ -59,6 +59,7 @@ function rHome(){
   </div>
   <div class="week" aria-label="Woche">${GIORNI.map((g,i)=>{const d=S.day-wday(S.day)+i;return `<span class="wd${d===S.day?" now":""}${d<S.day?" past":""}${MARKT_TAGE.includes(i)?" mk":""}" title="${g[1]}${MARKT_TAGE.includes(i)?", Markttag":""}"><b>${g[2]}</b>${MARKT_TAGE.includes(i)?"🧺":""}</span>`;}).join("")}</div>
   <p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>
+  ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Belohnung für Vokabeltag ${S.chest.day}</small></button>`:""}
   ${G&&!G.summary
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · ${cap(giorno(S.day)[0])}, Tag ${S.day}</small></button>`
@@ -148,7 +149,9 @@ function rShop(){
     <p class="note">Du hast <b style="color:var(--gold)">${S.coins} €</b> · Trinkgeld jetzt ×${mult().toFixed(2)}</p>
     ${up?`<div class="item up"><span class="ic">${up.ic}</span><span class="nm">${esc(up.it)}<small>${esc(up.de)}</small></span><button class="buy" data-act="buy" data-id="${up.id}" ${S.coins<up.cost?"disabled":""}>${up.cost} €</button></div>`:`<div class="panel"><p class="note" style="margin:0">Höchste Stufe erreicht: ${esc(LEVELS[S.level].it)}!</p></div>`}
     <div class="cards">${list.map(card).join("")||`<p class="note">Alles für diese Stufe gekauft. Steig auf, dann gibt es Neues.</p>`}</div>
-    ${bought.length?`<p class="note owned-row">Schon gekauft: ${bought.map(i=>`<span title="${esc(i.de)}">${i.ic}</span>`).join(" ")}</p>`:""}`;
+    ${bought.length?`<p class="note owned-row">Schon gekauft: ${bought.map(i=>`<span title="${esc(i.de)}">${i.ic}</span>`).join(" ")}</p>`:""}
+    ${Object.keys(S.deko).length?`<p class="note owned-row">Aus Truhen: ${Object.entries(S.deko).map(([id,n])=>{const d=decoById(id);return d?`<span title="${esc(d.it)} · ${esc(d.de)}" class="${d.rare?"rare":""}">${d.ic}${n>1?`<sub>${n}</sub>`:""}</span>`:"";}).join(" ")}</p>`:""}
+    ${S.boost?`<p class="note">🍀 Trinkgeld ×${S.boost.x} am nächsten Spieltag</p>`:""}`;
 }
 function rBook(){
   const e=Object.entries(S.book).sort((a,b)=>b[1].miss-a[1].miss);

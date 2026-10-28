@@ -1,0 +1,27 @@
+{
+ "datei": "truhe-oeffnen.webp",
+ "bildgroesse": 512,
+ "spalten": 6,
+ "zeilen": 4,
+ "bilder": 24,
+ "fps": 16,
+ "phasen": {
+  "wackeln": [
+   0,
+   8
+  ],
+  "ducken": [
+   8,
+   10
+  ],
+  "aufspringen": [
+   10,
+   12
+  ],
+  "nachfedern": [
+   12,
+   23
+  ]
+ },
+ "hinweis": "Bild 0 = geschlossen (auch truhe-zu.webp), Bild 23 = offen. Ab Bild 11 Lichtstrahl, Funken und Belohnungen per CSS/Code einblenden."
+}
