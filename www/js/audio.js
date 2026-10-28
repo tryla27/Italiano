@@ -14,7 +14,7 @@ const sexOf=who=>!who?null:who==="Signor Esposito"?"m":CHARS[who]?(CHARS[who].f?
 function pickVoice(list,sex){
   const it=list.map((v,i)=>({v,i})).filter(x=>/^it/i.test(x.v.lang||""));
   const own=sex&&it.find(x=>voiceSex(x.v)===sex);
-  return {voice:own||it[0]||null,pitch:own||!sex?1:sex==="m"?.8:1.15};
+  return {voice:own||it[0]||null,pitch:own||!sex?1:sex==="m"?.92:1.06};
 }
 let nativeVoices=null;
 if(NativeTTS&&NativeTTS.getSupportedVoices)NativeTTS.getSupportedVoices().then(r=>{nativeVoices=(r&&r.voices)||[];}).catch(()=>{nativeVoices=[];});

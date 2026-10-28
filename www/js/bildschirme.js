@@ -32,7 +32,7 @@ function rHome(){
   <p class="savenote">${cloudState==="cloud"?"☁ Spielstand in deinem Konto gesichert":"✓ Spielstand auf diesem Gerät gespeichert"}</p>
   ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}
   ${musicOn||vol("music")===0?"":`<p class="note" style="text-align:center;margin:0">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}
-  ${S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
+  ${!LADEN_EINRICHTEN?"":S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
   <div class="stats">
     <div class="stat"><b>${S.coins}</b><span>Euro</span></div>
     <div class="stat"><b>${S.day}</b><span>Tag</span></div>
@@ -45,7 +45,7 @@ function rHome(){
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
   ${S.setupDone?`<div class="trips"><h3>Ausflüge</h3><div class="row2">${Object.entries(TRIPS).map(([id,T])=>`<button class="sec trip" data-act="trip" data-t="${id}"><span>${T.ic}</span>${esc(T.it)}<small>${esc(T.de)}</small></button>`).join("")}</div></div>`:""}
   <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
-  <div class="row3"><button class="sec" data-act="shop">Kaufen</button><button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button><button class="sec" data-act="book">Notizbuch</button></div>
+  <div class="${LADEN_EINRICHTEN?"row3":"row2"}"><button class="sec" data-act="shop">Kaufen</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}<button class="sec" data-act="book">Notizbuch</button></div>
   <div class="how"><h3>So geht's</h3><ul>
     <li>Deine Gäste sprechen nur <b>Italienisch</b>. Wähle die richtige Antwort oder belege die Pizza.</li>
     <li>Einmal falsch? Dann erscheint ein <b>Tipp</b> zum Antippen.</li>

@@ -68,8 +68,6 @@ console.log(`Teste ${URL} als "${DEVICE}"`);
 // 1) Neuer Spieler
 await fresh(null);
 await shot("start");
-if (await act("setup")) await shot("laden-einrichten");
-await fresh(null);
 if (await act("shop")) await shot("shop");
 await act("home");
 if (await act("vocab")) await shot("vokabeln");
@@ -97,6 +95,12 @@ check(await page.evaluate(() => {
   const m = pickVoice(list, sexOf("Zio Gennaro")), f = pickVoice(list, sexOf("Nonna Pina")), one = pickVoice([list[1]], "m");
   return m.voice.i === 2 && f.voice.i === 1 && one.voice.i === 0 && one.pitch < 1 && pickVoice(list, null).pitch === 1;
 }), "Stimmenwahl nach Figur stimmt nicht");
+
+// Laden einrichten ist vorerst aus: neuer Spieler und alter Stand mitten im Einrichten starten direkt
+await fresh(null);
+check(await page.locator('[data-act="start"]').count() === 1 && await page.locator('[data-act="setup"]').count() === 0, "Neuer Spieler sieht noch „Laden einrichten“");
+await fresh({ setupDone: false, setupQuiz: { queue: [0], qi: 0 }, room: [] });
+check(await page.evaluate(() => S.setupDone && !S.setupQuiz), "Alter Stand hängt im Einrichten fest");
 
 // Alter Spielstand ohne neue Felder muss weiter laden
 await fresh({ coins: 77, level: 1, day: 5, setupDone: true, vol: { music: .3 } });

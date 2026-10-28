@@ -1,6 +1,9 @@
 /* Spielstand: speichern nach jeder Aktion (Gerät + Claude-Konto), laden, alte Stände übernehmen. */
 /* ---------- Save state ---------- */
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:false,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false};
+// Laden einrichten ist vorerst ausgeschaltet und wird später neu gebaut (Code in laden.js bleibt).
+// Auf true setzen, um es wieder einzuschalten.
+const LADEN_EINRICHTEN=false;
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false};
 let S=Object.assign({},S0,{vol:Object.assign({},S0.vol)});
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";
@@ -32,6 +35,7 @@ function applySave(raw){
     if(!o.S)return false;
     S=Object.assign({},S0,o.S); S.vol=Object.assign({},S0.vol,o.S.vol||{});
     S.level=Math.min(S.level||0,LEVELS.length-1);
+    if(!LADEN_EINRICHTEN){S.setupDone=true;S.setupQuiz=null;}
     G=o.G||null; screen=o.screen||"home"; if(screen!=="home"&&!G)screen="home";
     savedAt=at; lastBody=stateBody(); return true;
   }catch(e){return false;}
