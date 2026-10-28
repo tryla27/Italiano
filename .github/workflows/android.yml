@@ -81,18 +81,18 @@ jobs:
           ./gradlew assembleDebug
 
       - name: APK umbenennen
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk PizzeriaParola.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ParlaPizza.apk
 
       - name: Prüfen, dass der richtige Schlüssel benutzt wurde
         run: |
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          "$BT/apksigner" verify --print-certs PizzeriaParola.apk | tee certs.txt
+          "$BT/apksigner" verify --print-certs ParlaPizza.apk | tee certs.txt
           grep -qi "SHA-256 digest: 7fae6aeda93d2829c87a34ba10d462581f011635476c42d9355317c3c36c3635" certs.txt || { echo "FALSCHER SCHLÜSSEL – Abbruch, sonst gehen Updates kaputt"; exit 1; }
 
       - name: Als Download veröffentlichen
         uses: softprops/action-gh-release@v2
         with:
           tag_name: v1.${{ github.run_number }}
-          name: Pizzeria Parola v1.${{ github.run_number }}
-          body: Tippe unten auf PizzeriaParola.apk, um die App auf dein Android-Handy zu laden.
-          files: PizzeriaParola.apk
+          name: Parla Pizza! v1.${{ github.run_number }}
+          body: Tippe unten auf ParlaPizza.apk, um die App auf dein Android-Handy zu laden.
+          files: ParlaPizza.apk

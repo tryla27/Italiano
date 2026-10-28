@@ -48,7 +48,7 @@ function rTopbar(){
 function rHome(){
   const L=LEVELS[S.level];
   $("#screen").innerHTML=`
-  <div class="sign"><span class="lvl">${L.it} · Napoli</span><h1>Pizzeria <span>Parola</span></h1><span class="lvl-de">Stufe ${S.level+1} von ${LEVELS.length} · ${L.de}</span>${tools()}</div>
+  <div class="sign"><span class="lvl">${L.it} · Napoli</span><h1>Parla <span>Pizza!</span></h1><span class="lvl-de">Stufe ${S.level+1} von ${LEVELS.length} · ${L.de}</span>${tools()}</div>
   ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}
   ${!LADEN_EINRICHTEN?"":S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
   <div class="stats">

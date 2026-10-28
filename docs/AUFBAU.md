@@ -1,4 +1,4 @@
-# Aufbau von Pizzeria Parola
+# Aufbau von Parla Pizza!
 
 Das Spiel ist eine Webseite (HTML, CSS, JavaScript) ohne Fremdbibliotheken und ohne Build-Schritt.
 Capacitor verpackt den Ordner `www/` als Android-App. Jede Datei kann direkt im Editor geändert

@@ -1,4 +1,4 @@
-# Pizzeria Parola
+# Parla Pizza!
 
 Italienisch lernen als Pizzeria-Spiel in Neapel. Du begrüßt Gäste, belegst Pizzen, nimmst Telefon-
 bestellungen an und handelst auf dem Markt, alles auf Italienisch. Mit dem verdienten Geld richtest
@@ -10,9 +10,9 @@ Ordner `www/` und läuft auch in jedem Browser.
 ## App bekommen
 
 Jeder Push auf `main` baut die App automatisch (GitHub Actions). Die fertige Datei
-`PizzeriaParola.apk` liegt danach unter **Releases**.
+`ParlaPizza.apk` liegt danach unter **Releases**.
 
-1. Auf dem Handy die neueste Release öffnen und `PizzeriaParola.apk` herunterladen.
+1. Auf dem Handy die neueste Release öffnen und `ParlaPizza.apk` herunterladen.
 2. Datei antippen. Android fragt einmal, ob Apps aus dieser Quelle installiert werden dürfen: erlauben.
 3. Installieren, fertig.
 
