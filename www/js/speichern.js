@@ -10,13 +10,29 @@ const KEY="pizzeria-parola";
 const enc=(k,v)=>v instanceof Set?{__set:[...v]}:v;
 const dec=(k,v)=>v&&typeof v==="object"&&Array.isArray(v.__set)?new Set(v.__set):v;
 let savedAt=0, lastBody="", dbRef=null, cloudState="local", writing=false, dirty=false, cloudTimer=null;
-function stateBody(){return JSON.stringify({v:2,S,G,screen:(screen==="play"||screen==="summary")?screen:"home"},enc);}
+/* Spielstand-Versionen: Jede Änderung am Aufbau bekommt eine Umwandlung von Version n auf n+1.
+   Regeln: Felder nie umbenennen oder löschen, neue Felder bekommen Startwerte in S0.
+   test/spielstaende/ hat ein Beispiel jeder alten Version; der Test lädt sie alle. */
+const SAVE_V=3;
+const MIGRATE={
+  1:o=>({v:2,S:o.S||o,G:null,screen:"home"}),            // ganz alt: nur S ohne Hülle
+  2:o=>{o.v=3;return o;}                                  // 3: Truhe, Deko, Bonus (Startwerte aus S0)
+};
+function migrate(o){
+  if(!o.v&&!o.S&&o.coins!==undefined)o={v:1,S:o};
+  let v=o.v||1;
+  while(v<SAVE_V&&MIGRATE[v]){o=MIGRATE[v](o);v=o.v;}
+  return o;
+}
+function stateBody(){return JSON.stringify({v:SAVE_V,S,G,screen:(screen==="play"||screen==="summary")?screen:"home"},enc);}
 function save(){
   let body; try{body=stateBody();}catch(e){return;}
   if(body===lastBody)return;
   lastBody=body; savedAt=Date.now();
-  try{localStorage.setItem(KEY,JSON.stringify({savedAt,state:body}));}catch(e){}
-  clearTimeout(cloudTimer); cloudTimer=setTimeout(cloudSave,400);
+  const rec=JSON.stringify({savedAt,state:body});
+  try{localStorage.setItem(KEY,rec);}catch(e){}
+  backupDaily(rec);
+  clearTimeout(cloudTimer); cloudTimer=setTimeout(()=>{cloudSave();nativeSave();},400);
 }
 async function cloudSave(){
   if(!dbRef)return;
@@ -31,7 +47,7 @@ function applySave(raw){
     let o=JSON.parse(raw), at=0;
     if(o&&typeof o.state==="string"){at=o.savedAt||0;o=JSON.parse(o.state,dec);}
     if(!o)return false;
-    if(!o.S&&o.coins!==undefined)o={S:o}; // alter Speicherstand
+    o=migrate(o);
     if(!o.S)return false;
     S=Object.assign({},S0,o.S); S.vol=Object.assign({},S0.vol,o.S.vol||{});
     S.level=Math.min(S.level||0,LEVELS.length-1);
@@ -40,7 +56,17 @@ function applySave(raw){
     savedAt=at; lastBody=stateBody(); return true;
   }catch(e){return false;}
 }
-function flushSave(){save();clearTimeout(cloudTimer);cloudSave();}
+function flushSave(){save();clearTimeout(cloudTimer);cloudSave();nativeSave();}
+/* Zweite Kopie im Handy selbst (Capacitor Preferences: Android SharedPreferences, iOS UserDefaults).
+   Die räumt das System nicht auf wie den Browser-Speicher, und Android sichert sie im Google-Backup. */
+const Prefs=()=>{try{return window.Capacitor&&Capacitor.Plugins&&Capacitor.Plugins.Preferences;}catch(e){return null;}};
+function nativeSave(){const P=Prefs();if(P&&lastBody)P.set({key:KEY,value:JSON.stringify({savedAt,state:lastBody})}).catch(()=>{});}
+async function nativeLoad(){const P=Prefs();if(!P)return null;try{const r=await P.get({key:KEY});return r&&r.value;}catch(e){return null;}}
+// Einmal am Tag eine Sicherheitskopie, falls der Hauptstand je kaputtgeht
+function backupDaily(rec){
+  const day=new Date().toLocaleDateString("sv-SE");
+  try{if(localStorage.getItem(KEY+"-backup-tag")!==day){const old=localStorage.getItem(KEY);if(old)localStorage.setItem(KEY+"-backup",old);localStorage.setItem(KEY+"-backup-tag",day);}}catch(e){}
+}
 window.addEventListener("pagehide",flushSave);
 document.addEventListener("visibilitychange",()=>{if(document.hidden)flushSave();});
 const mult=()=>1+SHOP.filter(i=>S.owned.includes(i.id)&&i.bonus).reduce((a,i)=>a+i.bonus,0);

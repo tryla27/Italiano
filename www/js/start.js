@@ -5,8 +5,11 @@ const APP_BUILD="__APP_BUILD__", APP_REPO="__APP_REPO__"; // werden beim App-Bau
 const isNativeApp=(()=>{try{return !!(window.Capacitor&&Capacitor.isNativePlatform&&Capacitor.isNativePlatform());}catch(e){return false;}})();
 (function boot(){
   let raw=null; try{raw=localStorage.getItem(KEY);}catch(e){}
-  if(raw)applySave(raw);
+  // Kaputter Hauptstand? Dann die Sicherheitskopie vom Vortag
+  if(raw&&!applySave(raw)){try{const b=localStorage.getItem(KEY+"-backup");if(b)applySave(b);}catch(e){}}
   render();
+  // In der App: neuere Kopie aus dem Handy-Speicher nehmen (z. B. wenn der Browser-Speicher gelöscht wurde)
+  nativeLoad().then(n=>{if(!n)return;try{const at=JSON.parse(n).savedAt||0;if(at>savedAt&&applySave(n)){try{localStorage.setItem(KEY,n);}catch(e){}render();}else if(at<savedAt)nativeSave();}catch(e){}});
   (async()=>{try{
     if(!window.claude||!window.claude.use)return;
     const [db,user]=await Promise.all([window.claude.use("db"),window.claude.use("user")]);

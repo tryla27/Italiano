@@ -36,7 +36,7 @@ oder erst beim Spielen aufgerufen wird.
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
 | `inhalt/dialoge.js` | Zutaten, Speisekarte, alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
-| `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände |
+| `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände, Versionen mit Umwandlung (`SAVE_V`, `MIGRATE`), Kopie im Handy-Speicher (Capacitor Preferences), tägliche Sicherheitskopie |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
 | `szenen.js` | Umgebungen: Pizzeria, Markt, Eisladen, Hafen, laufende Figuren (`walker`: Gast kommt herein und geht, Passanten auf Markt und Hafen). Nutzt die Bilder aus `www/bilder/umgebungen/` (Ausschnitt und Platz der Figur in `SCENE_IMG`), sonst gezeichnete Ersatz-Szenen |
@@ -55,6 +55,15 @@ oder erst beim Spielen aufgerufen wird.
 Alles, was gespeichert wird, steht im Objekt `S` (Startwerte in `S0` in `speichern.js`).
 Ein neues Feld bekommt dort einen Startwert; alte Spielstände übernehmen ihn automatisch.
 Felder nie umbenennen oder löschen, sonst verlieren Spieler ihren Fortschritt.
+
+Ändert sich der Aufbau eines Spielstands, dann:
+1. `SAVE_V` in `speichern.js` um eins erhöhen und in `MIGRATE` die Umwandlung von der alten Version eintragen.
+2. Ein Beispiel des alten Stands als `test/spielstaende/vN.json` ablegen (mit erwartetem Geld, Tag, Stufe).
+3. `node test/spiel-test.mjs` lädt alle Beispiele und muss grün sein.
+
+Der Spielstand liegt dreifach: im Browser-Speicher, im Handy-Speicher der App (Capacitor Preferences)
+und als tägliche Sicherheitskopie. Dazu kommt der Spielstand-Code in den Einstellungen zum Mitnehmen.
+App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, sonst geht kein Update.
 
 ## Testen
 
