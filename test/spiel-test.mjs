@@ -109,7 +109,9 @@ check(await page.evaluate(() => S.coins === 77 && S.level === 1 && S.muted === f
 // Ausflüge: Eisladen und Hafen einmal komplett durchspielen
 for (const trip of ["gelateria", "porto"]) {
   await fresh({ setupDone: true, coins: 10, day: 2 });
-  await page.locator(`[data-act="trip"][data-t="${trip}"]`).click();
+  await act("map");
+  if (trip === "gelateria") await shot("karte");
+  await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
   await shot(`ausflug-${trip}`);
   for (let i = 0; i < 10 && await page.evaluate(() => screen === "play"); i++) {
     if (await page.locator('[data-act="next"]').count()) { await act("next"); continue; }
@@ -120,6 +122,14 @@ for (const trip of ["gelateria", "porto"]) {
   await shot(`ausflug-${trip}-ende`);
   check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
 }
+
+// Karte: Markt ist außerhalb des Spieltags zu, die Pizzeria startet den Tag
+await fresh({ setupDone: true, coins: 10, day: 2 });
+await act("map");
+await page.locator('.map [data-act="place"][data-p="mercato"]').click();
+check(await page.evaluate(() => screen === "map" && /Markt/.test(mapMsg)), "Geschlossener Markt auf der Karte reagiert nicht");
+await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
+check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
 
 // 2) Laden schon eingerichtet: einen Spieltag spielen
 await fresh({ setupDone: true, coins: 25, day: 1 });

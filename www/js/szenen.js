@@ -5,22 +5,60 @@
 function figure(svg,x,y,size,cls){
   return `<g class="fig ${cls||""}" style="transform-origin:${x+size/2}px ${y+size*.6}px"><svg x="${x}" y="${y}" width="${size}" height="${size}" viewBox="0 0 100 100">${svg.replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg></g>`;
 }
-// Ganze Figur mit Körper, Armen und Beinen (100×230, Füße unten bei y=218). Kopf = Gesicht aus grafik.js.
+// Ganze Figur mit Körper, Armen und Beinen (100×250, Füße unten bei y=240). Kopf = Gesicht aus grafik.js.
 // Die Klassen leg/arm schwingen per CSS, solange die Figur die Klasse "walk" trägt.
-const PANTS=["#33415c","#4a3b2f","#2e4a3a","#5a4636","#3d3d48"];
 function bodyFigure(name,mood){
-  const c=CHARS[name]||CHARS.Marco, shirt=c.shirt==="hawaii"?"#1f9fb0":c.shirt;
-  const pants=c.shirt==="hawaii"?"#e9d8a6":PANTS[[...name].reduce((a,ch)=>a+ch.charCodeAt(0),0)%PANTS.length];
-  const leg=(x,k)=>`<g class="leg ${k}"><rect x="${x}" y="148" width="13" height="64" rx="6" fill="${c.f?c.skin:pants}"/><ellipse cx="${x+6.5}" cy="214" rx="9" ry="5" fill="#2a1d14"/></g>`;
-  const arm=(x,k)=>`<g class="arm ${k}"><rect x="${x}" y="90" width="11" height="54" rx="5.5" fill="${shirt}"/><circle cx="${x+5.5}" cy="146" r="6" fill="${c.skin}"/></g>`;
-  let b=leg(36,"l")+leg(51,"r")+arm(17,"l")+arm(72,"r")+`<rect x="26" y="84" width="48" height="74" rx="14" fill="${shirt}"/>`;
-  if(c.f)b+=`<path d="M27 140 L73 140 L80 176 Q50 182 20 176 Z" fill="${pants}"/>`;
-  return `<svg viewBox="0 0 100 230" aria-hidden="true"><g class="bob">${b}${face(name,mood).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</g></svg>`;
+  const c=CHARS[name]||CHARS.Marco, o=OUTFIT[name]||{low:"pants",legs:"#3d3d48",shoe:"#2a1d14"};
+  const top=c.shirt==="hawaii"?"#1f9fb0":c.shirt, sk=c.skin;
+  const over=o.jacket||o.coat||o.cardigan||o.vest;
+  let b="";
+  // Hals sitzt im Kopf-Teil unten
+  // Beine
+  const leg=(x,k)=>{
+    let g="";
+    if(o.low==="pants")g+=`<rect x="${x}" y="146" width="16" height="88" rx="7" fill="${o.legs}"/>`;
+    else if(o.low==="shorts")g+=`<rect x="${x+1.5}" y="170" width="13" height="64" rx="6" fill="${sk}"/><rect x="${x}" y="146" width="16" height="36" rx="6" fill="${o.legs}"/>`;
+    else g+=`<rect x="${x+2}" y="170" width="12" height="64" rx="6" fill="${o.long?o.legs:sk}"/>`;
+    if(o.socks)g+=`<rect x="${x+1.5}" y="222" width="13" height="10" fill="#fff"/>`;
+    g+=`<path d="M${x-2} 238 Q${x-2} 228 ${x+8} 228 Q${x+19} 228 ${x+19} 238 Z" fill="${o.shoe}"/>`;
+    return `<g class="leg ${k}">${g}</g>`;
+  };
+  b+=leg(33,"l")+leg(51,"r");
+  // Rock / Kleid unten
+  if(o.low==="skirt")b+=`<path d="M28 140 L72 140 L${o.long?82:78} ${o.long?214:186} Q50 ${o.long?220:192} ${o.long?18:22} ${o.long?214:186} Z" fill="${o.long?c.shirt==="hawaii"?"#555":"#7a6a8a":o.legs}"/>`;
+  if(o.low==="dress")b+=`<path d="M28 130 L72 130 L82 192 Q50 200 18 192 Z" fill="${top}"/><path d="M22 186 Q50 194 78 186" stroke="rgba(255,255,255,.35)" stroke-width="3" fill="none"/>`;
+  // Arme (hinter dem Oberkörper)
+  const arm=(x,k,side)=>{
+    const sl=o.coat||o.jacket||o.cardigan||o.hoodie?(over||top):top, long=!o.short;
+    let g=`<rect x="${x}" y="86" width="13" height="${long?56:34}" rx="6.5" fill="${sl}"/>`;
+    if(!long)g+=`<rect x="${x+1}" y="116" width="11" height="28" rx="5.5" fill="${sk}"/>`;
+    g+=`<circle cx="${x+6.5}" cy="146" r="6.5" fill="${sk}"/>`;
+    if(side==="r"&&o.bag)g+=`<path d="M${x+2} 146 Q${x+6.5} 136 ${x+11} 146" stroke="${o.bag}" stroke-width="2" fill="none"/><rect x="${x-3}" y="146" width="19" height="16" rx="4" fill="${o.bag}"/>`;
+    if(side==="l"&&o.books)g+=`<rect x="${x-2}" y="132" width="17" height="6" fill="#c0503f"/><rect x="${x-1}" y="138" width="16" height="6" fill="#e2b93b"/>`;
+    return `<g class="arm ${k}">${g}</g>`;
+  };
+  b+=arm(15,"l","l")+arm(72,"r","r");
+  // Oberkörper
+  b+=o.belly?`<path d="M26 92 Q26 82 38 82 L62 82 Q74 82 74 92 Q84 124 72 150 Q50 160 28 150 Q16 124 26 92Z" fill="${top}"/>`
+            :`<path d="M26 92 Q26 82 38 82 L62 82 Q74 82 74 92 L72 150 Q50 156 28 150 Z" fill="${top}"/>`;
+  if(c.shirt==="hawaii")b+=`<circle cx="36" cy="112" r="4" fill="#f4d03f"/><circle cx="60" cy="122" r="4" fill="#e74c3c"/><circle cx="44" cy="136" r="4" fill="#f4d03f"/><circle cx="66" cy="104" r="3.5" fill="#e74c3c"/>`;
+  if(o.stripes)for(let y=108;y<150;y+=9)b+=`<rect x="27" y="${y}" width="46" height="4" fill="#f3eee2"/>`;
+  if(o.braces)b+=`<path d="M38 96 L36 150 M62 96 L64 150" stroke="${o.braces}" stroke-width="4"/>`;
+  if(o.hoodie)b+=`<path d="M36 128 L64 128 L62 144 L38 144 Z" fill="rgba(0,0,0,.15)"/><path d="M45 104 L44 118 M55 104 L56 118" stroke="#f3eee2" stroke-width="1.5"/>`;
+  if(o.apron)b+=`<path d="M32 108 L68 108 L70 180 Q50 184 30 180 Z" fill="#fbfbf7"/><rect x="40" y="134" width="20" height="12" rx="2" fill="#f1e4e8"/>`;
+  if(o.coat)b+=`<path d="M24 92 Q24 82 36 82 L44 82 L46 200 L22 196 Z" fill="${o.coat}" stroke="#d8d4c8"/><path d="M76 92 Q76 82 64 82 L56 82 L54 200 L78 196 Z" fill="${o.coat}" stroke="#d8d4c8"/><rect x="62" y="104" width="8" height="10" rx="1" fill="#c9d4e0"/>`;
+  if(o.jacket||o.cardigan)b+=`<path d="M24 92 Q24 82 36 82 L44 82 L46 154 L26 150 Z" fill="${over}"/><path d="M76 92 Q76 82 64 82 L56 82 L54 154 L74 150 Z" fill="${over}"/>`;
+  if(o.vest)b+=`<path d="M28 92 Q28 84 38 84 L45 120 L44 150 L30 148 Z" fill="${o.vest}"/><path d="M72 92 Q72 84 62 84 L55 120 L56 150 L70 148 Z" fill="${o.vest}"/>`;
+  if(o.belt)b+=`<rect x="28" y="144" width="44" height="6" fill="#2a1d14"/><rect x="47" y="144" width="6" height="6" fill="#c9a44a"/>`;
+  if(o.camera)b+=`<path d="M38 92 L50 118 L62 92" stroke="#222" stroke-width="2" fill="none"/><rect x="41" y="114" width="18" height="12" rx="2" fill="#333"/><circle cx="50" cy="120" r="4" fill="#7ab"/>`;
+  // Kopf ohne das Oberteil-Stück aus face(), dafür ein Hals
+  const head=face(name,mood).replace(/^<svg[^>]*>|<\/svg>$/g,"").replace(/<rect x="2[24]" y="80"[^>]*\/>/,"").replace(/<circle cx="\d+" cy="(88|90|95)" r="4"[^>]*\/>/g,"");
+  return `<svg viewBox="0 0 100 250" aria-hidden="true"><g class="bob"><rect x="43" y="70" width="14" height="18" rx="5" fill="${sk}"/>${b}${head}</g></svg>`;
 }
 // Figur mit Füßen an (x,y), Höhe h. cls z. B. "walk walkin" (kommt herein) oder "walk walkout" (geht).
 function walker(name,mood,x,y,h,cls){
-  const w=h*100/230;
-  return `<g class="walker ${cls||""}" style="--x:${x}px;--y:${y}px"><svg x="${-w/2}" y="${-h*218/230}" width="${w}" height="${h}" viewBox="0 0 100 230">${bodyFigure(name,mood).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg></g>`;
+  const w=h*100/250;
+  return `<g class="walker ${cls||""}" style="--x:${x}px;--y:${y}px"><svg x="${-w/2}" y="${-h*240/250}" width="${w}" height="${h}" viewBox="0 0 100 250">${bodyFigure(name,mood).replace(/^<svg[^>]*>|<\/svg>$/g,"")}</svg></g>`;
 }
 const stripes=(x,y,w,h,n,a,b)=>{let s="";for(let i=0;i<n;i++)s+=`<rect x="${x+i*w/n}" y="${y}" width="${w/n+.5}" height="${h}" fill="${i%2?b:a}"/>`;return s;};
 const scallop=(x,y,w,n,a,b)=>{let s="";const r=w/n/2;for(let i=0;i<n;i++)s+=`<path d="M${x+i*2*r} ${y} a${r} ${r*.9} 0 0 0 ${2*r} 0z" fill="${i%2?b:a}"/>`;return s;};
@@ -156,10 +194,11 @@ function scenePorto(person,enter){
 /* Gerenderte Hintergründe (www/bilder/umgebungen/, Hochformat 768×1344, siehe HERKUNFT.md).
    Das Bild wird auf 400 Breite gebracht (dann 700 hoch); oy = welcher Streifen von oben gezeigt wird.
    fig = Platz der Figur [x, y, Größe], clip = bis wohin sie sichtbar ist (z. B. Oberkante Tresen).
+   stand = Gast mit ganzem Körper [x Mitte, y Füße, Höhe], steht auf dem Boden vor der Bar.
    Fehlt ein Eintrag (null), zeichnet szenen.js den Ort selbst. */
 const SCENE_H=260;
 const SCENE_IMG={
-  pizzeria:{src:"bilder/umgebungen/pizzeria.webp",oy:300,fig:[56,60,150],clip:212},
+  pizzeria:{src:"bilder/umgebungen/pizzeria.webp",oy:390,stand:[62,250,206]},
   mercato:{src:"bilder/umgebungen/markt.webp",oy:250},
   gelateria:{src:"bilder/umgebungen/eisladen.webp",oy:300,fig:[150,30,100],clip:118},
   porto:{src:"bilder/umgebungen/hafen.webp",oy:250}
@@ -167,9 +206,9 @@ const SCENE_IMG={
 function imageScene(id,person,enter,label,extra){
   const I=SCENE_IMG[id]; if(!I)return null;
   let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="700"/>`+(extra||"");
-  if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${
-    person.name?walker(person.name,person.mood,x+w/2,y+w*218/100,w*2.3,enter?"walk walkin":"")+(person.prev?walker(person.prev,2,x+w/2,y+w*218/100,w*2.3,"walk walkout"):"")
-    :figure(person,x,y,w,enter?"enter2":"")}</g>`;}
+  if(person&&person.name&&I.stand){const [x,y,h]=I.stand;
+    s+=(person.prev?walker(person.prev,2,x,y,h,"walk walkout"):"")+walker(person.name,person.mood,x,y,h,enter?"walk walkin":"");}
+  else if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${figure(person,x,y,w,enter?"enter2":"")}</g>`;}
   return `<svg class="stage-svg" viewBox="0 0 400 ${SCENE_H}" role="img" aria-label="${label}">${s}</svg>`;
 }
 // Passanten, die im Hintergrund vorbeilaufen (Markt: die Gasse herunter, Hafen: an der Promenade entlang).

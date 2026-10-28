@@ -19,6 +19,24 @@ const CHARS={
  "Signora Lucia":{f:1,skin:"#f1c7a5",hair:"#6b2f1a",style:"bun",shirt:"#f39bb3",lips:"#c94a5a",ear:1},
  "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1}
 };
+// Kleidung für die ganzen Körper (szenen.js bodyFigure)
+const OUTFIT={
+ "Signora Rossi":{low:"dress",shoe:"#5a1f3a",bag:"#b8865a"},
+ "Signor Bianchi":{low:"pants",legs:"#5d6670",shoe:"#3a2a1e",belt:1,jacket:"#47536a"},
+ "Giulia":{low:"pants",legs:"#4a6fa5",shoe:"#f3f3f3"},
+ "Marco":{low:"pants",legs:"#36507a",shoe:"#2a2a2a",short:1},
+ "Nonna Pina":{low:"skirt",long:1,legs:"#6b5a7a",shoe:"#4a3a2a",cardigan:"#c4a8dc",bag:"#7a4a2a"},
+ "Dottor Ferri":{low:"pants",legs:"#2f3540",shoe:"#1d1d1d",coat:"#fbfbf7"},
+ "Sofia":{low:"dress",shoe:"#c9a44a"},
+ "Zio Gennaro":{low:"pants",legs:"#6b4a2b",shoe:"#2a1d14",belly:1,braces:"#7a2a1f",short:1},
+ "Chiara":{low:"skirt",legs:"#222",shoe:"#222"},
+ "Turista Klaus":{low:"shorts",legs:"#d8c79a",shoe:"#8a5a2a",socks:1,camera:1,short:1},
+ "Professoressa Conte":{low:"skirt",legs:"#2d3e6b",shoe:"#5a1f2a",jacket:"#2d3e6b",books:1},
+ "Matteo":{low:"pants",legs:"#3a4a6a",shoe:"#e74c3c",hoodie:1},
+ "Signor Moretti":{low:"pants",legs:"#4a3a2a",shoe:"#2a1d14",vest:"#4a3420",belt:1},
+ "Signora Lucia":{low:"skirt",legs:"#c46a85",shoe:"#f3f3f3",apron:1,short:1},
+ "Signor Marino":{low:"pants",legs:"#1f3355",shoe:"#2a1d14",stripes:1}
+};
 function face(name,mood){
   const c=CHARS[name]||CHARS.Marco, hc=c.hair;
   let h="";

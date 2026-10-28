@@ -13,12 +13,14 @@ function render(){
       <button class="next" data-act="vol">Fertig</button></div>`;
   }
   else if(menuOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Menù"><h2>Il Menù</h2>${MENU.map(m=>`<div class="mi"><b>${cap(m.n)} <span class="price">${m.p} €</span></b><div>${m.ing.join(", ")}</div></div>`).join("")}<p class="note">Plural: margherita → margherite, diavola → diavole. Bei „prosciutto e funghi“ bleibt der Name gleich.</p><button class="next" data-act="menu">Zurück zur Küche</button></div>`;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,book:rBook,setup:rSetup,vocab:rVocab})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab})[screen]();
 }
 // Leiste oben links: Einstellungen und schnelles Stummschalten, auf jedem Bildschirm.
 const ICON={
   gear:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>`,
   on:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16 8.5a5 5 0 0 1 0 7M18.5 6a8.5 8.5 0 0 1 0 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`,
+  shop:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3 4h18l1 5a3 3 0 0 1-5 2 3 3 0 0 1-5 0 3 3 0 0 1-5 0 3 3 0 0 1-5-2z"/><path fill="currentColor" d="M4 12.5a4.5 4.5 0 0 0 2 .3V20h5v-5h2v5h5v-7.2a4.5 4.5 0 0 0 2-.3V22H4z"/></svg>`,
+  map:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M9 3 3 5v16l6-2 6 2 6-2V3l-6 2zm0 2.2 6 2v11.6l-6-2z"/></svg>`,
   off:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`
 };
 function rTopbar(){
@@ -43,9 +45,9 @@ function rHome(){
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · Tag ${S.day}</small></button>`
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
-  ${S.setupDone?`<div class="trips"><h3>Ausflüge</h3><div class="row2">${Object.entries(TRIPS).map(([id,T])=>`<button class="sec trip" data-act="trip" data-t="${id}"><span>${T.ic}</span>${esc(T.it)}<small>${esc(T.de)}</small></button>`).join("")}</div></div>`:""}
+  ${S.setupDone?`<button class="mapbtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><span class="maptxt">${ICON.map}<b>La mappa</b><small>Karte: Pizzeria, Markt, Eisladen, Hafen</small></span></button>`:""}
   <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
-  <div class="${LADEN_EINRICHTEN?"row3":"row2"}"><button class="sec" data-act="shop">Kaufen</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}<button class="sec" data-act="book">Notizbuch</button></div>
+  <div class="${LADEN_EINRICHTEN?"row3":"row2"}"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}<button class="sec" data-act="book">Notizbuch</button></div>
   <div class="how"><h3>So geht's</h3><ul>
     <li>Deine Gäste sprechen nur <b>Italienisch</b>. Wähle die richtige Antwort oder belege die Pizza.</li>
     <li>Einmal falsch? Dann erscheint ein <b>Tipp</b> zum Antippen.</li>
@@ -54,7 +56,7 @@ function rHome(){
     <li>Wörter in der Sprechblase antippen zeigt die Übersetzung. Bei den Antworten: Wort lange drücken.</li>
   </ul></div>
   <div class="how"><h3>Deine Stufen</h3><ol class="lvls">${LEVELS.map((l,i)=>`<li class="${i<S.level?"done":i===S.level?"now":""}"><b>${l.it}</b> <span>${esc(l.neu)}</span></li>`).join("")}</ol>
-  <p class="note" style="margin:6px 0 0">Aufsteigen kannst du unter „Kaufen“, sobald du genug Geld hast.</p></div>`;
+  <p class="note" style="margin:6px 0 0">Aufsteigen kannst du im „Shop“, sobald du genug Geld hast.</p></div>`;
 }
 function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
@@ -74,7 +76,7 @@ function rPlay(){
     action=`<div class="kitchen"><div class="pz-wrap">${pizzaSVG(st.cur)}${L>0&&st.curQty>1?`<span class="qtyb">×${st.curQty}</span>`:""}</div>
       <div class="pz-side">${L>0?`<div class="stepper"><button data-act="qty" data-d="-1" aria-label="Weniger" ${st.done?"disabled":""}>−</button><b>${st.curQty}</b><button data-act="qty" data-d="1" aria-label="Mehr" ${st.done?"disabled":""}>+</button><span>Anzahl</span></div>`:""}
       <button class="menu-btn" data-act="menu">Il Menù</button></div></div>
-      <div class="ings ${st.shake?"shake":""}">${Object.keys(ING).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}><i style="background:${ING[k][1]}"></i><span>${k}<small>${ING[k][0]}</small></span></button>`).join("")}</div>
+      <div class="ings ${st.shake?"shake":""}">${Object.keys(ING).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}><i style="background:${ING[k][1]}"></i>${ING[k][0]}</button>`).join("")}</div>
       ${st.done?"":`<button class="serve" data-act="serve">Servire!</button>`}`;
   }
   const ctrl=st.done
@@ -121,7 +123,7 @@ function rSummary(){
 }
 function rShop(){
   $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button>
-    <h2 class="t">Kaufen</h2><p class="note" style="margin:-6px 0 0">Du hast <b style="color:var(--gold)">${S.coins} €</b>. Jede Einrichtung bringt mehr Trinkgeld (jetzt ×${mult().toFixed(2)}). Gekaufte Sachen stellst du unter „Umstellen“ in deinen Laden.</p>
+    <h2 class="t">Shop</h2><p class="note" style="margin:-6px 0 0">Du hast <b style="color:var(--gold)">${S.coins} €</b>. Jede Einrichtung bringt mehr Trinkgeld (jetzt ×${mult().toFixed(2)}). Gekaufte Sachen stellst du unter „Umstellen“ in deinen Laden.</p>
     <div class="items">${SHOP.filter(i=>!i.up||i.up>S.level||S.owned.includes(i.id)).map(i=>{
       const own=S.owned.includes(i.id)||(i.up&&S.level>=i.up), locked=i.lv>S.level;
       const btn=own?`<span class="owned">Gekauft</span>`:locked?`<span class="owned" style="color:var(--chalk-dim)">ab ${LEVELS[i.lv].it}</span>`:`<button class="buy" data-act="buy" data-id="${i.id}" ${S.coins<i.cost?"disabled":""}>${i.cost} €</button>`;

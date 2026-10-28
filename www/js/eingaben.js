@@ -30,6 +30,8 @@ function handleClick(e){
   if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(a==="home"||a==="quit"){if(screen==="summary")G=null;screen="home";return render();}
   if(a==="shop"){screen="shop";return render();}
+  if(a==="map"){mapMsg="";screen="map";return render();}
+  if(a==="place")return goPlace(t.dataset.p);
   if(a==="trip"){if(G&&!G.summary){screen="play";render();autoSpeak();return;}return startTrip(t.dataset.t);}
   if(a==="setup"){screen="setup";return render();}
   if(a==="setupCheck"){if(ROOM_ITEMS.every(i=>S.room.some(r=>r.id===i.id)))startSetupQuiz();return;}
