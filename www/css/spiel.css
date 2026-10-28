@@ -517,3 +517,7 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mcard .ing-ic{width:52%;height:52%}
 .mcard.found{border-color:var(--basil,#3f9a45);opacity:.85;transform:none}
 .mcard small{font-size:.72rem;color:#5a5a50}
+/* Reaktion des Gasts auf eine falsche Antwort */
+.bubble .react{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(0,0,0,.2);font-style:italic}
+.bubble .react .it{font-size:.95rem;font-weight:600}
+.bubble .react small{display:block;font-style:normal;font-size:.78rem;opacity:.7}

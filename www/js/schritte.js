@@ -5,7 +5,7 @@
 let ANSWERS=null;
 function answerPools(){
   if(ANSWERS)return ANSWERS;
-  const all=[GREET,TALK,PROB,BILL,MARKET,DRINK,BAR,ISPEZIONE,DIR,CRITIC,GELATERIA,PORTO].flat().filter(x=>Array.isArray(x)&&Array.isArray(x[4]));
+  const all=[GREET,TALK,PROB,BILL,MARKET,DRINK,BAR,ISPEZIONE,DIR,CRITIC,GELATERIA,PORTO,PERS_ITEMS].flat().filter(x=>Array.isArray(x)&&Array.isArray(x[4]));
   const ok=t=>!t.includes("{");
   ANSWERS={it:[...new Set(all.filter(x=>x[3]).map(x=>x[2]).filter(ok))],de:[...new Set(all.filter(x=>!x[3]).map(x=>x[2]).filter(ok))],
     tr:Object.assign(Object.fromEntries(all.filter(x=>x[3]).map(x=>[x[2],x[3]])),WRONG_DE)};
