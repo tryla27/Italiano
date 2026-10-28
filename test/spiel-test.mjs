@@ -179,10 +179,34 @@ check(await page.evaluate(() => { S.ing = [...START_ING]; for (let i = 0; i < 60
 // Markt-Stand: Salami kaufen schaltet die Diavola frei, am nächsten Tag wird sie bestellt
 check(await page.evaluate(() => { S.ing = [...START_ING]; S.level = 1; S.day = 3; startDay(); G.phase = "market"; G.mi = G.market.findIndex(m => m.kind === "stall"); render(); return G.mi >= 0 && !!document.querySelector('[data-act="stallbuy"][data-k="salame"]'); }), "Markt-Stand fehlt oder bietet keine Salami an");
 await page.locator('[data-act="stallbuy"][data-k="salame"]').click();
-check(await page.evaluate(() => hasIng("salame") && S.newPz === "diavola" && G.bought === 15 && /Diavola/.test(G.banner)), "Kauf am Markt-Stand klappt nicht");
+// Feilschen: Signor Esposito nennt den Preis, steht als Figur im Markt, macht Gegenangebote
+check(await page.evaluate(() => { const H = curStep().hag; return !!H && H.ask === 15 && H.offers.length >= 2 && /quindici/.test(H.say) && document.querySelectorAll('[data-act="hoffer"]').length === H.offers.length && !!document.querySelector(".stage .walker"); }), "Feilschen startet nicht");
+await shot("markt-feilschen");
+check(await page.evaluate(() => { const H = curStep().hag; hagOffer(H.offers.reduce((a, o) => o.n < a.n ? o : a).n); return H.pat === 1 && H.ask === 15 && /scherza/.test(H.say); }), "Zu niedriges Angebot ärgert den Händler nicht");
+check(await page.evaluate(() => { const H = curStep().hag; const o = H.offers.find(x => x.n >= H.min && x.n < H.ask - 1); if (!o) return false; hagOffer(o.n); render(); return H.ask < 15 && H.ask > o.n && H.rounds === 1; }), "Gegenangebot fehlt");
+await page.locator('[data-act="hpeek"]').click();
+await shot("markt-gegenangebot");
+await page.locator('[data-act="hdeal"]').click();
+check(await page.evaluate(() => hasIng("salame") && S.newPz === "diavola" && G.bought < 15 && G.haggled === 15 - G.bought && !curStep().hag && /Diavola/.test(G.banner)), "Kauf nach dem Feilschen klappt nicht");
 await shot("markt-stand");
-check(await page.evaluate(() => { while (G && screen === "play") advance(); return G.summary.buy === 15; }), "Zutatenkauf fehlt in der Abrechnung");
+// Weggehen merkt sich den Preis; voller Preis ohne Feilschen geht auch
+check(await page.evaluate(() => { const st = curStep(), k = st.offer.find(x => !hasIng(x)); if (!k) return true; hagStart(k); hagLeave(); return !st.hag && st.asks[k] === ING[k][3]; }), "Weggehen beim Feilschen klappt nicht");
+check(await page.evaluate(() => { const b = G.bought; while (G && screen === "play") advance(); return G.summary.buy === b; }), "Zutatenkauf fehlt in der Abrechnung");
 check(await page.evaluate(() => { G = null; startDay(); return G.guests.some(g => g.steps.some(s => s.named === "diavola")) && S.newPz === null; }), "Neue Pizza wird am nächsten Tag nicht bestellt");
+// Zutaten-Memory: vom Startbildschirm, Paare finden, einmal pro Spieltag Geld
+await page.evaluate(() => { G = null; screen = "home"; S.memDay = 0; render(); });
+await act("memo");
+check(await page.evaluate(() => screen === "memo" && document.querySelectorAll('[data-act="mflip"]').length === 12), "Memory startet nicht");
+await page.evaluate(() => { const c = MEMO.cards, a = c.findIndex(x => x.pic), b = c.findIndex(x => !x.pic && x.k !== c[a].k); memoFlip(a); memoFlip(b); });
+await shot("memory-falsch");
+await page.waitForTimeout(1300);
+check(await page.evaluate(() => MEMO.open.length === 0 && MEMO.miss === 1), "Falsches Memory-Paar wird nicht wieder umgedreht");
+await page.evaluate(() => { const c = MEMO.cards; [...new Set(c.map(x => x.k))].slice(0, 3).forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); });
+await shot("memory-halb");
+check(await page.evaluate(() => { const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 11 && S.coins === before + 11 && S.memDay === S.day; }), "Memory-Belohnung stimmt nicht");
+await shot("memory-fertig");
+check(await page.evaluate(() => { startMemo(); const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 0 && S.coins === before; }), "Memory belohnt mehrmals am selben Tag");
+await page.evaluate(() => { screen = "home"; render(); });
 // Rezeptbuch mit Sternen
 await page.evaluate(() => { G = null; screen = "home"; S.pz = { margherita: { ok: 9 } }; menuOpen = true; render(); });
 check(await page.evaluate(() => /Il ricettario/.test($("#overlay").textContent) && $("#overlay").querySelectorAll(".mi.locked").length > 0 && /Dir fehlen/.test($("#overlay").textContent)), "Rezeptbuch fehlt");

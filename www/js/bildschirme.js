@@ -26,7 +26,7 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo})[screen]();
   armBack();
 }
 // Kopfzeile für Untermenüs: zurück zur Pizzeria, Titel, Ton und Einstellungen in einer Zeile
@@ -65,7 +65,7 @@ function rHome(){
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · ${cap(giorno(S.day)[0])}, Tag ${S.day}</small></button>`
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
   ${S.setupDone?`<button class="mapbtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><span class="maptxt">${ICON.map}<b>La mappa</b><small>Karte: Pizzeria, Markt, Eisladen, Hafen</small></span></button>`:""}
-  <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
+  <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"Paare finden":"Bonus heute!"}</small></button></div>
   <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="menu">Rezepte</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
   ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
 }
@@ -98,15 +98,24 @@ function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
   const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name+(g.regular?" · Stammgast ★":"");
   const hideText=st.phone&&!st.showText&&!st.done;
-  let bubble=hideText
+  const H=st.kind==="stall"&&st.hag;
+  let bubble=H?`<div class="it">${wordsHTML(H.say,true)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`
+    :hideText
     ?`<div class="phone-call"><div class="ring">Squilla il telefono! Hör genau zu.</div><div><button class="say" data-act="speak">▶ Anhören</button><button class="say" data-act="text">Text zeigen (halbes Trinkgeld)</button></div></div>`
     :`<div class="it">${wordsHTML(st.it,true)}</div>${canSpeak?`<button class="say" data-act="speak">▶ Nochmal hören</button>`:""}`;
-  if(st.done)bubble+=`<div class="tr">${esc(st.de)}</div>`;
+  if(st.done&&!H)bubble+=`<div class="tr">${esc(st.de)}</div>`;
   let action="";
-  if(st.kind==="stall"){const bud=stallBudget();
+  if(H){const bud=stallBudget();
+    action=`<div class="hag"><div class="hag-item">${ingIcon(H.k)}<span><b>${H.k}</b><small>${esc(ING[H.k][0])}</small></span><span class="pat" aria-label="Geduld ${H.pat} von 2">Geduld ${"●".repeat(H.pat)}<span class="off">${"●".repeat(2-H.pat)}</span></span></div>
+      ${H.offers.length?`<div class="opts">${H.offers.map(o=>`<button class="opt" data-act="hoffer" data-n="${o.n}" ${bud<o.n?'aria-disabled="true"':""}>${wordsHTML(o.t,false)}${H.peek?`<small>${esc(o.de)}</small>`:""}</button>`).join("")}</div>`:""}
+      ${H.peek?`<div class="tipbox"><b>Er sagt:</b> ${esc(H.sayDe)}</div>`:""}
+      <div class="hag-row"><button class="buy" data-act="hdeal" ${bud<H.ask?"disabled":""}>D'accordo!${H.peek?` ${H.ask} €`:""}</button>${H.peek?"":`<button class="tipbtn" data-act="hpeek">Übersetzen</button>`}<button class="sec" data-act="hleave">Lascio stare</button></div>
+      <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p></div>`;
+  }
+  else if(st.kind==="stall"){const bud=stallBudget(), asks=st.asks||{};
     action=`<div class="stall">${st.offer.map(k=>{const own=hasIng(k),pz=pizzeWith(k);
       return `<div class="card${own?" got":""}">${ingIcon(k)}<b>${k}</b><small>${esc(ING[k][0])}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
-      ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<ING[k][3]?"disabled":""}>${ING[k][3]} €</button>`}</div>`;}).join("")}</div>
+      ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<Math.min(asks[k]||ING[k][3],Math.ceil(ING[k][3]*.7))?"disabled":""}>${asks[k]||ING[k][3]} €</button>`}</div>`;}).join("")}</div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
   }
   else if(st.kind==="coffee"){
@@ -128,7 +137,7 @@ function rPlay(){
       <div class="ings${S.ing.length>12?" many":""} ${st.shake?"shake":""}">${Object.keys(ING).filter(hasIng).map(k=>`<button class="ing" data-act="ing" data-k="${k}" aria-pressed="${st.cur.has(k)}" ${st.done?"disabled":""}>${ingIcon(k)}${ING[k][0]}</button>`).join("")}</div>
       ${st.done?"":`<button class="serve" data-act="serve">Servire!</button>`}`;
   }
-  const ctrl=st.kind==="stall"?`<button class="next" data-act="next">${st.bought.length?"Grazie, arrivederci! →":"Oggi niente, grazie →"}</button>`
+  const ctrl=H?"":st.kind==="stall"?`<button class="next" data-act="next">${st.bought.length?"Grazie, arrivederci! →":"Oggi niente, grazie →"}</button>`
     :st.done
     ?`<div class="fb ${st.fb[0]}">${esc(st.fb[1])}</div><button class="next" data-act="next">Avanti →</button>`
     :`${st.showTip?`<div class="tipbox"><b>Tipp:</b> ${st.tip}</div>`:""}
@@ -138,7 +147,7 @@ function rPlay(){
     <div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}`}</span>${G.combo>=2?`<span class="combo">×${G.combo}</span>`:starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span>${tools()}</div>
     <div class="stage">${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}${stageHTML()}</div>
     <div class="scene solo"><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
-    <div class="task">${esc(st.task)}</div>
+    <div class="task">${H?(H.over?"Sein letztes Wort: annehmen oder gehen?":"Biete weniger, aber nicht zu frech!"):esc(st.task)}</div>
     ${action}${ctrl}`;
   st.shake=false;
 }
@@ -159,7 +168,7 @@ function rSummary(){
       <div class="line"><span>Zutaten vom Markt</span><span>−${sm.ing||0} €</span></div>
       <div class="line"><span>Miete</span><span>−${sm.rent||0} €</span></div>
       ${G.insp?`<div class="line"><span>Gesundheitsamt: ${G.insp.res==="pass"?"promossa ✓":G.insp.res==="cond"?"con riserva":"bocciata ✗"}</span><span>${G.inspMoney>0?"+":G.inspMoney<0?"−":""}${Math.abs(G.inspMoney)} €</span></div>`:""}
-      ${sm.buy?`<div class="line"><span>Neue Zutaten</span><span>−${sm.buy} €</span></div>`:""}
+      ${sm.buy?`<div class="line"><span>Neue Zutaten${G.haggled?` (${G.haggled} € gefeilscht)`:""}</span><span>−${sm.buy} €</span></div>`:""}
       ${G.saved?`<div class="line"><span>Beim Handeln gespart</span><span>+${G.saved} €</span></div>`:""}
       <div class="line total"><span>Gewinn heute</span><span>${sm.net>=0?"+":""}${sm.net} €</span></div>
     </div>

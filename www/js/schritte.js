@@ -73,7 +73,7 @@ function orderStep(L,force,daily){
 function stallStep(){
   const offer=Object.keys(ING).filter(k=>!hasIng(k)&&ING[k][2]>=0&&ING[k][2]<=S.level).sort((a,b)=>ING[a][2]-ING[b][2]||ING[a][3]-ING[b][3]).slice(0,3);
   if(!offer.length)return null;
-  return {kind:"stall",it:"Oggi ho prodotti freschissimi! Cosa prende?",de:"Heute habe ich ganz frische Ware! Was nehmen Sie?",task:"Neue Zutaten kaufen? Sie bleiben für immer in deiner Küche.",offer,bought:[],wrong:0,bad:[],done:true,fb:["good","Fertig mit Einkaufen?"]};
+  return {kind:"stall",it:"Oggi ho prodotti freschissimi! Cosa prende?",de:"Heute habe ich ganz frische Ware! Was nehmen Sie?",task:"Neue Zutaten? Tippe auf den Preis und feilsche!",offer,bought:[],wrong:0,bad:[],done:true,fb:["good","Fertig mit Einkaufen?"]};
 }
 const pizzeWith=k=>PIZZE.filter(p=>p.ing.includes(k)&&p.ing.every(x=>x===k||hasIng(x)));
 // Kaffee bestellen: Zutaten in der richtigen Reihenfolge und die passende Tasse

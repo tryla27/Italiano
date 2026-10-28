@@ -128,15 +128,64 @@ function endTrip(){
 }
 // Was heute noch zum Einkaufen da ist: Kasse plus heutige Einnahmen, minus was heute schon fest weggeht
 function stallBudget(){return S.coins+(G.revenue||0)+G.earned+(G.saved||0)-Math.round((G.revenue||0)*.35*(1-fx("cheap")))-LEVELS[S.level].rent-(G.bought||0);}
-function stallBuy(k){
-  const st=curStep(), price=ING[k][3];
+function stallBuy(k,price){
+  const st=curStep();
   if(!st||st.kind!=="stall"||hasIng(k)||!st.offer.includes(k)||stallBudget()<price)return;
-  const before=new Set(availPizze().map(p=>p.n));
+  const before=new Set(availPizze().map(p=>p.n)), saved=ING[k][3]-price;
   S.ing.push(k); st.bought.push(k); G.bought=(G.bought||0)+price; learn(k); sfx("coins");
   const neu=availPizze().filter(p=>!before.has(p.n));
   if(neu.length){S.newPz=neu[0].n;G.banner=`Neu im Rezeptbuch: ${neu.map(p=>cap(p.n)).join(", ")}!`;}
   else G.banner=`${cap(k)} (${ING[k][0]}) gehört jetzt zu deiner Küche.`;
+  if(saved>0)G.banner=`Für ${price} € statt ${ING[k][3]} € gekauft! `+G.banner;
   save();
+}
+/* Feilschen mit Signor Esposito: Er nennt seinen Preis auf Italienisch, du bietest weniger.
+   Unter 70 % des Preises ist er beleidigt und verliert Geduld; sonst kommt er dir auf halbem Weg entgegen.
+   Nach zwei Gegenangeboten oder ohne Geduld gilt sein letzter Preis. */
+const HAG_OFFER=[["Facciamo {N}?","Sagen wir {D}?"],["Le do {N} euro.","Ich gebe Ihnen {D} Euro."],["{N} euro, va bene?","{D} Euro, in Ordnung?"]];
+const fillN=(t,n)=>t.replace("{N}",numIt(n)).replace("{D}",n);
+function hagSay(H,it,de){H.say=it;H.sayDe=de;collectWords(it,de,2);setTimeout(()=>speak(it,"Signor Esposito"),250);}
+function hagOffers(H){
+  const lo=H.last||0, cand=[Math.round(H.ask*.5),Math.max(H.min,Math.round(H.ask*.8)),H.ask-1].filter(n=>n>lo&&n>0&&n<H.ask);
+  H.offers=shuffle([...new Set(cand)]).map(n=>{const [it,de]=pick(HAG_OFFER);return {n,t:fillN(it,n),de:fillN(de,n)};});
+}
+function hagStart(k){
+  const st=curStep(); if(!st||st.kind!=="stall"||hasIng(k)||!st.offer.includes(k))return;
+  st.asks=st.asks||{};
+  const P=ING[k][3], H={k,ask:st.asks[k]||P,min:Math.ceil(P*.7),pat:2,rounds:0,last:0,over:!!st.asks[k]&&st.asks[k]<P,peek:false};
+  st.hag=H;
+  if(H.over)hagSay(H,`Di nuovo qui? Il prezzo resta ${numIt(H.ask)} euro.`,`Schon wieder da? Der Preis bleibt ${H.ask} Euro.`);
+  else hagSay(H,`${cap(k)}? Per Lei, ${numIt(H.ask)} euro.`,`${ING[k][0]}? Für Sie ${H.ask} Euro.`);
+  hagOffers(H); save();
+}
+function hagOffer(n){
+  const st=curStep(), H=st&&st.hag; if(!H||H.over||!H.offers.some(o=>o.n===n))return;
+  if(n<H.min){
+    H.pat--; sfx("wrong");
+    if(H.pat<=0){H.over=true;H.offers=[];hagSay(H,`Basta! ${cap(numIt(H.ask))} euro, prendere o lasciare.`,`Schluss! ${H.ask} Euro, nehmen oder lassen.`);}
+    else{hagSay(H,`Ma scherza? Così ci rimetto! Il prezzo è ${numIt(H.ask)} euro.`,`Machen Sie Witze? So lege ich drauf! Der Preis ist ${H.ask} Euro.`);hagOffers(H);}
+  }else{
+    const c=Math.round((n+H.ask)/2);
+    if(n>=H.ask-1||c-n<=1||H.rounds>=2){H.ask=n;hagSay(H,`Affare fatto! ${cap(numIt(n))} euro.`,`Abgemacht! ${n} Euro.`);return hagDeal();}
+    H.ask=c; H.last=n; H.rounds++; sfx("select");
+    if(H.rounds>=2){H.over=true;H.offers=[];hagSay(H,`Ultimo prezzo: ${numIt(c)} euro. Di più non posso.`,`Letzter Preis: ${c} Euro. Mehr geht nicht.`);}
+    else{const [it,de]=pick([["Mmh… facciamo {N}.","Hm … sagen wir {D}."],["Va bene, per Lei {N} euro.","Na gut, für Sie {D} Euro."],["Non posso, ma {N} sì.","Das kann ich nicht, aber {D} schon."]]);hagSay(H,fillN(it,c),fillN(de,c));hagOffers(H);}
+  }
+  st.asks[H.k]=H.ask; save();
+}
+function hagDeal(){
+  const st=curStep(), H=st&&st.hag; if(!H||stallBudget()<H.ask)return;
+  stallBuy(H.k,H.ask);
+  if(H.ask<ING[H.k][3])G.haggled=(G.haggled||0)+ING[H.k][3]-H.ask;
+  st.it=H.say.startsWith("Affare")?H.say:"Affare fatto! Grazie e buona giornata.";
+  st.de=H.say.startsWith("Affare")?H.sayDe:"Abgemacht! Danke und schönen Tag noch.";
+  if(!H.say.startsWith("Affare"))speak(st.it,"Signor Esposito");
+  st.hag=null; save();
+}
+function hagLeave(){
+  const st=curStep(), H=st&&st.hag; if(!H)return;
+  st.asks[H.k]=H.ask; st.hag=null;
+  st.it="Come vuole. Altro?"; st.de="Wie Sie wollen. Sonst noch etwas?"; speak(st.it,"Signor Esposito"); save();
 }
 function endDay(){
   const LV=LEVELS[S.level];

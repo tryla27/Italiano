@@ -41,6 +41,7 @@ Alle Orte erreichst du über **La mappa** (Karte) auf der Startseite: antippen, 
 und du bist dort. In der Pizzeria laufen die Gäste mit ganzem Körper herein und stehen neben der Bar.
 An Markttagen (mercoledì und sabato) geht es nach Feierabend auf den Markt mit mehreren Ständen; die Woche mit den Markttagen steht auf der Startseite. Als Ausflüge gibt es den **Eisladen** und
 den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, aber noch zu.
+Am Markt-Stand feilschst du mit Signor Esposito um den Preis. Auf der Startseite gibt es ein Zutaten-Memory.
 
 ## Einstellungen im Spiel
 
