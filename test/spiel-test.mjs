@@ -87,7 +87,8 @@ for (let i = 0; i < 2; i++) {
 // Truhe nach dem ersten Bestehen eines Vokabeltags: drei Belohnungen, danach weg
 await page.evaluate(() => { S.vocab.days[1] = [{ it: "grazie", de: "danke" }, { it: "conto", de: "Rechnung" }]; S.vocab.done = {}; S.chest = null; S.deko = {}; startVocab(1); S.vocabRun.queue = [{ k: 0, st: 1, dir: "it" }]; vocabNext(); });
 check(await page.evaluate(() => !!S.chest), "Kein Truhe nach bestandenem Vokabeltag");
-await page.locator('[data-act="chestopen"]').click({ force: true });
+await page.waitForTimeout(900);
+check(await page.evaluate(() => !$("#chest").hidden && !!chestUI), "Truhe öffnet sich nicht von selbst");
 await shot("truhe");
 const before = await page.evaluate(() => S.coins + Object.values(S.deko).reduce((a, b) => a + b, 0) + (S.boost ? 1 : 0));
 await page.locator("#chest .chest-stage").click({ force: true });
@@ -96,7 +97,7 @@ await shot("truhe-karte");
 for (let i = 0; i < 3; i++) await page.locator("#chest .chest-stage").click({ force: true });
 check(await page.evaluate(b => !S.chest && S.coins + Object.values(S.deko).reduce((a, c) => a + c, 0) + (S.boost ? 1 : 0) > b, before), "Truhe gibt keine Belohnung");
 await page.locator('#chest [data-act="chest"].big').click({ force: true });
-check(await page.evaluate(() => $("#chest").hidden), "Truhe geht nicht zu");
+check(await page.evaluate(() => $("#chest").hidden && screen === "map" && !S.vocabRun), "Truhe geht nicht zu oder es geht nicht zur Karte");
 check(await page.evaluate(() => { const n = {}; for (let i = 0; i < 4000; i++) { const k = rollReward().kind; n[k] = (n[k] || 0) + 1; } return n.rare > 80 && n.rare < 260 && n.deko && n.euro && n.boost; }), "Truhen-Wahrscheinlichkeiten stimmen nicht (selten ca. 4 %)");
 
 // Klammer-Hinweise verraten die Antwort nicht

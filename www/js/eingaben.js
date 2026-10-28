@@ -42,7 +42,7 @@ function handleClick(e){
   if(a==="abort"){pauseOpen=false;G=null;screen="home";save();return render();}
   if(a==="vabort"){pauseOpen=false;S.vocabRun=null;S.vocabPaused=null;screen="vocab";save();return render();}
   if(a==="shop"){screen="shop";return render();}
-  if(a==="map"){mapMsg="";screen="map";return render();}
+  if(a==="map"){mapMsg="";if(screen==="vocab"&&S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;screen="map";return render();}
   if(a==="place")return goPlace(t.dataset.p);
   if(a==="trip"){if(G&&!G.summary){screen="play";render();autoSpeak();return;}return startTrip(t.dataset.t);}
   if(a==="setup"){screen="setup";return render();}
