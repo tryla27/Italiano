@@ -13,6 +13,7 @@ Italiano/
 │   ├── css/spiel.css         ← Aussehen: Farben, Schriften, alle Bildschirme
 │   ├── js/                   ← Spiellogik, eine Datei pro Thema (Tabelle unten)
 │   │   └── inhalt/           ← reine Inhalte: Dialoge und Wörterbuch
+│   ├── bilder/umgebungen/    ← Hintergrundbilder der Spielorte (WebP)
 │   └── music/                ← Hintergrundmusik (MP3)
 ├── assets/                   ← Quellbilder für App-Icon und Startbild
 ├── test/spiel-test.mjs       ← automatischer Test im Handy-Browser
