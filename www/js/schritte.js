@@ -1,8 +1,26 @@
 /* Bausteine eines Spieltags: Fragen, Pizza-Bestellung, Telefon, Reservierung, Rechnung. */
 /* ---------- Step builders ---------- */
+// Falsche Antworten: jede einzeln zu 50 % eine passende Ablenkung zum Thema (aus dem Dialog selbst),
+// zu 50 % eine zufällige richtige Antwort aus einem anderen Gespräch. Deutsch-Fragen bekommen deutsche.
+let ANSWERS=null;
+function answerPools(){
+  if(ANSWERS)return ANSWERS;
+  const all=[GREET,TALK,PROB,BILL,MARKET,DRINK,DIR,CRITIC,GELATERIA,PORTO].flat().filter(x=>Array.isArray(x)&&Array.isArray(x[4]));
+  const ok=t=>!t.includes("{");
+  ANSWERS={it:[...new Set(all.filter(x=>x[3]).map(x=>x[2]).filter(ok))],de:[...new Set(all.filter(x=>!x[3]).map(x=>x[2]).filter(ok))]};
+  return ANSWERS;
+}
+function mixWrong(cor,wr,german){
+  const theme=shuffle(wr), pool=shuffle(answerPools()[german?"de":"it"].filter(t=>t!==cor&&!wr.includes(t))), out=[];
+  while(out.length<wr.length){
+    const src=(Math.random()<.5&&pool.length)||!theme.length?pool:theme, t=src.shift();
+    if(t===undefined)break; if(!out.includes(t))out.push(t);
+  }
+  return out;
+}
 function mcStep(item,task,extra){
   const [it,de,cor,corDe,wr,tip,q]=item;
-  return Object.assign({kind:"mc",it,de,task:q||task,tip,corDe,opts:shuffle([{t:cor,ok:true},...wr.map(t=>({t,ok:false}))]),wrong:0,bad:[],done:false},extra||{});
+  return Object.assign({kind:"mc",it,de,task:q||task,tip,corDe,opts:shuffle([{t:cor,ok:true},...mixWrong(cor,wr,!corDe).map(t=>({t,ok:false}))]),wrong:0,bad:[],done:false},extra||{});
 }
 function pickFresh(pool){const fresh=pool.filter(p=>!G.used.has(p[0]));const p=pick(fresh.length?fresh:pool);G.used.add(p[0]);return p;}
 
