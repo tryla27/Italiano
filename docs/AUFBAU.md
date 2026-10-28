@@ -79,6 +79,11 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 - Jedes Stück hat einen eigenen Bonus (`fx` in `SHOP`): mehr Gäste, günstigere Zutaten, Hilfen. Nach dem Kauf fragt Signor Moretti, wohin es soll; man stellt es auf ein grünes Feld. Ofen, Kaffee und Kühlung nur an die Küchenwand (oberste Reihe), Tische nur in den Gastraum (untere drei Reihen).
 - Kaffee (`CAFFE` in `inhalt/dialoge.js`) gibt es ab der Moka-Kanne. Die Reihenfolge der Zutaten zählt, eine falsche Tasse kostet nur Trinkgeld.
 
+## Gesundheitsamt
+
+- Ab La Pizzeria kommt etwa jeden fünften Tag Dottoressa Severini (`S.inspDue`), nie zwei Tage hintereinander. Am Abend davor steht ein Brief in der Abrechnung.
+- Sie stellt vier von zwölf Fragen (`ISPEZIONE`). Ohne Fehler: Zertifikat, +15 € und drei Tage lang ein Stern mehr (`S.cert`). Ein oder zwei Fehler: sie kommt in drei Tagen wieder. Ab drei Fehlern: 20 € Strafe, sie kommt am nächsten Tag wieder.
+
 ## Testen
 
 ```

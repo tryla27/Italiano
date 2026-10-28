@@ -254,6 +254,33 @@ const TRIPS={
 
 // Übersetzungen der falschen Antworten: werden nach dem Antworten unter jeder Auswahl gezeigt
 // und kommen mit ihren Wörtern in die Vokabeln. {W} steht für eine Zahl.
+// Gesundheitsamt: Dottoressa Severini stellt vier dieser Fragen (Kühlung, Sauberkeit, Haltbarkeit, Kleidung, Allergene, Papiere)
+const ISPEZIONE=[
+  ["A che temperatura tenete il frigorifero?","Bei welcher Temperatur haltet ihr den Kühlschrank?","Tra zero e quattro gradi.","Zwischen null und vier Grad.",["A venti gradi, come la stanza.","Lo teniamo spento la notte.","Fa caldo, ma va bene."],"gradi = Grad. tra … e … = zwischen … und …"],
+  ["Dove tenete la mozzarella?","Wo bewahrt ihr den Mozzarella auf?","In frigorifero, ben chiusa.","Im Kühlschrank, gut verschlossen.",["Sul bancone, al sole.","Nel forno, così è calda.","In tasca, dottoressa."],"in frigorifero = im Kühlschrank, ben chiusa = gut verschlossen."],
+  ["Ogni quanto pulite la cucina?","Wie oft putzt ihr die Küche?","Tutti i giorni, dopo la chiusura.","Jeden Tag, nach Feierabend.",["Una volta al mese.","Quando viene lei!","Mai, è già pulita."],"pulire = putzen, tutti i giorni = jeden Tag."],
+  ["Questo prosciutto è scaduto?","Ist dieser Schinken abgelaufen?","No, scade la settimana prossima.","Nein, er läuft nächste Woche ab.",["Sì, ma è ancora buono.","Non lo so, non leggo le date.","È scaduto ieri, ma solo un po'."],"scaduto = abgelaufen, scade = läuft ab, la settimana prossima = nächste Woche."],
+  ["Dove scrivete le date di scadenza?","Wo schreibt ihr die Haltbarkeitsdaten hin?","Su ogni contenitore, con un'etichetta.","Auf jeden Behälter, mit einem Etikett.",["Non le scriviamo.","Sulla mano del cuoco.","Nel menù, per i clienti."],"la data di scadenza = das Haltbarkeitsdatum, l'etichetta = das Etikett."],
+  ["Vi lavate le mani prima di lavorare?","Wascht ihr euch die Hände vor der Arbeit?","Certo, sempre, con acqua e sapone.","Natürlich, immer, mit Wasser und Seife.",["Solo la domenica.","No, le mani sono già pulite.","Sì, con il vino rosso."],"le mani = die Hände, il sapone = die Seife."],
+  ["Dov'è il cappello da cuoco?","Wo ist die Kochmütze?","Eccolo, lo porto sempre in cucina.","Hier, ich trage sie in der Küche immer.",["A casa, fa troppo caldo.","Il cappello è per i turisti.","Lo uso per la pasta."],"il cappello da cuoco = die Kochmütze. lo porto = ich trage ihn."],
+  ["Il grembiule è pulito?","Ist die Schürze sauber?","Sì, lo cambiamo ogni giorno.","Ja, wir wechseln sie jeden Tag.",["È rosso di pomodoro, va bene.","Non abbiamo grembiuli.","Lo laviamo a Natale."],"il grembiule = die Schürze, cambiare = wechseln."],
+  ["Avete la lista degli allergeni?","Habt ihr die Allergenliste?","Sì, eccola, è sul menù.","Ja, hier ist sie, sie steht auf der Karte.",["Allergeni? Non esistono.","Solo per i turisti.","È nel forno, al caldo."],"gli allergeni = die Allergene, eccola = hier ist sie."],
+  ["Un cliente è allergico alle noci. Cosa fate?","Ein Gast ist allergisch gegen Nüsse. Was macht ihr?","Controlliamo gli ingredienti e lo diciamo al cliente.","Wir prüfen die Zutaten und sagen es dem Gast.",["Togliamo le noci con le dita.","Niente, le noci sono buone.","Gli diamo un caffè."],"le noci = die Nüsse, controllare = prüfen."],
+  ["Posso vedere la licenza?","Darf ich die Genehmigung sehen?","Certo, ecco la licenza e il registro.","Natürlich, hier sind Genehmigung und Register.",["La licenza è in vacanza.","Quale licenza?","Domani, forse."],"la licenza = die Genehmigung, posso vedere = darf ich sehen."],
+  ["Avete il registro delle temperature?","Habt ihr das Temperaturprotokoll?","Sì, lo scriviamo ogni mattina.","Ja, wir schreiben es jeden Morgen.",["No, ci ricordiamo tutto.","Il registro è sporco.","Lo scrive il gatto."],"il registro = das Protokoll, ogni mattina = jeden Morgen."]
+];
+const WRONG_DE_ISP=Object.assign({},{"A venti gradi, come la stanza.":"Bei zwanzig Grad, wie im Raum.","Lo teniamo spento la notte.":"Nachts lassen wir ihn aus.","Fa caldo, ma va bene.":"Es ist warm, aber das geht schon.",
+ "Sul bancone, al sole.":"Auf der Theke, in der Sonne.","Nel forno, così è calda.":"Im Ofen, damit er warm ist.","In tasca, dottoressa.":"In der Tasche, Frau Doktor.",
+ "Una volta al mese.":"Einmal im Monat.","Quando viene lei!":"Wenn Sie kommen!","Mai, è già pulita.":"Nie, sie ist schon sauber.",
+ "Sì, ma è ancora buono.":"Ja, aber er ist noch gut.","Non lo so, non leggo le date.":"Weiß ich nicht, ich lese keine Daten.","È scaduto ieri, ma solo un po'.":"Gestern abgelaufen, aber nur ein bisschen.",
+ "Non le scriviamo.":"Wir schreiben sie nicht auf.","Sulla mano del cuoco.":"Auf die Hand des Kochs.","Nel menù, per i clienti.":"In die Karte, für die Gäste.",
+ "Solo la domenica.":"Nur sonntags.","No, le mani sono già pulite.":"Nein, die Hände sind schon sauber.","Sì, con il vino rosso.":"Ja, mit Rotwein.",
+ "A casa, fa troppo caldo.":"Zu Hause, es ist zu warm.","Il cappello è per i turisti.":"Die Mütze ist für die Touristen.","Lo uso per la pasta.":"Ich nehme sie für die Nudeln.",
+ "È rosso di pomodoro, va bene.":"Sie ist rot von Tomaten, passt schon.","Non abbiamo grembiuli.":"Wir haben keine Schürzen.","Lo laviamo a Natale.":"Wir waschen sie an Weihnachten.",
+ "Allergeni? Non esistono.":"Allergene? Gibt es nicht.","Solo per i turisti.":"Nur für Touristen.","È nel forno, al caldo.":"Sie ist im Ofen, im Warmen.",
+ "Togliamo le noci con le dita.":"Wir nehmen die Nüsse mit den Fingern raus.","Niente, le noci sono buone.":"Nichts, Nüsse sind gut.","Gli diamo un caffè.":"Wir geben ihm einen Kaffee.",
+ "La licenza è in vacanza.":"Die Genehmigung ist im Urlaub.","Quale licenza?":"Welche Genehmigung?","Domani, forse.":"Morgen vielleicht.",
+ "No, ci ricordiamo tutto.":"Nein, wir merken uns alles.","Il registro è sporco.":"Das Protokoll ist schmutzig.","Lo scrive il gatto.":"Das schreibt die Katze."});
 const WRONG_DE={
 "Buonanotte e arrivederci!":"Gute Nacht und auf Wiedersehen!","Il conto, per favore.":"Die Rechnung, bitte.","Sono le otto.":"Es ist acht Uhr.","Sì, sono di Napoli.":"Ja, ich bin aus Neapel.","Due pizze, grazie.":"Zwei Pizzen, danke.","No, non mi piace.":"Nein, das gefällt mir nicht.","Sono due euro.":"Das macht zwei Euro.","Ho due anni.":"Ich bin zwei Jahre alt.","No, grazie, non ho fame.":"Nein danke, ich habe keinen Hunger.","Sono le quattro.":"Es ist vier Uhr.",
 "Quattro formaggi, subito!":"Vier Käse, sofort!","Non parlo italiano.":"Ich spreche kein Italienisch.","No, sono italiano.":"Nein, ich bin Italiener.","Il tedesco è buono.":"Das Deutsche ist gut.","Sì, la pizza è calda.":"Ja, die Pizza ist heiß.","No, il profumo costa caro.":"Nein, das Parfüm ist teuer.","Sì, esco subito.":"Ja, ich gehe sofort raus.","Mi chiamo Pizza.":"Ich heiße Pizza.","Mi dispiace, sono stanco.":"Tut mir leid, ich bin müde.","Fame? Che freddo!":"Hunger? Wie kalt!",
@@ -285,3 +312,5 @@ Object.assign(WRONG_DE,{"Subito! Il cornetto con il tonno?":"Sofort! Das Hörnch
  "Rossa o bianca? Di pizza?":"Rot oder weiß? Aus Pizza?","Birra? Sono le otto di mattina!":"Bier? Es ist acht Uhr morgens!","La birra è finita ieri, domani.":"Das Bier ist gestern ausgegangen, morgen.",
  "Un cappuccino? Sono le tre di notte!":"Ein Cappuccino? Es ist drei Uhr nachts!","No, il cappuccino è solo per i bambini.":"Nein, Cappuccino ist nur für Kinder.","Un caffè corretto, subito!":"Einen Espresso mit Grappa, sofort!"});
 
+
+Object.assign(WRONG_DE,WRONG_DE_ISP);

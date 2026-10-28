@@ -487,3 +487,5 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .ing{position:relative}
 .ing .ord{position:absolute;top:2px;left:4px;background:var(--gold);color:#1e2420;border-radius:50%;width:16px;height:16px;font-size:.7rem;line-height:16px;font-weight:800}
 .board{max-width:260px;width:100%;align-self:center}
+.panel.letter{gap:4px;border:2px dashed var(--gold)}
+.panel.letter small{color:var(--chalk-dim);font-size:.8rem}
