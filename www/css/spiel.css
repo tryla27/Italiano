@@ -129,6 +129,25 @@ body{-webkit-user-select:none;user-select:none}
 .shake{animation:shake .35s}
 @keyframes shake{25%{transform:translateX(-6px)}50%{transform:translateX(6px)}75%{transform:translateX(-3px)}}
 
+/* Ausflüge auf der Startseite */
+.trips h3{font-family:var(--hand);font-size:1.4rem;color:var(--gold);margin-bottom:6px}
+.sec.trip{display:flex;flex-direction:column;align-items:center;gap:2px;font-family:var(--game);font-weight:400;font-size:1.1rem}
+.sec.trip span{font-size:1.6rem;line-height:1}
+.sec.trip small{font-family:var(--body);font-size:.75rem;font-weight:600;color:var(--chalk-dim)}
+
+/* Umgebungen (szenen.js) */
+.stage{border-radius:16px;overflow:hidden;border:2px solid var(--line);line-height:0;background:var(--slate2)}
+.stage-svg{width:100%;height:auto;display:block}
+.scene.solo{grid-template-columns:1fr;margin-top:-4px}
+.fig.enter{animation:walkin 1.2s cubic-bezier(.3,.7,.4,1) both}
+@keyframes walkin{0%{transform:translate(0,-34px) scale(.4);opacity:0}18%{opacity:1}100%{transform:none;opacity:1}}
+.ring-phone{animation:ring .5s ease-in-out infinite;transform-origin:240px 143px}
+.ring-waves{animation:blink 1s steps(2) infinite}
+@keyframes ring{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
+@keyframes blink{50%{opacity:0}}
+.ferry{animation:bob 4s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(2px)}}
+
 /* Pizza */
 .kitchen{display:grid;grid-template-columns:150px 1fr;gap:12px;align-items:center}
 .pz-wrap{position:relative}
@@ -210,4 +229,4 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
 .mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
-@media (prefers-reduced-motion: reduce){.shake{animation:none}.big:active,.serve:active{transform:none}}
+@media (prefers-reduced-motion: reduce){.shake,.fig.enter,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}}

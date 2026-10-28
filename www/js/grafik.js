@@ -15,7 +15,9 @@ const CHARS={
  "Turista Klaus":{skin:"#f5cdb5",hair:"#e3c46b",style:"hat",shirt:"hawaii",glasses:"sun",sunburn:1},
  "Professoressa Conte":{f:1,skin:"#d8a27a",hair:"#5a3a22",style:"bob",shirt:"#2d3e6b",lips:"#b5485a",ear:1,glasses:"square"},
  "Matteo":{skin:"#8d5a3b",hair:"#2b1d14",style:"curly",shirt:"#5f8f4e"},
- "Signor Moretti":{skin:"#e0a87e",hair:"#5a5a5a",style:"short",shirt:"#6b4a2b",mus:1,glasses:"round"}
+ "Signor Moretti":{skin:"#e0a87e",hair:"#5a5a5a",style:"short",shirt:"#6b4a2b",mus:1,glasses:"round"},
+ "Signora Lucia":{f:1,skin:"#f1c7a5",hair:"#6b2f1a",style:"bun",shirt:"#f39bb3",lips:"#c94a5a",ear:1},
+ "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1}
 };
 function face(name,mood){
   const c=CHARS[name]||CHARS.Marco, hc=c.hair;

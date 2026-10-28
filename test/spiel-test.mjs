@@ -102,6 +102,20 @@ check(await page.evaluate(() => {
 await fresh({ coins: 77, level: 1, day: 5, setupDone: true, vol: { music: .3 } });
 check(await page.evaluate(() => S.coins === 77 && S.level === 1 && S.muted === false && S.vol.sfx === .8), "Alter Spielstand wird nicht richtig übernommen");
 
+// Ausflüge: Eisladen und Hafen einmal komplett durchspielen
+for (const trip of ["gelateria", "porto"]) {
+  await fresh({ setupDone: true, coins: 10, day: 2 });
+  await page.locator(`[data-act="trip"][data-t="${trip}"]`).click();
+  await shot(`ausflug-${trip}`);
+  for (let i = 0; i < 10 && await page.evaluate(() => screen === "play"); i++) {
+    if (await page.locator('[data-act="next"]').count()) { await act("next"); continue; }
+    const k = await page.evaluate(() => curStep().opts.findIndex(o => o.ok));
+    await page.locator(`[data-act="opt"][data-i="${k}"]`).click();
+  }
+  await shot(`ausflug-${trip}-ende`);
+  check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
+}
+
 // 2) Laden schon eingerichtet: einen Spieltag spielen
 await fresh({ setupDone: true, coins: 25, day: 1 });
 await act("start");

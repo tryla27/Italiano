@@ -40,9 +40,10 @@ function rHome(){
     <div class="stat"><b>${S.learned.length}</b><span>Gelernt</span></div>
   </div>
   ${G&&!G.summary
-    ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}</small></button>`
+    ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · Tag ${S.day}</small></button>`
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
+  ${S.setupDone?`<div class="trips"><h3>Ausflüge</h3><div class="row2">${Object.entries(TRIPS).map(([id,T])=>`<button class="sec trip" data-act="trip" data-t="${id}"><span>${T.ic}</span>${esc(T.it)}<small>${esc(T.de)}</small></button>`).join("")}</div></div>`:""}
   <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
   <div class="row3"><button class="sec" data-act="shop">Kaufen</button><button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button><button class="sec" data-act="book">Notizbuch</button></div>
   <div class="how"><h3>So geht's</h3><ul>
@@ -58,7 +59,6 @@ function rHome(){
 function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
   const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name;
-  const av=mk?vendorFace():g.phone?`<svg viewBox="0 0 100 100" aria-hidden="true"><rect x="32" y="18" width="36" height="64" rx="8" fill="#e6ad5e"/><rect x="37" y="26" width="26" height="40" rx="3" fill="#1b221f"/><circle cx="50" cy="74" r="4" fill="#1b221f"/></svg>`:face(g.name,g.mood);
   const hideText=st.phone&&!st.showText&&!st.done;
   let bubble=hideText
     ?`<div class="phone-call"><div class="ring">Squilla il telefono! Hör genau zu.</div><div><button class="say" data-act="speak">▶ Anhören</button><button class="say" data-act="text">Text zeigen (halbes Trinkgeld)</button></div></div>`
@@ -83,16 +83,23 @@ function rPlay(){
       <div class="ctrl">${st.wrong>0&&!st.showTip?`<button class="tipbtn" data-act="tip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
       <button class="idk" data-act="idk" aria-label="Keine Ahnung, Lösung zeigen">✕<small>K. Ahnung</small></button></div>`;
   $("#screen").innerHTML=`
-    <div class="hud"><button class="quit" data-act="quit">Pause</button><span class="where">${mk?"Mercato":`Gast ${G.gi+1}/${G.guests.length}`}</span>${starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span></div>
+    <div class="hud"><button class="quit" data-act="quit">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}`}</span>${starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span></div>
     ${G.combo>=2?`<div class="combo">Combo ×${G.combo}</div>`:""}
     ${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}
-    <div class="scene"><div class="av">${av}</div><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
+    <div class="stage">${stageHTML()}</div>
+    <div class="scene solo"><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
     <div class="task">${esc(st.task)}</div>
     ${action}${ctrl}`;
   st.shake=false;
 }
 function rSummary(){
   const sm=G.summary, rv=REVIEWS.find(r=>G.stars>=r[0]);
+  if(sm.trip){const T=TRIPS[sm.trip];
+    $("#screen").innerHTML=`<h2 class="t">${esc(T.it)}</h2><p class="note" style="margin:-8px 0 0">Ausflug zum ${esc(T.de)} beendet</p>
+      <div class="panel" style="align-items:center">${starsHTML(G.stars)}<div class="review">${G.firstTry===G.steps?"Bravissimo!":G.firstTry>=G.steps/2?"Bene!":"Ci vediamo presto!"}<small>${G.firstTry} von ${G.steps} beim ersten Versuch richtig</small></div></div>
+      <div class="panel"><div class="line total"><span>Trinkgeld vom Ausflug</span><span>+${G.earned} €</span></div></div>
+      <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
+    return;}
   $("#screen").innerHTML=`
     <h2 class="t">Fine della giornata</h2><p class="note" style="margin:-8px 0 0">Ende von Tag ${sm.day}</p>
     <div class="panel" style="align-items:center">${starsHTML(G.stars)}<div class="review">„${esc(rv[1])}“<small>${esc(rv[2])}</small></div></div>

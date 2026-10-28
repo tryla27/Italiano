@@ -35,6 +35,12 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 | Neue Sätze und Wörter | `www/js/inhalt/` |
 | Automatischer Test | `node test/spiel-test.mjs` |
 
+## Orte
+
+Die Pizzeria siehst du von hinter dem Tresen, neue Gäste kommen durch die Tür herein. Nach Feierabend
+geht es auf den Markt mit mehreren Ständen. Als Ausflüge gibt es den **Eisladen** und den **Hafen**
+mit eigenen Gesprächen.
+
 ## Einstellungen im Spiel
 
 Oben links auf jedem Bildschirm:

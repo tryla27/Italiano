@@ -33,11 +33,12 @@ oder erst beim Spielen aufgerufen wird.
 | Datei | Inhalt |
 |---|---|
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
-| `inhalt/dialoge.js` | Zutaten, Speisekarte, alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`) |
+| `inhalt/dialoge.js` | Zutaten, Speisekarte, alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
+| `szenen.js` | Umgebungen: Pizzeria (Blick hinter dem Tresen), Markt, Eisladen, Hafen. Gerenderte Bilder trägt man in `SCENE_IMG` ein (Ordner `www/bilder/`) |
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt, Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |

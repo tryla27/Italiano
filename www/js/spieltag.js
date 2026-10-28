@@ -76,10 +76,23 @@ function advance(){
       G.revenue=(G.revenue||0)+(g.bill||0);
       G.banner=g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
       G.gi++; G.si=0;
+      if(G.gi>=G.guests.length&&G.trip){endTrip();return;}
       if(G.gi>=G.guests.length){G.phase="market";G.banner="Feierabend! Jetzt noch Zutaten auf dem Markt kaufen.";}
     }else G.banner="";
   }
   render(); $("#screen").scrollTop=0; autoSpeak();
+}
+// Ausflug (Eisladen, Hafen): ein Gesprächspartner, ein paar Fragen, das Trinkgeld kommt direkt in die Kasse.
+function startTrip(id){
+  const T=TRIPS[id];
+  G={guests:[{name:T.who,mood:2,steps:sample(T.pool,T.steps).map(m=>mcStep(m,"Was antwortest du?")),tip:0,bill:0}],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0,trip:id};
+  screen="play"; render(); autoSpeak();
+}
+function endTrip(){
+  G.summary={trip:G.trip};
+  G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
+  S.coins+=G.earned; save();
+  screen="summary"; render(); sfx("coins");
 }
 function endDay(){
   const LV=LEVELS[S.level];

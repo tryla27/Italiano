@@ -142,3 +142,29 @@ const REVIEWS=[
  [2.5,"Così così… la pizza era buona.","So lala … die Pizza war gut."],
  [0,"Mamma mia, che confusione!","Meine Güte, was für ein Durcheinander!"]
 ];
+
+// Ausflüge: Eisladen und Hafen. Hier bist du selbst Kunde. Falsche Antworten klingen bewusst ähnlich.
+const GELATERIA=[
+ ["Ciao! Cono o coppetta?","Hallo! Waffel oder Becher?","Una coppetta, grazie.","Einen Becher, danke.",["Una cartolina, grazie.","Un cucchiaio, grazie.","Una coperta, grazie."],"cono = Waffel, coppetta = Becher."],
+ ["Quanti gusti vuole?","Wie viele Sorten möchten Sie?","Due gusti, per favore.","Zwei Sorten, bitte.",["Due euro, per favore.","Alle due, per favore.","Per due persone, grazie."],"gusto = Geschmack, Eissorte. quanti = wie viele."],
+ ["Che gusti desidera?","Welche Sorten wünschen Sie?","Pistacchio e limone.","Pistazie und Zitrone.",["Prosciutto e melone.","Pesce e limone.","Pane e pomodoro."],"Schau auf die Eistheke: Welche Sorten gibt es?"],
+ ["Vuole la panna sopra?","Möchten Sie Sahne obendrauf?","Sì, un po' di panna, grazie.","Ja, ein bisschen Sahne, danke.",["Sì, un po' di pane, grazie.","Sì, un po' di pepe, grazie.","Sì, un po' di pasta, grazie."],"panna = Sahne, pane = Brot, pepe = Pfeffer."],
+ ["Sono tre euro e cinquanta.","Das macht drei Euro fünfzig.","3,50 €","",["3,15 €","13,50 €","3,05 €"],"tre = 3, tredici = 13, cinquanta = 50, quindici = 15","Wie viel kostet dein Eis?"],
+ ["Lo mangia qui o lo porta via?","Essen Sie es hier oder nehmen Sie es mit?","Lo porto via, grazie.","Ich nehme es mit, danke.",["Lo porto domani, grazie.","Lo mangio ieri, grazie.","Lo pago dopo, grazie."],"portare via = mitnehmen. qui = hier."],
+ ["Mi dispiace, il cioccolato è finito.","Tut mir leid, die Schokolade ist aus.","Schokolade ist leider aus","",["Schokolade ist heute im Angebot","Schokolade gibt es nur im Becher","Schokolade ist ganz frisch"],"finito = aus, alle. mi dispiace = es tut mir leid.","Was sagt die Verkäuferin?"],
+ ["Vuole assaggiare un gusto?","Möchten Sie eine Sorte probieren?","Sì, posso provare il pistacchio?","Ja, darf ich Pistazie probieren?",["Sì, posso pagare il pistacchio?","Sì, posso portare il pistacchio?","Sì, posso prenotare il pistacchio?"],"assaggiare = kosten, provare = probieren."]
+];
+const PORTO=[
+ ["Buongiorno! Dove vuole andare?","Guten Tag! Wohin möchten Sie fahren?","A Capri, per favore.","Nach Capri, bitte.",["Al caffè, per favore.","A cavallo, per favore.","A carte, per favore."],"andare = gehen, fahren. dove = wohin."],
+ ["Solo andata o andata e ritorno?","Nur Hinfahrt oder hin und zurück?","Andata e ritorno, grazie.","Hin und zurück, danke.",["Andata e ristorante, grazie.","Arrivo e ritardo, grazie.","Andiamo al ritorno, grazie."],"andata = Hinfahrt, ritorno = Rückfahrt."],
+ ["Il prossimo traghetto parte alle dieci e un quarto.","Die nächste Fähre fährt um Viertel nach zehn.","10:15 Uhr","",["10:45 Uhr","11:15 Uhr","10:04 Uhr"],"dieci = 10, e un quarto = Viertel nach.","Wann fährt die nächste Fähre?"],
+ ["Il traghetto è in ritardo di venti minuti.","Die Fähre hat zwanzig Minuten Verspätung.","Sie hat 20 Minuten Verspätung","",["Sie fährt in 20 Minuten","Die Fahrt dauert 20 Minuten","Sie ist vor 20 Minuten gefahren"],"in ritardo = verspätet.","Was ist mit der Fähre?"],
+ ["Quanti biglietti?","Wie viele Fahrkarten?","Due biglietti, per favore.","Zwei Fahrkarten, bitte.",["Due bicchieri, per favore.","Due bagagli, per favore.","Due biciclette, per favore."],"biglietto = Fahrkarte, bicchiere = Glas, bagaglio = Gepäck."],
+ ["Ha bagagli grandi?","Haben Sie großes Gepäck?","No, solo uno zaino.","Nein, nur einen Rucksack.",["No, solo uno zio.","No, solo un bagno.","No, solo uno zucchino."],"bagagli = Gepäck, zaino = Rucksack."],
+ ["La fermata dell'autobus è davanti al porto.","Die Bushaltestelle ist vor dem Hafen.","Vor dem Hafen","",["Hinter dem Hafen","Im Hafen","Weit weg vom Hafen"],"davanti = vor, dietro = hinter.","Wo ist die Bushaltestelle?"],
+ ["Oggi il mare è un po' mosso.","Heute ist das Meer etwas unruhig.","Das Meer ist etwas unruhig","",["Das Meer ist ganz ruhig","Das Meer ist sehr kalt","Das Meer ist heute warm"],"mosso = bewegt, unruhig. calmo = ruhig.","Wie ist das Meer heute?"]
+];
+const TRIPS={
+  gelateria:{it:"Gelateria",de:"Eisladen",ic:"🍨",who:"Signora Lucia",pool:GELATERIA,steps:4},
+  porto:{it:"Il Porto",de:"Hafen",ic:"⛴️",who:"Signor Marino",pool:PORTO,steps:4}
+};
