@@ -43,6 +43,7 @@ const errors = [];
 page.on("pageerror", e => errors.push(`Seitenfehler: ${e.message}`));
 page.on("console", m => { if (m.type() === "error" && !/fonts\.g|ERR_|Failed to load resource/.test(m.text())) errors.push(`Konsole: ${m.text()}`); });
 
+const check = (ok, msg) => { if (!ok) errors.push(`Prüfung: ${msg}`); };
 let n = 0;
 async function shot(name) {
   await page.waitForTimeout(400);
@@ -72,12 +73,21 @@ if (await act("shop")) await shot("shop");
 await act("home");
 if (await act("vocab")) await shot("vokabeln");
 if (await act("vstart")) await shot("vokabel-frage");
+// Vokabeln: beide Richtungen kommen vor
+await page.evaluate(() => { S.vocab.days[1] = [{ it: "pomodoro", de: "Tomate" }, { it: "grazie", de: "danke" }, { it: "mille", de: "tausend" }, { it: "conto", de: "Rechnung" }]; S.vocab.done = {}; startVocab(1); });
+check(await page.evaluate(() => new Set(S.vocabRun.queue.map(q => q.dir)).size === 2), "Vokabeln werden nicht in beide Richtungen gefragt");
+for (let i = 0; i < 2; i++) {
+  const ok = await page.evaluate(() => { const R = S.vocabRun, q = R.queue[0], v = S.vocab.days[R.day][q.k], want = q.dir === "de" ? v.it : v.de; return R.opts.indexOf(want); });
+  await page.locator(`[data-act="vopt"][data-i="${ok}"]`).click();
+  check(await page.evaluate(() => S.vocabRun.res === "ok"), "Richtige Vokabel-Antwort wird nicht erkannt");
+  if (i === 0) await shot("vokabel-richtung");
+  await act("vnext");
+}
 await act("home");
 if (await act("book")) await shot("heft");
 await act("home");
 
 // Einstellungen oben links: öffnen, alles stumm, nach Neuladen noch stumm, wieder laut
-const check = (ok, msg) => { if (!ok) errors.push(`Prüfung: ${msg}`); };
 await page.locator('#topbar [data-act="vol"]').click();
 await shot("einstellungen");
 await page.locator('#overlay [data-act="mute"]').click();

@@ -41,23 +41,24 @@ function vocabStatus(){
 }
 function startVocab(d){
   const list=S.vocab.days[d]; if(!list||!vocabUnlocked(d))return;
-  S.vocabRun={day:d,queue:shuffle(list.map((_,k)=>({k,st:0}))),total:list.length,mastered:0,wrong:0,showTip:false,res:null,typed:"",opts:null,missed:false};
+  S.vocabRun={day:d,queue:shuffle(list.map((_,k)=>({k,st:0}))).map((q,i)=>({...q,dir:i%2?"de":"it"})),total:list.length,mastered:0,wrong:0,showTip:false,res:null,typed:"",opts:null,missed:false};
   prepVocabQ(); screen="vocab"; render();
 }
 function prepVocabQ(){
   const R=S.vocabRun, q=R.queue[0]; if(!q)return;
   R.wrong=0;R.showTip=false;R.res=null;R.typed="";R.missed=false;R.msg="";
   if(q.st===0){
-    const list=S.vocab.days[R.day], v=list[q.k];
-    let pool=list.filter((x,i)=>i!==q.k&&x.de!==v.de).map(x=>x.de);
-    if(pool.length<3)pool=pool.concat(Object.values(DICT).filter(x=>!/^\d+$/.test(x)&&x!==v.de));
-    R.opts=shuffle([v.de,...sample([...new Set(pool)],3)]);
+    // Abwechselnd: Italienisch → Deutsch oder Deutsch → Italienisch
+    const list=S.vocab.days[R.day], v=list[q.k], f=q.dir==="de"?"it":"de";
+    let pool=list.filter((x,i)=>i!==q.k&&x[f]!==v[f]).map(x=>x[f]);
+    if(pool.length<3)pool=pool.concat(f==="de"?Object.values(DICT).filter(x=>!/^\d+$/.test(x)&&x!==v.de):Object.keys(DICT).filter(x=>x!==v.it&&!STOP.has(x)));
+    R.opts=shuffle([v[f],...sample([...new Set(pool)],3)]);
   }else R.opts=null;
 }
 function vocabAnswer(ans){
   const R=S.vocabRun, q=R.queue[0], v=S.vocab.days[R.day][q.k];
   let ok=false;
-  if(q.st===0){ok=ans===v.de;}
+  if(q.st===0){ok=ans===(q.dir==="de"?v.it:v.de);}
   else{
     const a=ans.trim(), want=v.it;
     if(!a)return;
@@ -72,11 +73,11 @@ function vocabAnswer(ans){
 }
 function vocabNext(){
   const R=S.vocabRun, q=R.queue.shift();
-  if(R.missed){R.queue.push({k:q.k,st:q.st});}
-  else if(q.st===0){const pos=Math.min(R.queue.length,2+Math.floor(Math.random()*Math.max(1,R.queue.length-1)));R.queue.splice(pos,0,{k:q.k,st:1});}
+  if(R.missed){R.queue.push({k:q.k,st:q.st,dir:q.dir==="de"?"it":"de"});}
+  else if(q.st===0){const pos=Math.min(R.queue.length,2+Math.floor(Math.random()*Math.max(1,R.queue.length-1)));R.queue.splice(pos,0,{k:q.k,st:1,dir:q.dir});}
   else R.mastered++;
   if(!R.queue.length){S.vocab.done[R.day]=true;R.finished=true;sfx("coins");render();return;}
-  prepVocabQ(); render(); const nq=R.queue[0]; if(nq.st===0)setTimeout(()=>speak(S.vocab.days[R.day][nq.k].it),200);
+  prepVocabQ(); render(); const nq=R.queue[0]; if(nq.st===0&&nq.dir!=="de")setTimeout(()=>speak(S.vocab.days[R.day][nq.k].it),200);
 }
 function rVocab(){
   const R=S.vocabRun;
@@ -91,8 +92,9 @@ function rVocab(){
     const pct=Math.round(R.mastered/R.total*100);
     let body="";
     if(q.st===0){
-      body=`<div class="vcard"><div class="label">Was heißt …</div><div class="vword">${esc(v.it)}</div>${canSpeak?`<button class="say" data-act="vsay">▶ Anhören</button>`:""}</div>
-        <div class="opts">${R.opts.map((o,i)=>{const cls=R.res==="ok"&&o===v.de?"ok":R.res==="bad"&&o===R.badAns?"bad":"";return `<button class="opt ${cls}" data-act="vopt" data-i="${i}" ${R.res==="ok"?'aria-disabled="true"':""}>${esc(o)}</button>`;}).join("")}</div>`;
+      const toIt=q.dir==="de", want=toIt?v.it:v.de;
+      body=`<div class="vcard"><div class="label">${toIt?"Wie heißt auf Italienisch …":"Was heißt …"}</div><div class="vword${toIt?" de":""}">${esc(toIt?v.de:v.it)}</div>${canSpeak&&(!toIt||R.res==="ok")?`<button class="say" data-act="vsay">▶ Anhören</button>`:""}</div>
+        <div class="opts">${R.opts.map((o,i)=>{const cls=R.res==="ok"&&o===want?"ok":R.res==="bad"&&o===R.badAns?"bad":"";return `<button class="opt ${cls}" data-act="vopt" data-i="${i}" ${R.res==="ok"?'aria-disabled="true"':""}>${esc(o)}</button>`;}).join("")}</div>`;
     }else{
       body=`<div class="vcard"><div class="label">Schreib auf Italienisch</div><div class="vword de">${esc(v.de)}</div></div>
         <form class="vform" id="vform"><input id="vin" type="text" autocomplete="off" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="auf Italienisch …" value="${R.res==="ok"?esc(R.typed):R.res==="bad"?esc(R.badAns||""):""}" ${R.res==="ok"?"readonly":""}>
@@ -100,7 +102,7 @@ function rVocab(){
         <div class="accents">${["à","è","é","ì","ò","ù","'"].map(c=>`<button type="button" data-act="vacc" data-c="${c}">${c}</button>`).join("")}</div>
         ${R.res==="bad"?`<div class="fb zero">Nicht ganz („${esc(R.badAns)}“). Versuch's nochmal!</div>`:""}`;
     }
-    const tip=q.st===0?(v.ex?`Kam so vor: „${esc(v.ex[0])}“ – ${esc(v.ex[1])}`:`Hör es dir nochmal an.`):`Fängt an mit „${esc(v.it.slice(0,Math.min(3,Math.ceil(v.it.length/3))))}…“ und hat ${v.it.length} Zeichen.`;
+    const tip=q.st===0?(v.ex?`Kam so vor: „${esc(v.ex[0])}“ – ${esc(v.ex[1])}`:q.dir==="de"?`Fängt an mit „${esc(v.it.slice(0,2))}…“`:`Hör es dir nochmal an.`):`Fängt an mit „${esc(v.it.slice(0,Math.min(3,Math.ceil(v.it.length/3))))}…“ und hat ${v.it.length} Zeichen.`;
     const ctrl=R.res==="ok"
       ?`<div class="fb good">${esc(R.msg||pick(["Esatto!","Bravo!","Perfetto!","Giusto!"]))}</div><button class="next" data-act="vnext">Avanti →</button>`
       :`${R.showTip?`<div class="tipbox"><b>Tipp:</b> ${tip}</div>`:""}
@@ -108,7 +110,7 @@ function rVocab(){
         <button class="idk" data-act="vidk" aria-label="Keine Ahnung">✕<small>K. Ahnung</small></button></div>`;
     $("#screen").innerHTML=`<div class="hud"><button class="quit" data-act="vlist">Pause</button><span class="where">Vokabeln Tag ${R.day}</span><span class="money">${R.mastered}/${R.total}</span></div>
       <div class="bar"><i style="width:${pct}%"></i></div>
-      <p class="note" style="margin:0">${q.st===0?"Runde 1: auswählen":"Runde 2: selbst schreiben"} · Falsche Wörter kommen wieder, bis alle sitzen.</p>
+      <p class="note" style="margin:0">${q.st===0?(q.dir==="de"?"Runde 1: Deutsch → Italienisch":"Runde 1: Italienisch → Deutsch"):"Runde 2: selbst schreiben"} · Falsche Wörter kommen wieder, bis alle sitzen.</p>
       ${body}${ctrl}`;
     if(q.st===1&&R.res!=="ok"){const i=$("#vin");if(i)setTimeout(()=>{try{i.focus();i.setSelectionRange(i.value.length,i.value.length);}catch(e){}},50);}
     return;
