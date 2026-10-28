@@ -42,8 +42,7 @@ function mapSVG(){
     ${PLACES.map(pin).join("")}</svg>`;
 }
 function rMap(){
-  $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button>
-    <h2 class="t">La mappa<small>Karte · tippe auf einen Ort</small></h2>
+  $("#screen").innerHTML=`${head("La mappa","Karte · tippe auf einen Ort")}
     <div class="map">${mapSVG()}</div>
     ${mapMsg?`<p class="banner">${esc(mapMsg)}</p>`:""}`;
 }

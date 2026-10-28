@@ -44,10 +44,15 @@ den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, a
 
 ## Einstellungen im Spiel
 
-Oben links auf jedem Bildschirm:
+Oben rechts in der Kopfzeile jedes Bildschirms:
 
 - **Zahnrad:** Lautstärke für Musik, Geräusche und Vorlese-Stimme, automatisches Vorlesen an/aus
 - **Lautsprecher:** alles mit einem Tipp stumm schalten und wieder an
+
+Außerdem:
+
+- **Pause / Zurück-Knopf am Handy:** weiterspielen, später weitermachen oder abbrechen (ohne Belohnung)
+- **Spielstand-Code:** in den Einstellungen kopieren und auf einem anderen Gerät einfügen
 
 Männliche Figuren sprechen mit Männerstimme, weibliche mit Frauenstimme, wenn das Handy passende
 italienische Stimmen hat. Sonst klingt dieselbe Stimme tiefer bzw. höher.

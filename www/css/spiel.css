@@ -283,8 +283,99 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .vrow output{text-align:right;font-variant-numeric:tabular-nums;color:var(--chalk-dim)}
 .vcheck{display:flex;gap:10px;align-items:center;font-weight:600;padding:4px 0}
 .vcheck input{width:20px;height:20px;accent-color:var(--gold)}
+.savecode{border-top:1px solid rgba(255,255,255,.12);padding-top:10px;display:flex;flex-direction:column;gap:8px}
+.savecode p{margin:0;font-size:13px;color:var(--chalk-dim)}
+.savecode .row{display:flex;gap:8px}.savecode .row button{flex:1}
+.savecode textarea{width:100%;font:12px ui-monospace,monospace;border-radius:10px;padding:8px;-webkit-user-select:text;user-select:text;word-break:break-all}
+.savecode .codemsg{color:var(--gold)}
+.sheet.top{max-height:100dvh;overflow-y:auto}
 .mi{border-bottom:1px dashed var(--line);padding-bottom:8px}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
 .mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
+/* Ein Bildschirm, kein Scrollen: Kopfzeile statt Leiste oben, kompaktere Abstände, die Bühne passt sich an */
+#screen{gap:10px;padding-top:calc(10px + env(safe-area-inset-top,0px));padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))}
+:root{padding-top:0;padding-bottom:0}
+.head{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:8px}
+.head .back{padding:6px 0;white-space:nowrap}
+.head h2.t{font-size:1.45rem;text-align:center;line-height:1.05;min-width:0}
+.head h2.t small{display:block;font-family:var(--body);font-size:.72rem;color:var(--chalk-dim)}
+.tools{display:flex;gap:6px;flex:none}
+.tb.sm{width:34px;height:34px;border-radius:10px;border-width:1.5px}
+.tb.sm svg{width:18px;height:18px}
+.hud .tools{margin-left:2px}
+.hud{gap:6px}
+.grow{flex:1 1 0 !important;min-height:0}
+.note.tiny{margin:0;text-align:center;font-size:.78rem}
+#screen .note{margin:0}
+.sign{padding:10px 12px 10px}
+.sign .tools{position:absolute;top:8px;right:8px}
+.sign .lvl{font-size:1.25rem}
+.sign h1{font-size:2.15rem}
+.sign .lvl-de{margin-top:3px;font-size:.72rem}
+.stat{padding:6px 4px}
+.stat b{font-size:1.25rem}
+.wd{min-height:36px;padding:3px 0 2px}
+.weeknote{margin:-2px 0 0;font-size:.8rem}
+.big{padding:11px 16px;font-size:1.45rem}
+.big small{font-size:.8rem}
+.mapbtn{grid-template-columns:78px 1fr;padding:6px}
+.maptxt b{font-size:1.2rem}
+.vocabbtn{padding:8px;font-size:1.2rem}
+.row3 .sec{padding:10px 4px}
+.sec small{display:block;font-weight:600;font-size:.78rem;color:var(--chalk-dim)}
+.sec.abort{border-color:var(--tomato);color:var(--tomato)}
+.helplist{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px;color:var(--chalk-dim);font-size:.92rem}
+.helplist b{color:var(--chalk)}
+.hand.gold{color:var(--gold);font-size:1.5rem}
+.items.scroll{flex:1 1 auto !important;min-height:120px;overflow-y:auto}
+/* Shop: Karten statt langer Liste */
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.card{background:var(--slate2);border-radius:14px;padding:10px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:3px}
+.card .ic{font-size:1.6rem;line-height:1}
+.card b{font-weight:800;font-size:.92rem;line-height:1.15}
+.card small{color:var(--chalk-dim);font-size:.76rem;line-height:1.2;flex:1}
+.card.locked{opacity:.6}
+.card .buy{margin-top:4px}
+.owned.dim{color:var(--chalk-dim)}
+.owned-row span{font-size:1.3rem}
+/* Spiel: Bühne nimmt den restlichen Platz, alles andere ist kompakt */
+.s-play .stage{flex:1 1 0 !important;min-height:84px;max-height:300px;display:flex}
+.s-play .stage-svg{width:100%;height:100%}
+.who{font-size:1.1rem;margin-bottom:2px}
+.bubble{padding:9px 12px}
+.bubble .it{font-size:1.04rem;line-height:1.3}
+.bubble .tr{font-size:.86rem;margin-top:4px;padding-top:4px}
+.say{margin-top:5px;padding:3px 9px}
+.task{font-size:1.2rem}
+.opts{gap:7px}
+.opt{padding:9px 12px;font-size:.95rem}
+.opt small{font-size:.78rem}
+.kitchen{grid-template-columns:104px 1fr;gap:10px}
+.pz{width:104px;height:104px}
+.ings{gap:6px}
+.ing{padding:6px 3px;font-size:.82rem}
+.ing .ing-ic{width:18px;height:18px}
+.serve,.next{padding:11px;font-size:1.25rem}
+.fb{font-size:1.35rem}
+.idk{height:46px}
+.tipbtn{padding:9px}
+.banner{padding:6px 10px;font-size:.85rem}
+/* Vokabeln */
+.vcard{padding:14px 14px;gap:4px}
+.vword{font-size:1.9rem}
+.vword.de{font-size:1.4rem}
+.s-vocab .opts{gap:7px}
 @media (prefers-reduced-motion: reduce){.shake,.kasse-pop,.kasse-pop svg,.fig.enter,.fig.enter2,.walkin,.walk .leg,.walk .arm,.walk .bob,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}.walkout{display:none}}
+.s-play .stage{position:relative;justify-content:center}
+.stage>.banner{position:absolute;left:8px;right:8px;top:8px;z-index:2;line-height:1.3;background:rgba(27,48,30,.92)}
+.hud .combo{align-self:auto;padding:2px 10px}
+.s-play .stage{min-height:60px}
+.kitchen{grid-template-columns:92px 1fr}
+.pz{width:92px;height:92px}
+.ing{padding:5px 3px}
+.s-play .task{font-size:1.1rem;line-height:1}
+.s-play .fb{font-size:1.25rem}
+.s-play .stage{border:0;background:none}
+.s-play .stage-svg{border-radius:14px}
+#screen.s-home{justify-content:space-between}

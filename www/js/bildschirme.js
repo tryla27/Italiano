@@ -1,7 +1,7 @@
 /* Alle Bildschirme zeichnen (Start, Spiel, Abrechnung, Shop, Notizbuch, Einstellungen). */
 /* ---------- Render ---------- */
 function render(){
-  $("#overlay").hidden=!menuOpen&&!volOpen;
+  $("#overlay").hidden=!menuOpen&&!volOpen&&!pauseOpen&&!helpOpen;
   $("#overlay").classList.toggle("top",volOpen);
   rTopbar();
   if(volOpen){
@@ -10,11 +10,28 @@ function render(){
       <button class="mutebig${S.muted?" on":""}" data-act="mute" aria-pressed="${S.muted}">${ICON.off} ${S.muted?"Alles stumm · antippen für Ton":"Alles stumm schalten"}</button>
       ${sl("v-music","Musik",S.vol.music)}${sl("v-sfx","Geräusche",S.vol.sfx)}${canSpeak?sl("v-voice","Vorlese-Stimme",S.vol.voice):""}
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
+      <p class="savenote">${cloudState==="cloud"?"☁ Spielstand in deinem Konto gesichert":"✓ Spielstand auf diesem Gerät gespeichert"}</p>
+      <div class="savecode"><b>Spielstand mitnehmen</b>
+        <p>Mit diesem Code holst du deinen Fortschritt auf ein anderes Gerät, zum Beispiel vom Android-Handy aufs iPhone.</p>
+        <div class="row"><button class="sec" data-act="code-copy">Code kopieren</button><button class="sec" data-act="code-paste">Code einfügen</button></div>
+        ${codeBox?`<textarea id="codebox" rows="3" ${codeBox.mode==="copy"?"readonly":'placeholder="Code hier einfügen …"'}>${esc(codeBox.text||"")}</textarea>
+        ${codeBox.mode==="paste"?`<button class="serve" data-act="code-load">Spielstand laden</button>`:""}${codeBox.msg?`<p class="codemsg">${esc(codeBox.msg)}</p>`:""}`:""}</div>
       <button class="next" data-act="vol">Fertig</button></div>`;
   }
+  else if(pauseOpen){const voc=screen==="vocab";
+    $("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Pausa"><h2>Pausa<small>Pause</small></h2>
+      <button class="next" data-act="pause">Weiter</button>
+      <button class="sec" data-act="${voc?"vlist":"quit"}">Zur ${voc?"Übersicht":"Pizzeria"}<small>später genau hier weitermachen</small></button>
+      <button class="sec abort" data-act="${voc?"vabort":"abort"}">Abbrechen<small>${voc?"Fortschritt dieser Runde geht verloren":"ohne Belohnung: kein Trinkgeld, kein neuer Tag"}</small></button></div>`;}
+  else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Menù"><h2>Il Menù</h2>${MENU.map(m=>`<div class="mi"><b>${cap(m.n)} <span class="price">${m.p} €</span></b><div>${m.ing.join(", ")}</div></div>`).join("")}<p class="note">Plural: margherita → margherite, diavola → diavole. Bei „prosciutto e funghi“ bleibt der Name gleich.</p><button class="next" data-act="menu">Zurück zur Küche</button></div>`;
+  $("#screen").className="s-"+screen;
   ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab})[screen]();
+  armBack();
 }
+// Kopfzeile für Untermenüs: zurück zur Pizzeria, Titel, Ton und Einstellungen in einer Zeile
+const tools=()=>`<span class="tools"><button class="tb sm${S.muted?" on":""}" data-act="mute" aria-label="${S.muted?"Ton einschalten":"Alles stumm schalten"}" aria-pressed="${S.muted}">${S.muted?ICON.off:ICON.on}</button><button class="tb sm" data-act="vol" aria-label="Einstellungen">${ICON.gear}</button></span>`;
+const head=(title,sub)=>`<div class="head"><button class="back" data-act="home" aria-label="Zurück zur Pizzeria">‹ Pizzeria</button><h2 class="t">${title}${sub?`<small>${sub}</small>`:""}</h2>${tools()}</div>`;
 // Leiste oben links: Einstellungen und schnelles Stummschalten, auf jedem Bildschirm.
 const ICON={
   gear:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>`,
@@ -24,16 +41,15 @@ const ICON={
   off:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M4 9h4l5-4v14l-5-4H4z"/><path d="M16.5 9.5l5 5M21.5 9.5l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>`
 };
 function rTopbar(){
+  $("#topbar").hidden=true; return; // Ton und Einstellungen sitzen jetzt in der Kopfzeile jedes Bildschirms
   $("#topbar").innerHTML=`<button class="tb" data-act="vol" aria-label="Einstellungen" aria-expanded="${volOpen}">${ICON.gear}</button>
     <button class="tb${S.muted?" on":""}" data-act="mute" aria-label="${S.muted?"Ton einschalten":"Alles stumm schalten"}" aria-pressed="${S.muted}">${S.muted?ICON.off:ICON.on}</button>`;
 }
 function rHome(){
-  const L=LEVELS[S.level], owned=SHOP.filter(i=>S.owned.includes(i.id)&&!i.up);
+  const L=LEVELS[S.level];
   $("#screen").innerHTML=`
-  <div class="sign"><span class="lvl">${L.it} · Napoli</span><h1>Pizzeria <span>Parola</span></h1><span class="lvl-de">Stufe ${S.level+1} von ${LEVELS.length} · ${L.de}</span></div>
-  <p class="savenote">${cloudState==="cloud"?"☁ Spielstand in deinem Konto gesichert":"✓ Spielstand auf diesem Gerät gespeichert"}</p>
+  <div class="sign"><span class="lvl">${L.it} · Napoli</span><h1>Pizzeria <span>Parola</span></h1><span class="lvl-de">Stufe ${S.level+1} von ${LEVELS.length} · ${L.de}</span>${tools()}</div>
   ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}
-  ${musicOn||vol("music")===0?"":`<p class="note" style="text-align:center;margin:0">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}
   ${!LADEN_EINRICHTEN?"":S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
   <div class="stats">
     <div class="stat"><b>${S.coins}</b><span>Euro</span></div>
@@ -49,16 +65,20 @@ function rHome(){
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
   ${S.setupDone?`<button class="mapbtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><span class="maptxt">${ICON.map}<b>La mappa</b><small>Karte: Pizzeria, Markt, Eisladen, Hafen</small></span></button>`:""}
   <button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button>
-  <div class="${LADEN_EINRICHTEN?"row3":"row2"}"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}<button class="sec" data-act="book">Notizbuch</button></div>
-  <div class="how"><h3>So geht's</h3><ul>
+  <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
+  ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
+}
+// Spielregeln und Stufen: früher unten auf der Startseite, jetzt im Fenster „So geht's“
+function helpHTML(){
+  return `<ul class="helplist">
     <li>Deine Gäste sprechen nur <b>Italienisch</b>. Wähle die richtige Antwort oder belege die Pizza.</li>
     <li>Einmal falsch? Dann erscheint ein <b>Tipp</b> zum Antippen.</li>
     <li>Das rote <b>✕</b> heißt „keine Ahnung“: Du siehst die Lösung, bekommst aber kein Trinkgeld.</li>
     <li>Deine Gäste zahlen ihre Rechnung, dazu Trinkgeld. Damit kaufst du Einrichtung und steigst auf.</li>
-    <li>Wörter in der Sprechblase antippen zeigt die Übersetzung. Bei den Antworten: Wort lange drücken.</li>
-  </ul></div>
-  <div class="how"><h3>Deine Stufen</h3><ol class="lvls">${LEVELS.map((l,i)=>`<li class="${i<S.level?"done":i===S.level?"now":""}"><b>${l.it}</b> <span>${esc(l.neu)}</span></li>`).join("")}</ol>
-  <p class="note" style="margin:6px 0 0">Aufsteigen kannst du im „Shop“, sobald du genug Geld hast.</p></div>`;
+    <li>Ein Wort <b>antippen</b> zeigt die Übersetzung, <b>doppelt tippen</b> legt es ins Notizbuch.</li>
+    <li><b>Pause</b> oder der Zurück-Knopf am Handy: weiterspielen, später weitermachen oder abbrechen.</li>
+  </ul>
+  <h3 class="hand gold">Deine Stufen</h3><ol class="lvls">${LEVELS.map((l,i)=>`<li class="${i<S.level?"done":i===S.level?"now":""}"><b>${l.it}</b> <span>${esc(l.neu)}</span></li>`).join("")}</ol>`;
 }
 function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
@@ -87,10 +107,8 @@ function rPlay(){
       <div class="ctrl">${st.wrong>0&&!st.showTip?`<button class="tipbtn" data-act="tip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
       <button class="idk" data-act="idk" aria-label="Keine Ahnung, Lösung zeigen">✕<small>K. Ahnung</small></button></div>`;
   $("#screen").innerHTML=`
-    <div class="hud"><button class="quit" data-act="quit">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}`}</span>${starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span></div>
-    ${G.combo>=2?`<div class="combo">Combo ×${G.combo}</div>`:""}
-    ${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}
-    <div class="stage">${stageHTML()}</div>
+    <div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}`}</span>${G.combo>=2?`<span class="combo">×${G.combo}</span>`:starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span>${tools()}</div>
+    <div class="stage">${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}${stageHTML()}</div>
     <div class="scene solo"><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
     <div class="task">${esc(st.task)}</div>
     ${action}${ctrl}`;
@@ -115,27 +133,28 @@ function rSummary(){
       ${G.saved?`<div class="line"><span>Beim Handeln gespart</span><span>+${G.saved} €</span></div>`:""}
       <div class="line total"><span>Gewinn heute</span><span>${sm.net>=0?"+":""}${sm.net} €</span></div>
     </div>
-    <div class="panel">
-      <div class="line"><span>Beim ersten Versuch richtig</span><span>${G.firstTry} von ${G.steps}</span></div>
-      <div class="line"><span>Beste Combo</span><span>×${G.maxCombo}</span></div>
-      <div class="line"><span>Tage in Folge gespielt</span><span>${S.streak}</span></div>
-    </div>
-    <div class="panel"><div class="line"><span>Neue Vokabeln für dich</span><span>${(S.vocab.days[sm.day]||[]).length}</span></div><p class="note" style="margin:0">${(S.vocab.days[sm.day]||[]).slice(0,6).map(v=>esc(v.it)).join(", ")}</p></div>
+    <div class="stats"><div class="stat"><b>${G.firstTry}/${G.steps}</b><span>Gleich richtig</span></div><div class="stat"><b>×${G.maxCombo}</b><span>Combo</span></div><div class="stat"><b>${S.streak}</b><span>Serie</span></div><div class="stat"><b>${(S.vocab.days[sm.day]||[]).length}</b><span>Vokabeln</span></div></div>
     <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
 }
 function rShop(){
-  $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button>
-    <h2 class="t">Shop</h2><p class="note" style="margin:-6px 0 0">Du hast <b style="color:var(--gold)">${S.coins} €</b>. Jede Einrichtung bringt mehr Trinkgeld (jetzt ×${mult().toFixed(2)}). Gekaufte Sachen stellst du unter „Umstellen“ in deinen Laden.</p>
-    <div class="items">${SHOP.filter(i=>!i.up||i.up>S.level||S.owned.includes(i.id)).map(i=>{
-      const own=S.owned.includes(i.id)||(i.up&&S.level>=i.up), locked=i.lv>S.level;
-      const btn=own?`<span class="owned">Gekauft</span>`:locked?`<span class="owned" style="color:var(--chalk-dim)">ab ${LEVELS[i.lv].it}</span>`:`<button class="buy" data-act="buy" data-id="${i.id}" ${S.coins<i.cost?"disabled":""}>${i.cost} €</button>`;
-      return `<div class="item ${i.up?"up":""}"><span class="ic">${i.ic}</span><span class="nm">${esc(i.it)}<small>${esc(i.de)}${i.bonus?` · +${Math.round(i.bonus*100)} % Trinkgeld`:""}</small></span>${btn}</div>`;}).join("")}</div>`;
+  // Nur was gerade zählt: der nächste Aufstieg und die Einrichtung bis zur nächsten Stufe; Gekauftes als Symbol-Leiste
+  const own=i=>S.owned.includes(i.id)||(i.up&&S.level>=i.up);
+  const up=SHOP.find(i=>i.up===S.level+1), bought=SHOP.filter(i=>!i.up&&own(i));
+  const list=SHOP.filter(i=>!i.up&&!own(i)&&i.lv<=S.level+1);
+  const card=i=>{const locked=i.lv>S.level;
+    return `<div class="card${locked?" locked":""}"><span class="ic">${i.ic}</span><b>${esc(i.it)}</b><small>${esc(i.de)}${i.bonus?` · +${Math.round(i.bonus*100)} %`:""}</small>
+      ${locked?`<span class="owned dim">ab ${LEVELS[i.lv].it}</span>`:`<button class="buy" data-act="buy" data-id="${i.id}" ${S.coins<i.cost?"disabled":""}>${i.cost} €</button>`}</div>`;};
+  $("#screen").innerHTML=`${head("Shop")}
+    <p class="note">Du hast <b style="color:var(--gold)">${S.coins} €</b> · Trinkgeld jetzt ×${mult().toFixed(2)}</p>
+    ${up?`<div class="item up"><span class="ic">${up.ic}</span><span class="nm">${esc(up.it)}<small>${esc(up.de)}</small></span><button class="buy" data-act="buy" data-id="${up.id}" ${S.coins<up.cost?"disabled":""}>${up.cost} €</button></div>`:`<div class="panel"><p class="note" style="margin:0">Höchste Stufe erreicht: ${esc(LEVELS[S.level].it)}!</p></div>`}
+    <div class="cards">${list.map(card).join("")||`<p class="note">Alles für diese Stufe gekauft. Steig auf, dann gibt es Neues.</p>`}</div>
+    ${bought.length?`<p class="note owned-row">Schon gekauft: ${bought.map(i=>`<span title="${esc(i.de)}">${i.ic}</span>`).join(" ")}</p>`:""}`;
 }
 function rBook(){
   const e=Object.entries(S.book).sort((a,b)=>b[1].miss-a[1].miss);
-  $("#screen").innerHTML=`<button class="back" data-act="home">← Zurück</button><h2 class="t">Il quaderno</h2>
+  $("#screen").innerHTML=`${head("Il quaderno")}
     <p class="note" style="margin:-6px 0 0">Alles, was dir schwer gefallen ist oder was du nachgeschaut hast. Tippe einen Eintrag an, um ihn zu hören.</p>
     ${e.length>=2?`<button class="big" data-act="vstart" data-d="book">Notizbuch üben<small>${Math.min(e.length,12)} Wörter im Vokabelmodus</small></button>`:""}
-    ${e.length?`<div class="items">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}×</span></div>`).join("")}</div>`
+    ${e.length?`<div class="items scroll">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}×</span></div>`).join("")}</div>`
       :`<div class="panel"><p class="note" style="margin:0">Noch leer. Sobald du etwas falsch hast, das rote ✕ drückst oder doppelt auf ein Wort tippst, landet es hier zum Wiederholen.</p></div>`}`;
 }
