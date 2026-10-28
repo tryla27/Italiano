@@ -28,7 +28,11 @@ function handleClick(e){
   const a=t.dataset.act;
   if(a!=="opt"&&a!=="serve")sfx(a==="ing"||a==="qty"?"select":"click");
   if(a==="mute"){S.muted=!S.muted;initAudio();applyVolume();if(S.muted){try{speechSynthesis.cancel();}catch(e){}}else if(vol("music")>0)startMusic();save();return render();}
-  if(a==="vol"){volOpen=!volOpen;return render();}
+  if(a==="vol"){volOpen=!volOpen;codeBox=null;return render();}
+  if(a==="code-copy"){saveCode().then(c=>{codeBox={mode:"copy",text:c,msg:"Kopiert. Auf dem anderen Gerät unter Einstellungen → Code einfügen."};
+    (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).catch(()=>{codeBox.msg="Halte den Code gedrückt und kopiere ihn.";render();});render();const b=$("#codebox");if(b)b.select();});return;}
+  if(a==="code-paste"){codeBox={mode:"paste",text:""};render();const b=$("#codebox");if(b)b.focus();return;}
+  if(a==="code-load"){const b=$("#codebox"),c=b?b.value:"";loadCode(c).then(ok=>{if(ok){codeBox=null;volOpen=false;screen=screen==="play"&&G?"play":"home";render();}else{codeBox={mode:"paste",text:c,msg:"Der Code passt nicht. Bitte ganz kopieren (fängt mit PP an)."};render();}});return;}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
   if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(a==="home"||a==="quit"){if(screen==="summary")G=null;screen="home";return render();}

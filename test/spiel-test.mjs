@@ -121,6 +121,23 @@ check(await page.locator('[data-act="start"]').count() === 1 && await page.locat
 await fresh({ setupDone: false, setupQuiz: { queue: [0], qi: 0 }, room: [] });
 check(await page.evaluate(() => S.setupDone && !S.setupQuiz), "Alter Stand hängt im Einrichten fest");
 
+// Spielstand-Code: kopieren, Stand ändern, Code einfügen holt den alten Stand zurück
+await fresh({ setupDone: true, coins: 123, day: 4, book: { conto: { de: "Rechnung", miss: 2 } } });
+await page.locator('#topbar [data-act="vol"]').click();
+await page.locator('#overlay [data-act="code-copy"]').click();
+await page.waitForTimeout(300);
+const code = await page.locator("#codebox").inputValue();
+check(/^PP[01]\./.test(code), "Spielstand-Code wird nicht erzeugt");
+await shot("spielstand-code");
+await page.evaluate(() => { S.coins = 1; S.book = {}; save(); });
+await page.locator('#overlay [data-act="code-paste"]').click();
+await page.locator("#codebox").fill(code);
+await page.locator('#overlay [data-act="code-load"]').click();
+await page.waitForTimeout(300);
+await page.reload();
+check(await page.evaluate(() => S.coins === 123 && S.day === 4 && S.book.conto && S.book.conto.miss === 2), "Spielstand-Code stellt den Stand nicht wieder her");
+check(await page.evaluate(async () => !(await loadCode("Quatsch")) && S.coins === 123), "Falscher Code verändert den Spielstand");
+
 // Alter Spielstand ohne neue Felder muss weiter laden
 await fresh({ coins: 77, level: 1, day: 5, setupDone: true, vol: { music: .3 } });
 check(await page.evaluate(() => S.coins === 77 && S.level === 1 && S.muted === false && S.vol.sfx === .8), "Alter Spielstand wird nicht richtig übernommen");

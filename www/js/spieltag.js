@@ -1,6 +1,6 @@
 /* Ablauf eines Spieltags: Gäste, Trinkgeld, Fehler, Markt, Tagesabrechnung. */
 /* ---------- Game flow ---------- */
-let screen="home", G=null, menuOpen=false, volOpen=false;
+let screen="home", G=null, menuOpen=false, volOpen=false, codeBox=null;
 function startDay(){
   const L=S.level, LV=LEVELS[L];
   G={guests:[],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0};
