@@ -39,7 +39,13 @@ jobs:
         run: npx cap add android
 
       - name: Nur Hochformat
-        run: sed -i 's|android:name=".MainActivity"|android:name=".MainActivity" android:screenOrientation="portrait"|' android/app/src/main/AndroidManifest.xml
+        run: |
+          sed -i 's|android:name=".MainActivity"|android:name=".MainActivity" android:screenOrientation="portrait"|' android/app/src/main/AndroidManifest.xml
+          # Android 9/10: Spielstand-Datei im Ordner Dokumente speichern dürfen
+          sed -i 's|<application|<application android:requestLegacyExternalStorage="true"|' android/app/src/main/AndroidManifest.xml
+          sed -i 's|</manifest>|    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="29" />\n</manifest>|' android/app/src/main/AndroidManifest.xml
+          grep -q requestLegacyExternalStorage android/app/src/main/AndroidManifest.xml
+          grep -q WRITE_EXTERNAL_STORAGE android/app/src/main/AndroidManifest.xml
 
       - name: Versionsnummer setzen (damit Updates über die alte App drüber installieren)
         run: |

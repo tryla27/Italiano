@@ -14,7 +14,11 @@ function render(){
       <div class="savecode"><b>Spielstand mitnehmen</b>
         <p>Mit diesem Code holst du deinen Fortschritt auf ein anderes Gerät, zum Beispiel vom Android-Handy aufs iPhone.</p>
         <div class="row"><button class="sec" data-act="code-copy">Code kopieren</button><button class="sec" data-act="code-paste">Code einfügen</button></div>
-        ${codeBox?`<textarea id="codebox" rows="3" ${codeBox.mode==="copy"?"readonly":'placeholder="Code hier einfügen …"'}>${esc(codeBox.text||"")}</textarea>
+        <p>Vor dem Deinstallieren: als Datei sichern. Nach der Neuinstallation die Datei wieder laden.</p>
+        <div class="row"><button class="sec" data-act="file-save">Als Datei speichern</button><button class="sec" data-act="file-load">Datei laden</button></div>
+        <input type="file" id="savefile" accept=".txt,text/plain" hidden>
+        ${codeBox&&codeBox.mode==="file"?`<p class="codemsg">${esc(codeBox.msg||"")}</p>`:""}
+        ${codeBox&&codeBox.mode!=="file"?`<textarea id="codebox" rows="3" ${codeBox.mode==="copy"?"readonly":'placeholder="Code hier einfügen …"'}>${esc(codeBox.text||"")}</textarea>
         ${codeBox.mode==="paste"?`<button class="serve" data-act="code-load">Spielstand laden</button>`:""}${codeBox.msg?`<p class="codemsg">${esc(codeBox.msg)}</p>`:""}`:""}</div>
       <button class="next" data-act="vol">Fertig</button></div>`;
   }

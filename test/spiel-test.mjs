@@ -162,6 +162,23 @@ await page.reload();
 check(await page.evaluate(() => S.coins === 123 && S.day === 4 && S.book.conto && S.book.conto.miss === 2), "Spielstand-Code stellt den Stand nicht wieder her");
 check(await page.evaluate(async () => !(await loadCode("Quatsch")) && S.coins === 123), "Falscher Code verändert den Spielstand");
 
+// Spielstand als Datei: speichern (Download), Stand ändern, Datei laden holt ihn zurück
+await page.locator('#screen [data-act="vol"]').first().click();
+const [dl] = await Promise.all([page.waitForEvent("download"), page.locator('#overlay [data-act="file-save"]').click()]);
+const saveFilePath = join(OUT, "spielstand.txt");
+await dl.saveAs(saveFilePath);
+check(/^ParlaPizza-Spielstand-.*\.txt$/.test(dl.suggestedFilename()) && /^PP[01]\./.test(await readFile(saveFilePath, "utf8")), "Spielstand-Datei wird nicht gespeichert");
+await page.waitForTimeout(200);
+await shot("spielstand-datei");
+await page.evaluate(() => { S.coins = 7; save(); });
+await page.locator("#savefile").setInputFiles(saveFilePath);
+await page.waitForTimeout(400);
+check(await page.evaluate(() => S.coins === 123 && /geladen/.test($("#overlay").textContent)), "Spielstand-Datei lädt den Stand nicht");
+await page.locator("#savefile").setInputFiles({ name: "falsch.txt", mimeType: "text/plain", buffer: Buffer.from("Hallo") });
+await page.waitForTimeout(300);
+check(await page.evaluate(() => S.coins === 123 && /kein Spielstand/.test($("#overlay").textContent)), "Falsche Datei verändert den Spielstand");
+await page.evaluate(() => { volOpen = false; codeBox = null; render(); });
+
 // Jede alte Spielstand-Version aus test/spielstaende/ lädt, behält Geld, Tag und Stufe, und alle Bildschirme gehen
 for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => f.endsWith(".json")).sort()) {
   const fx = JSON.parse(await readFile(join(ROOT, "test", "spielstaende", f), "utf8"));
