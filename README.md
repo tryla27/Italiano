@@ -2,7 +2,7 @@
 
 Italienisch lernen als Pizzeria-Spiel in Neapel. Du begrüßt Gäste, belegst Pizzen, nimmst Telefon-
 bestellungen an und handelst auf dem Markt, alles auf Italienisch. Mit dem verdienten Geld richtest
-du deinen Laden ein und steigst vom Imbissstand bis zur berühmtesten Pizzeria Italiens auf.
+du dein Restaurant in 3D ein und machst aus deiner kleinen Pizzeria die berühmteste Pizzeria Italiens.
 
 Android-App, gebaut mit [Capacitor](https://capacitorjs.com). Das Spiel selbst ist eine Webseite im
 Ordner `www/` und läuft auch in jedem Browser.

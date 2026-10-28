@@ -154,7 +154,7 @@ const DIR=[
 ];
 const CRITIC=[
  ["Ho mangiato la migliore pizza della mia vita!","Ich habe die beste Pizza meines Lebens gegessen!","Grazie, è un grande onore!","Danke, das ist eine große Ehre!",["Mangiato? Domani mangio.","La vita è un conto.","Mi dispiace molto."],"ho mangiato = ich habe gegessen. migliore = beste."],
- ["Da quanto tempo fa il pizzaiolo?","Seit wann sind Sie Pizzabäcker?","Ho cominciato tre anni fa con un chiosco.","Ich habe vor drei Jahren mit einem Imbissstand angefangen.",["Faccio la pizza alle tre.","Il tempo è bello.","Ho tre pizze."],"da quanto tempo = seit wann. tre anni fa = vor drei Jahren."],
+ ["Da quanto tempo fa il pizzaiolo?","Seit wann sind Sie Pizzabäcker?","Ho aperto la pizzeria tre anni fa.","Ich habe die Pizzeria vor drei Jahren eröffnet.",["Faccio la pizza alle tre.","Il tempo è bello.","Ho tre pizze."],"da quanto tempo = seit wann. tre anni fa = vor drei Jahren."],
  ["Qual è il segreto del suo impasto?","Was ist das Geheimnis Ihres Teigs?","Lo faccio riposare ventiquattro ore.","Ich lasse ihn 24 Stunden ruhen.",["Il segreto è nel bagno.","L'impasto è di Milano.","Riposo ventiquattro giorni."],"impasto = Teig, segreto = Geheimnis, riposare = ruhen."],
  ["Ieri sera siamo venuti, ma era chiuso.","Gestern Abend waren wir da, aber es war zu.","Mi dispiace, il lunedì siamo chiusi.","Tut mir leid, montags haben wir zu.",["Sì, ieri ho mangiato bene.","Venite ieri sera!","Chiuso? Che bella giornata."],"ieri sera = gestern Abend. siamo venuti = wir sind gekommen."],
  ["Posso fare una foto per il mio giornale?","Darf ich ein Foto für meine Zeitung machen?","Certo, sorrido!","Natürlich, ich lächle!",["La foto è nel forno.","Il giornale è fritto.","No, oggi è domenica."],"giornale = Zeitung, sorridere = lächeln."],
@@ -166,7 +166,7 @@ const SURNAMES=["Rossi","Russo","Ricci","Romano","Rinaldi"];
 
 // Stufen: was neu dazukommt, steht in "neu"
 const LEVELS=[
- {it:"Il Chiosco",rent:8,de:"Imbissstand",guests:3,base:2,cost:12,phones:0,talk:[TALK],talkChance:.5,neu:"Begrüßen, einfache Pizzen, abkassieren"},
+ {it:"La Piccola Pizzeria",rent:8,de:"Kleine Pizzeria",guests:3,base:2,cost:12,phones:0,talk:[TALK],talkChance:.5,neu:"Begrüßen, einfache Pizzen, abkassieren"},
  {it:"La Pizzeria",rent:15,de:"Pizzeria",guests:4,base:3,cost:25,phones:1,talk:[TALK,PROB],neu:"Pizzen von der Karte, „senza“, Mengen, Probleme, Telefon"},
  {it:"La Trattoria",rent:25,de:"Trattoria",guests:4,base:4,cost:35,phones:1,talk:[TALK,PROB],drinks:true,neu:"Getränke und Nachtisch"},
  {it:"Il Ristorante",rent:35,de:"Ristorante",guests:5,base:5,cost:50,phones:2,talk:[PROB,TALK],drinks:true,reserv:true,neu:"„senza … ma con …“, Tischreservierungen am Telefon"},
@@ -191,7 +191,7 @@ const SHOP=[
  {id:"lavagna",ic:"📋",it:"la lavagna",de:"Kreidetafel",cost:40,lv:0,fx:{daily:1},txt:"Ein Gast pro Tag nimmt den Piatto del giorno (Rezept steht dabei)"},
  {id:"moka",grp:"caffe",tier:1,ic:"☕",it:"la moka",de:"Moka-Kanne",cost:30,lv:0,fx:{coffee:1},txt:"Gäste bestellen Kaffee: caffè, caffè lungo"},
  {id:"mandolino",ic:"🎶",it:"il mandolino",de:"Musik vom Mandolinenspieler",cost:60,lv:0,fx:{tip:.05},txt:"+5 % Trinkgeld"},
- {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: mehr Gäste, Pizzen von der Karte, Telefon",cost:200,lv:0,up:1},
+ {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: größere Pizzeria, mehr Gäste, Pizzen von der Karte, Telefon",cost:200,lv:0,up:1},
  {id:"forno",grp:"forno",tier:2,ic:"🔥",it:"il forno a legna",de:"Holzofen aus Ziegeln",cost:120,lv:1,fx:{oven:1},txt:"Eine falsche Pizza pro Tag zählt nicht"},
  {id:"frigo2",grp:"frigo",tier:2,ic:"🧊",it:"il frigorifero",de:"Kühlschrank",cost:90,lv:1,fx:{cheap:.15},txt:"Zutaten 15 % günstiger"},
  {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:40,lv:1,fx:{tip:.05},txt:"+5 % Trinkgeld"},

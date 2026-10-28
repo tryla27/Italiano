@@ -1,6 +1,6 @@
 # Aufbau von Parla Pizza!
 
-Das Spiel ist eine Webseite (HTML, CSS, JavaScript) ohne Fremdbibliotheken und ohne Build-Schritt.
+Das Spiel ist eine Webseite (HTML, CSS, JavaScript) ohne Build-Schritt. Einzige Fremdbibliothek ist three.js für das Restaurant in 3D, fertig gepackt in `www/js/lib/three-mini.js`.
 Capacitor verpackt den Ordner `www/` als Android-App. Jede Datei kann direkt im Editor geändert
 werden, nach **F5** im Browser ist die Änderung sichtbar.
 
@@ -14,6 +14,7 @@ Italiano/
 │   ├── js/                   ← Spiellogik, eine Datei pro Thema (Tabelle unten)
 │   │   └── inhalt/           ← reine Inhalte: Dialoge und Wörterbuch
 │   ├── bilder/umgebungen/    ← Hintergrundbilder der Spielorte (WebP)
+│   ├── modelle/              ← 3D-Modelle aus Blender (glTF .glb) für das Restaurant
 │   └── music/                ← Hintergrundmusik (MP3)
 ├── assets/                   ← Quellbilder für App-Icon und Startbild
 ├── test/spiel-test.mjs       ← automatischer Test im Handy-Browser
@@ -37,7 +38,9 @@ oder erst beim Spielen aufgerufen wird.
 | `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Markt-Stufe, Preis), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
 | `memory.js` | Zutaten-Memory: Bild und italienisches Wort als Paar finden, einmal pro Spieltag Geld (`S.memDay`) |
-| `einrichtung.js` | Möbel mit Ausbaustufen (`START_FURN`, Einrichtung in `SHOP`), ihre Boni (`fx`, Trinkgeld höchstens +50 %), Aufstellen auf dem Raster 8 × 6 (`S.place`) |
+| `einrichtung.js` | Möbel mit Ausbaustufen (`START_FURN`, Einrichtung in `SHOP`), ihre Boni (`fx`, Trinkgeld höchstens +50 %), nach dem Kauf fragt Signor Moretti nach dem Platz |
+| `lib/three-mini.js` | three.js 0.170 (nur die benötigten Teile, Quelle `docs/three/entry.js`) |
+| `restaurant3d.js` | Il mio locale: Restaurant in 3D mit den Modellen aus `www/modelle/` (`MODEL`: welches Modell, wohin es darf). Drehen, Zoomen, Ziehen, Drehen, Einlagern, Vorschaubild für Startseite und Shop |
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände, Versionen mit Umwandlung (`SAVE_V`, `MIGRATE`), Kopie im Handy-Speicher (Capacitor Preferences), tägliche Sicherheitskopie |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
@@ -89,7 +92,16 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 ## Einrichtung und Kaffee
 
 - Der Laden startet mit Elektroofen, Bretter-Theke, Plastiktisch und Kühlbox. Im Shop gibt es pro Stufe neue Möbel; Ofen, Theke, Tische, Kühlung und Kaffeemaschine haben drei Ausbaustufen.
-- Jedes Stück hat einen eigenen Bonus (`fx` in `SHOP`): mehr Gäste, günstigere Zutaten, Hilfen. Nach dem Kauf fragt Signor Moretti, wohin es soll; man stellt es auf ein grünes Feld. Ofen, Kaffee und Kühlung nur an die Küchenwand (oberste Reihe), Tische nur in den Gastraum (untere drei Reihen).
+- Jedes Stück hat einen eigenen Bonus (`fx` in `SHOP`): mehr Gäste, günstigere Zutaten, Hilfen. Nach dem Kauf geht es ins 3D-Restaurant, das neue Stück ist ausgewählt und Signor Moretti fragt, wohin es soll.
+
+## Restaurant in 3D (Il mio locale)
+
+- Man startet direkt mit einer kleinen Pizzeria (Stufe 1 „La Piccola Pizzeria“). Raum 9 × 7 m, Tür vorne in der Mitte, davor Gehweg und Meer.
+- Alles aus Shop und Truhe steht als 3D-Modell im Raum (`MODEL` in `restaurant3d.js`). Bodenstücke rasten auf 25 cm ein, kleine Sachen (Kaffeemaschine, Basilikum, Kerze …) stellt man auf Theke oder Tisch, Bilder, Uhr, Spiegel und Wandlampen hängen an der Wand, Vespa, Terrasse und Schirm stehen draußen, das Boot liegt im Wasser. Tür und Durchgang bleiben frei, nichts überlappt.
+- Ein Finger dreht die Kamera, zwei Finger zoomen und verschieben. Ein Stück antippen: Name hören, Drehen, ins Lager. Aus dem Lager mit einem Tipp wieder aufstellen.
+- Die Tischdecken (Shop und Truhe) machen alle Tische kariert. Licht kommt von Wandlampen, nicht von der Decke.
+- Gespeichert in `S.locale` (`{x, z, r, y}` in Metern, `st: 1` = im Lager). Alte Rasterplätze (`S.place`) werden beim ersten Öffnen umgerechnet und bleiben im Spielstand stehen.
+- Für ältere Handys: einfaches Licht (Lambert), keine Echtzeit-Schatten (weiche Schattenflecken), gezeichnet wird nur, wenn sich etwas bewegt.
 - Kaffee (`CAFFE` in `inhalt/dialoge.js`) gibt es ab der Moka-Kanne. Die Reihenfolge der Zutaten zählt, eine falsche Tasse kostet nur Trinkgeld.
 
 ## Gesundheitsamt

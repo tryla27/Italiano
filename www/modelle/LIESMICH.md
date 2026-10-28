@@ -1,7 +1,7 @@
 # 3D-Modelle (glTF)
 
 46 Modelle für alles aus Shop und Truhe, gebaut in Blender 5.2 (Skripte in `docs/vorschlaege/modelle/`).
-Noch nicht im Spiel eingebaut. Maßstab: 1 Einheit = 1 Meter, Boden bei y = 0 (three.js, Y nach oben).
+Im Spiel eingebaut: `www/js/restaurant3d.js` lädt sie (Zuordnung in `MODEL`). Maßstab: 1 Einheit = 1 Meter, Boden bei y = 0 (three.js, Y nach oben).
 Holz und Tischdecken sind einfarbig; Maserung und Karomuster kommen später als Textur dazu.
 
 - Öfen: `ofen-1-elettrico`, `ofen-2-piani`, `ofen-3-legna`, `ofen-4-napoletano`, `forno-oro`
