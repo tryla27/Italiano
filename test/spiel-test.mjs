@@ -225,6 +225,13 @@ check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEa
 check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspDue === S.day; }), "Durchgefallen: keine Strafe oder kein Wiederbesuch am nächsten Tag");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
 
+// Antwort antippen: die Stimme liest sie vor
+await fresh({ coins: 10, level: 0, day: 1, setupDone: true });
+await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); render(); });
+await page.locator('#screen .opt').first().click();
+check(await page.evaluate(() => __said.includes(curStep().opts[0].t)), "Angetippte Antwort wird nicht vorgelesen");
+await page.evaluate(() => { G = null; screen = "home"; render(); });
+
 // Kaputter Hauptstand: die Sicherheitskopie springt ein
 await page.goto(URL);
 await page.evaluate(() => { localStorage.clear(); localStorage.setItem("pizzeria-parola-backup", JSON.stringify({ savedAt: 1, state: JSON.stringify({ v: 3, S: { coins: 321, day: 7, setupDone: true }, G: null, screen: "home" }) })); localStorage.setItem("pizzeria-parola", "{kaputt"); });
