@@ -1,5 +1,7 @@
 # Pizzeria Parola
 
+**Am PC weiterentwickeln:** siehe [ANLEITUNG-PC.md](ANLEITUNG-PC.md)
+
 Italienisch lernen als Pizzeria-Spiel in Neapel. Android-App, gebaut mit Capacitor.
 
 ## App bekommen
