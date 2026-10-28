@@ -141,6 +141,8 @@ body{-webkit-user-select:none;user-select:none}
 .scene.solo{grid-template-columns:1fr;margin-top:-4px}
 .fig.enter{animation:walkin 1.2s cubic-bezier(.3,.7,.4,1) both}
 @keyframes walkin{0%{transform:translate(0,-34px) scale(.4);opacity:0}18%{opacity:1}100%{transform:none;opacity:1}}
+.fig.enter2{animation:slidein .9s cubic-bezier(.3,.7,.4,1) both}
+@keyframes slidein{0%{transform:translateX(-160px);opacity:0}30%{opacity:1}100%{transform:none;opacity:1}}
 .ring-phone{animation:ring .5s ease-in-out infinite;transform-origin:240px 143px}
 .ring-waves{animation:blink 1s steps(2) infinite}
 @keyframes ring{25%{transform:rotate(-7deg)}75%{transform:rotate(7deg)}}
@@ -229,4 +231,4 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .mi b{font-family:var(--hand);font-size:1.45rem;font-weight:700}
 .mi div{color:var(--chalk-dim);font-size:.92rem}
 .mi .price{float:right;font-family:var(--game);font-size:1.1rem;color:var(--gold)}
-@media (prefers-reduced-motion: reduce){.shake,.fig.enter,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}}
+@media (prefers-reduced-motion: reduce){.shake,.fig.enter,.fig.enter2,.ring-phone,.ring-waves,.ferry{animation:none}.big:active,.serve:active{transform:none}}

@@ -22,7 +22,7 @@ const OUT = join(ROOT, "test", "screenshots");
 const DEVICE = process.env.DEVICE || "Pixel 7";
 
 /* ---------- Kleiner Webserver für www/ ---------- */
-const TYPES = { ".html": "text/html", ".mp3": "audio/mpeg", ".png": "image/png", ".js": "text/javascript", ".css": "text/css" };
+const TYPES = { ".html": "text/html", ".mp3": "audio/mpeg", ".png": "image/png", ".js": "text/javascript", ".css": "text/css", ".webp": "image/webp" };
 const server = createServer(async (req, res) => {
   const path = normalize(decodeURIComponent(req.url.split("?")[0])).replace(/^(\.\.[/\\])+/, "");
   try {

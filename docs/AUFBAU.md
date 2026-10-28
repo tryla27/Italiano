@@ -39,7 +39,7 @@ oder erst beim Spielen aufgerufen wird.
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
-| `szenen.js` | Umgebungen: Pizzeria (Blick hinter dem Tresen), Markt, Eisladen, Hafen. Gerenderte Bilder trägt man in `SCENE_IMG` ein (Ordner `www/bilder/`) |
+| `szenen.js` | Umgebungen: Pizzeria, Markt, Eisladen, Hafen. Nutzt die Bilder aus `www/bilder/umgebungen/` (Ausschnitt und Platz der Figur in `SCENE_IMG`), sonst gezeichnete Ersatz-Szenen |
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt, Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |

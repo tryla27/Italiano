@@ -136,28 +136,31 @@ function scenePorto(person,enter){
   return wrap(s,"Hafen mit Fähre und Ticketschalter");
 }
 
-/* Gerenderte Bilder (z. B. aus Blender) ersetzen die gezeichneten Szenen, sobald sie hier eingetragen sind.
-   hinten = Hintergrund (Pflicht), vorne = Vordergrund mit Transparenz (Tresen/Theke, optional).
-   Die Figur steht zwischen hinten und vorne. Format 2:1, z. B. 1600×800. */
+/* Gerenderte Hintergründe (www/bilder/umgebungen/, Hochformat 768×1344, siehe HERKUNFT.md).
+   Das Bild wird auf 400 Breite gebracht (dann 700 hoch); oy = welcher Streifen von oben gezeigt wird.
+   fig = Platz der Figur [x, y, Größe], clip = bis wohin sie sichtbar ist (z. B. Oberkante Tresen).
+   Fehlt ein Eintrag (null), zeichnet szenen.js den Ort selbst. */
+const SCENE_H=260;
 const SCENE_IMG={
-  pizzeria:null,   // z. B. {hinten:"bilder/pizzeria-hinten.webp", vorne:"bilder/pizzeria-vorne.png", fig:[181,64,92]}
-  mercato:null,
-  gelateria:null,
-  porto:null
+  pizzeria:{src:"bilder/umgebungen/pizzeria.webp",oy:300,fig:[56,60,150],clip:212},
+  mercato:{src:"bilder/umgebungen/markt.webp",oy:250},
+  gelateria:{src:"bilder/umgebungen/eisladen.webp",oy:300,fig:[150,30,100],clip:118},
+  porto:{src:"bilder/umgebungen/hafen.webp",oy:250}
 };
 function imageScene(id,person,enter,label){
   const I=SCENE_IMG[id]; if(!I)return null;
-  const [x,y,w]=I.fig||[160,60,90];
-  return wrap(`<image href="${I.hinten}" width="400" height="200" preserveAspectRatio="xMidYMid slice"/>${person?figure(person,x,y,w,enter?"enter":""):""}${I.vorne?`<image href="${I.vorne}" width="400" height="200" preserveAspectRatio="xMidYMid slice"/>`:""}`,label);
+  let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="700"/>`;
+  if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${figure(person,x,y,w,enter?"enter2":"")}</g>`;}
+  return `<svg class="stage-svg" viewBox="0 0 400 ${SCENE_H}" role="img" aria-label="${label}">${s}</svg>`;
 }
 
 // Passende Szene für den aktuellen Schritt; der Gast „kommt herein“, wenn er neu ist.
 function stageHTML(){
   const mk=G.phase==="market", g=curGuest();
-  if(mk)return imageScene("mercato",vendorFace(),false,"Markt")||sceneMarket();
+  if(mk)return imageScene("mercato",null,false,"Markt")||sceneMarket();
   const enter=G.entered!==G.gi; G.entered=G.gi;
   const person=g&&!g.phone?face(g.name,g.mood):null;
   if(G.trip==="gelateria")return imageScene("gelateria",person,false,"Eisladen")||sceneGelateria(person,false);
-  if(G.trip==="porto")return imageScene("porto",person,false,"Hafen")||scenePorto(person,false);
+  if(G.trip==="porto")return imageScene("porto",null,false,"Hafen")||scenePorto(person,false);
   return (!(g&&g.phone)&&imageScene("pizzeria",person,enter,"Pizzeria"))||scenePizzeria(person,g&&g.phone,enter);
 }
