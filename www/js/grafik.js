@@ -37,6 +37,25 @@ const OUTFIT={
  "Signora Lucia":{low:"skirt",legs:"#c46a85",shoe:"#f3f3f3",apron:1,short:1},
  "Signor Marino":{low:"pants",legs:"#1f3355",shoe:"#2a1d14",stripes:1}
 };
+// Kleine Bilder der Zutaten für die Knöpfe beim Pizza-Belegen, jeweils in der Farbe der Zutat.
+function ingIcon(k){
+  const c=ING[k][1], o=`stroke="#1e2420" stroke-width="1.2"`;
+  const d={
+    pomodoro:`<circle cx="12" cy="13.5" r="8" fill="${c}" ${o}/><path d="M12 6 l-3-2 M12 6 l3-2 M12 6 l0-3" stroke="#3f9a45" stroke-width="2" stroke-linecap="round"/><circle cx="9" cy="11" r="1.6" fill="#fff" opacity=".5"/>`,
+    mozzarella:`<circle cx="12" cy="13" r="8" fill="${c}" ${o}/><path d="M7 15 q5 4 10 0" stroke="#d9d0bc" stroke-width="1.5" fill="none"/><circle cx="9" cy="10" r="1.8" fill="#fff"/>`,
+    basilico:`<path d="M12 3 C20 6 21 15 12 21 C3 15 4 6 12 3Z" fill="${c}" ${o}/><path d="M12 5 V19 M12 10 l3-2 M12 14 l-3-2" stroke="#2a6a30" stroke-width="1.2" fill="none"/>`,
+    funghi:`<path d="M3 12 Q4 4 12 4 Q20 4 21 12Z" fill="${c}" ${o}/><rect x="9" y="12" width="6" height="8" rx="2" fill="#efe3cf" ${o}/><circle cx="9" cy="8" r="1.3" fill="#e9d8c0"/><circle cx="15" cy="7.5" r="1" fill="#e9d8c0"/>`,
+    prosciutto:`<path d="M3 15 Q5 6 12 7 Q19 4 21 11 Q19 19 11 18 Q5 20 3 15Z" fill="${c}" ${o}/><path d="M5 15 Q8 10 12 11 Q17 9 19 12" stroke="#fbeeee" stroke-width="2" fill="none"/>`,
+    salame:`<circle cx="12" cy="12" r="9" fill="${c}" ${o}/><circle cx="9" cy="9" r="1.3" fill="#f3d6cf"/><circle cx="15" cy="10" r="1" fill="#f3d6cf"/><circle cx="11" cy="15" r="1.2" fill="#f3d6cf"/><circle cx="16" cy="15" r="1" fill="#f3d6cf"/>`,
+    olive:`<ellipse cx="12" cy="12" rx="6.5" ry="8.5" fill="${c}" stroke="#9aa39a" stroke-width="1.2"/><ellipse cx="12" cy="12" rx="2.2" ry="3" fill="#6a6a5a"/><ellipse cx="9.5" cy="8" rx="1.3" ry="2" fill="#fff" opacity=".35"/>`,
+    cipolla:`<circle cx="12" cy="12" r="8.5" fill="none" stroke="${c}" stroke-width="3"/><circle cx="12" cy="12" r="4.5" fill="none" stroke="${c}" stroke-width="2.4"/>`,
+    peperoni:`<path d="M7 8 Q12 5 17 8 Q20 15 15 21 Q12 22 9 21 Q4 15 7 8Z" fill="${c}" ${o}/><path d="M12 7 V3 l2 -1" stroke="#3f9a45" stroke-width="2" fill="none" stroke-linecap="round"/><path d="M9 11 Q8 15 10 18" stroke="#fff" stroke-width="1.2" fill="none" opacity=".5"/>`,
+    tonno:`<path d="M2 12 Q8 5 15 9 L21 5 L20 12 L21 19 L15 15 Q8 19 2 12Z" fill="${c}" ${o}/><circle cx="6.5" cy="11" r="1.1" fill="#1e2420"/>`,
+    carciofi:`<path d="M12 3 Q18 7 17 14 Q15 20 12 21 Q9 20 7 14 Q6 7 12 3Z" fill="${c}" ${o}/><path d="M12 8 Q15 11 14 15 M12 8 Q9 11 10 15 M8 12 Q12 14 16 12" stroke="#5f7a35" stroke-width="1.2" fill="none"/><path d="M12 21 v2" stroke="#5f7a35" stroke-width="2"/>`,
+    rucola:`<path d="M12 21 L12 12 M12 21 C4 18 3 13 6 11 L5 9 L8 9 L7 6 L10 7 L11 3 L13 7 L16 6 L15 9 L18 9 L17 11 C21 13 20 18 12 21Z" fill="${c}" ${o}/><path d="M12 20 V8" stroke="#2f5a1a" stroke-width="1.2"/>`
+  }[k]||`<circle cx="12" cy="12" r="7" fill="${c}"/>`;
+  return `<svg class="ing-ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
+}
 function face(name,mood){
   const c=CHARS[name]||CHARS.Marco, hc=c.hair;
   let h="";
