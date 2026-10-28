@@ -17,6 +17,7 @@ const CHARS={
  "Matteo":{skin:"#8d5a3b",hair:"#2b1d14",style:"curly",shirt:"#5f8f4e"},
  "Signor Moretti":{skin:"#e0a87e",hair:"#5a5a5a",style:"short",shirt:"#6b4a2b",mus:1,glasses:"round"},
  "Signora Lucia":{f:1,skin:"#f1c7a5",hair:"#6b2f1a",style:"bun",shirt:"#f39bb3",lips:"#c94a5a",ear:1},
+ "Dottoressa Severini":{f:1,skin:"#efc4a2",hair:"#2b2420",style:"bun",shirt:"#f4f4f0",lips:"#a8323e",glasses:"square",tie:"#2f6b8f"},
  "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1}
 };
 // Kleidung für die ganzen Körper (szenen.js bodyFigure)
@@ -35,6 +36,7 @@ const OUTFIT={
  "Matteo":{low:"pants",legs:"#3a4a6a",shoe:"#e74c3c",hoodie:1},
  "Signor Moretti":{low:"pants",legs:"#4a3a2a",shoe:"#2a1d14",vest:"#4a3420",belt:1},
  "Signora Lucia":{low:"skirt",legs:"#c46a85",shoe:"#f3f3f3",apron:1,short:1},
+ "Dottoressa Severini":{low:"skirt",legs:"#34495e",shoe:"#1d1d1d",coat:"#fbfbf7",books:1},
  "Signor Marino":{low:"pants",legs:"#1f3355",shoe:"#2a1d14",stripes:1}
 };
 // Kleine Bilder der Zutaten für die Knöpfe beim Pizza-Belegen, jeweils in der Farbe der Zutat.

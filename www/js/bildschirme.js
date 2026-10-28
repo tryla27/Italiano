@@ -58,7 +58,7 @@ function rHome(){
     <div class="stat"><b>${S.learned.length}</b><span>Gelernt</span></div>
   </div>
   <div class="week" aria-label="Woche">${GIORNI.map((g,i)=>{const d=S.day-wday(S.day)+i;return `<span class="wd${d===S.day?" now":""}${d<S.day?" past":""}${MARKT_TAGE.includes(i)?" mk":""}" title="${g[1]}${MARKT_TAGE.includes(i)?", Markttag":""}"><b>${g[2]}</b>${MARKT_TAGE.includes(i)?"🧺":""}</span>`;}).join("")}</div>
-  <p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>
+  <p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${inspToday()&&!(G&&!G.summary)?"🩺 Heute kommt das Gesundheitsamt! · ":""}${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>
   ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Belohnung für Vokabeltag ${S.chest.day}</small></button>`:""}
   ${G&&!G.summary
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
@@ -158,10 +158,12 @@ function rSummary(){
       <div class="line"><span>Trinkgeld</span><span>+${G.earned} €</span></div>
       <div class="line"><span>Zutaten vom Markt</span><span>−${sm.ing||0} €</span></div>
       <div class="line"><span>Miete</span><span>−${sm.rent||0} €</span></div>
+      ${G.insp?`<div class="line"><span>Gesundheitsamt: ${G.insp.res==="pass"?"promossa ✓":G.insp.res==="cond"?"con riserva":"bocciata ✗"}</span><span>${G.inspMoney>0?"+":G.inspMoney<0?"−":""}${Math.abs(G.inspMoney)} €</span></div>`:""}
       ${sm.buy?`<div class="line"><span>Neue Zutaten</span><span>−${sm.buy} €</span></div>`:""}
       ${G.saved?`<div class="line"><span>Beim Handeln gespart</span><span>+${G.saved} €</span></div>`:""}
       <div class="line total"><span>Gewinn heute</span><span>${sm.net>=0?"+":""}${sm.net} €</span></div>
     </div>
+    ${sm.letter?`<div class="panel letter"><b>📩 Una lettera dall'ASL</b><span>${wordsHTML("Domani arriva l'ispettrice sanitaria, la dottoressa Severini.",true)}</span><small>Morgen kommt die Gesundheitsinspektorin, Dottoressa Severini. Sie fragt nach Kühlung, Sauberkeit, Haltbarkeit, Kleidung, Allergenen und Papieren.</small></div>`:""}
     <div class="stats"><div class="stat"><b>${G.firstTry}/${G.steps}</b><span>Gleich richtig</span></div><div class="stat"><b>×${G.maxCombo}</b><span>Combo</span></div><div class="stat"><b>${S.streak}</b><span>Serie</span></div><div class="stat"><b>${(S.vocab.days[sm.day]||[]).length}</b><span>Vokabeln</span></div></div>
     <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
 }

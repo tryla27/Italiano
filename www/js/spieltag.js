@@ -26,9 +26,20 @@ function startDay(){
     const bill=steps.reduce((a,x)=>a+(x.bill||0),0)||(phoneSlots.has(i)&&steps[0].price?steps[0].price+fx("delivery"):0);
     G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],mood:2,steps,tip:0,bill,phone:phoneSlots.has(i),regular:i===regular});
   }
+  if(inspToday())G.guests.unshift({name:"Dottoressa Severini",mood:2,steps:sample(ISPEZIONE,4).map(m=>mcStep(m,"Was antwortest du?",{insp:true})),tip:0,bill:0,insp:true});
   G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
   const stall=stallStep(); if(stall)G.market.push(stall);
   screen="play"; render(); autoSpeak();
+}
+// Gesundheitsamt: ab La Pizzeria etwa jeden fünften Tag, nie zwei Tage hintereinander (außer nach „bocciato“).
+// Am Abend davor kommt ein Brief.
+const inspToday=()=>S.level>=1&&S.inspDue===S.day;
+function inspResult(g){
+  const err=g.steps.filter(x=>x.wrong||x.gaveUp).length, res=err===0?"pass":err<=2?"cond":"fail";
+  G.insp={res,err}; G.inspMoney=res==="pass"?15:res==="fail"?-20:0;
+  return res==="pass"?"Promossa! Die Dottoressa gibt dir das Zertifikat: +15 € und drei Tage lang einen Stern mehr in der Bewertung."
+    :res==="cond"?`Con riserva: ${err} ${err===1?"Fehler":"Fehler"}. Sie kommt in drei Tagen wieder.`
+    :`Bocciata! ${err} Fehler, 20 € Strafe. Sie kommt morgen wieder.`;
 }
 const wday=d=>(d-1)%7, giorno=d=>GIORNI[wday(d)], isMarketDay=d=>MARKT_TAGE.includes(wday(d));
 function nextMarketDay(d){for(let i=0;i<7;i++)if(isMarketDay(d+i))return d+i;return d;}
@@ -56,6 +67,7 @@ function finish(){
   }else{
     let base=LV.base*(st.kind==="pizza"?1.5:st.kind==="coffee"?1.2:st.phone?2:1)*f*(st.textShown?.5:1);
     let bonus=0;
+    if(st.insp){st.fb=[st.wrong?"meh":"good",st.wrong?"Mh. La dottoressa prende appunti …":"Bene. La dottoressa annuisce."];if(st.wrong===0){G.firstTry++;learn(st.it);}collectStep(st);save();return;}
     if(st.wrong===0&&!st.peeked){G.combo+=st.drink&&fx("wine")?2:1;G.maxCombo=Math.max(G.maxCombo,G.combo);bonus=G.combo>=3?Math.min(Math.floor(G.combo/3),3):0;}
     // Pizza mit drei Sternen: +1 € Trinkgeld; jede fehlerfreie Pizza zählt für die Sterne
     let star="";
@@ -92,7 +104,7 @@ function advance(){
     const g=G.guests[G.gi]; G.si++;
     if(G.si>=g.steps.length){
       G.revenue=(G.revenue||0)+(g.bill||0); if(!G.trip)kasse(g.bill,g.phone?"Lieferung":"Rechnung");
-      G.banner=g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
+      G.banner=g.insp?inspResult(g):g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
       G.gi++; G.si=0;
       if(G.gi>=G.guests.length&&G.trip){endTrip();return;}
       if(G.gi>=G.guests.length){
@@ -128,8 +140,10 @@ function stallBuy(k){
 }
 function endDay(){
   const LV=LEVELS[S.level];
+  if(S.cert>0){G.stars=Math.min(5,G.stars+1);S.cert--;} // Zertifikat vom Gesundheitsamt
+  if(G.insp&&G.insp.res==="pass")S.cert=3;
   if(fx("critic"))G.stars=Math.min(5,G.stars+fx("critic")); // Goldener Ofen: Bewertung milder
-  const rev=G.revenue||0, ing=Math.round(rev*.35*(1-fx("cheap"))), rent=LV.rent, buy=G.bought||0, net=rev+G.earned-ing-rent+G.saved-buy;
+  const rev=G.revenue||0, ing=Math.round(rev*.35*(1-fx("cheap"))), rent=LV.rent, buy=G.bought||0, net=rev+G.earned-ing-rent+G.saved-buy+(G.inspMoney||0);
   const d=new Date(), today=d.toLocaleDateString("sv-SE"); d.setDate(d.getDate()-1); const yest=d.toLocaleDateString("sv-SE");
   if(S.last!==today)S.streak=S.last===yest?S.streak+1:1;
   S.last=today;
@@ -137,6 +151,9 @@ function endDay(){
   S.vocab.days[S.day]=buildVocab(S.day);
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   if(S.boost&&--S.boost.days<=0)S.boost=null; // Truhen-Bonus gilt für einen Spieltag
-  S.coins=Math.max(0,S.coins+net); S.day++; save();
+  S.coins=Math.max(0,S.coins+net); S.day++;
+  if(S.level>=1){const r=G.insp&&G.insp.res;
+    if(r==="fail")S.inspDue=S.day; else if(r==="cond")S.inspDue=S.day+2; else if(r||!S.inspDue||S.inspDue<S.day)S.inspDue=S.day+rnd(3,5);}
+  G.summary.letter=inspToday(); save();
   screen="summary"; render(); if(net>0)kasse(net,"Gewinn heute"); else sfx("coins");
 }

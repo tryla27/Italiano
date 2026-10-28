@@ -214,6 +214,17 @@ await page.locator('[data-act="cserve"]').click();
 check(await page.evaluate(() => curStep().done && curStep().wrong === 0), "Richtig zubereiteter Kaffee wird nicht angenommen");
 await page.evaluate(() => { G = null; screen = "home"; S.owned = []; render(); });
 
+// Gesundheitsamt: Brief am Abend davor, vier Fragen, Ergebnis in der Abrechnung
+await fresh({ coins: 100, level: 1, day: 6, setupDone: true });
+check(await page.evaluate(() => { S.inspDue = 7; G = null; startDay(); G.phase = "guest"; while (G && screen === "play") advance(); return G.summary.letter === true; }), "Brief vom Gesundheitsamt fehlt am Abend davor");
+await shot("brief-asl");
+check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 4; }), "Dottoressa Severini kommt nicht");
+await page.evaluate(() => render());
+await shot("ispettrice");
+check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspDue > S.day; }), "Bestandene Prüfung gibt kein Zertifikat");
+check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspDue === S.day; }), "Durchgefallen: keine Strafe oder kein Wiederbesuch am nächsten Tag");
+await page.evaluate(() => { G = null; screen = "home"; render(); });
+
 // Kaputter Hauptstand: die Sicherheitskopie springt ein
 await page.goto(URL);
 await page.evaluate(() => { localStorage.clear(); localStorage.setItem("pizzeria-parola-backup", JSON.stringify({ savedAt: 1, state: JSON.stringify({ v: 3, S: { coins: 321, day: 7, setupDone: true }, G: null, screen: "home" }) })); localStorage.setItem("pizzeria-parola", "{kaputt"); });
