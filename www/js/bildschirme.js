@@ -76,6 +76,9 @@ function ricettarioHTML(){
   return `<div class="sheet" role="dialog" aria-label="Rezeptbuch"><h2>Il ricettario<small>Rezeptbuch · Zutaten ${S.ing.length}/${Object.keys(ING).length}</small></h2>
     <div class="recipes">${have.map(p=>`<div class="mi"><b>${cap(p.n)} ${st(p.n)} <span class="price">${p.p} €</span></b><div>${p.ing.map(k=>`<span title="${esc(ING[k][0])}">${ingIcon(k)}${k}</span>`).join(" ")}</div></div>`).join("")}
     ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}${p.lv>S.level?` · Markt ab ${esc(LEVELS[p.lv].it)}`:""}</div></div>`).join("")}</div>
+    ${tierOf("caffe")?`<h3 class="hand gold">Al bar</h3><div class="recipes">${CAFFE.map(c=>c.t<=tierOf("caffe")
+      ?`<div class="mi"><b>${esc(c.n)} ${st(c.n)} <span class="price">${c.p} €</span></b><div>${c.ing.join(" → ")} · ${c.cup}</div></div>`
+      :`<div class="mi locked"><b>🔒 ${esc(c.n)}</b><div>braucht ${esc(FURN.find(f=>f.grp==="caffe"&&f.tier===c.t).it)}</div></div>`).join("")}</div>`:""}
     <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Neue Zutaten kaufst du am Markttag bei Signor Esposito.</p>
     <button class="next" data-act="menu">Zurück</button></div>`;
 }
@@ -93,7 +96,7 @@ function helpHTML(){
 }
 function rPlay(){
   const st=curStep(), g=curGuest(), mk=G.phase==="market", L=S.level;
-  const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name;
+  const who=mk?"Signor Esposito, Mercato":g.phone?"Telefono":g.name+(g.regular?" · Stammgast ★":"");
   const hideText=st.phone&&!st.showText&&!st.done;
   let bubble=hideText
     ?`<div class="phone-call"><div class="ring">Squilla il telefono! Hör genau zu.</div><div><button class="say" data-act="speak">▶ Anhören</button><button class="say" data-act="text">Text zeigen (halbes Trinkgeld)</button></div></div>`
@@ -105,6 +108,13 @@ function rPlay(){
       return `<div class="card${own?" got":""}">${ingIcon(k)}<b>${k}</b><small>${esc(ING[k][0])}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
       ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<ING[k][3]?"disabled":""}>${ING[k][3]} €</button>`}</div>`;}).join("")}</div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
+  }
+  else if(st.kind==="coffee"){
+    action=`<div class="kitchen"><div class="pz-wrap">${cupSVG(st.curCup||"tazza",st.cur)}</div>
+      <div class="pz-side"><div class="cups">${Object.keys(CUPS).map(k=>`<button class="cupb" data-act="cup" data-k="${k}" aria-pressed="${st.curCup===k}" ${st.done?"disabled":""}>${k}</button>`).join("")}</div>
+      <button class="menu-btn" data-act="menu">Ricettario</button></div></div>
+      <div class="ings many ${st.shake?"shake":""}">${Object.keys(COF_ING).map(k=>{const n=st.cur.indexOf(k);return `<button class="ing" data-act="cing" data-k="${k}" aria-pressed="${n>=0}" ${st.done?"disabled":""}>${n>=0?`<span class="ord">${n+1}</span>`:""}<span class="dot" style="background:${COF_ING[k][1]}"></span>${k}<small>${COF_ING[k][0]}</small></button>`;}).join("")}</div>
+      ${st.done?"":`<button class="serve" data-act="cserve">Servire!</button>`}`;
   }
   else if(st.kind==="mc"){
     action=`<div class="opts">${st.opts.map((o,i)=>{
@@ -156,20 +166,20 @@ function rSummary(){
     <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
 }
 function rShop(){
-  // Nur was gerade zählt: der nächste Aufstieg und die Einrichtung bis zur nächsten Stufe; Gekauftes als Symbol-Leiste
-  const own=i=>S.owned.includes(i.id)||(i.up&&S.level>=i.up);
-  const up=SHOP.find(i=>i.up===S.level+1), bought=SHOP.filter(i=>!i.up&&own(i));
-  const list=SHOP.filter(i=>!i.up&&!own(i)&&i.lv<=S.level+1);
-  const card=i=>{const locked=i.lv>S.level;
-    return `<div class="card${locked?" locked":""}"><span class="ic">${i.ic}</span><b>${esc(i.it)}</b><small>${esc(i.de)}${i.bonus?` · +${Math.round(i.bonus*100)} %`:""}</small>
+  // Oben der Laden auf dem Raster, darunter der nächste Aufstieg und die Möbel bis zur nächsten Stufe
+  const up=SHOP.find(i=>i.up===S.level+1);
+  const next=i=>i.grp?i.tier===tierOf(i.grp)+1:!S.owned.includes(i.id);
+  const list=SHOP.filter(i=>!i.up&&next(i)&&i.lv<=S.level+1).sort((a,b)=>a.lv-b.lv||a.cost-b.cost);
+  const card=i=>{const locked=i.lv>S.level, old=i.grp&&FURN.find(x=>x.grp===i.grp&&x.tier===i.tier-1);
+    return `<div class="card${locked?" locked":""}"><span class="ic">${i.ic}</span><b>${esc(i.it)}</b><small>${esc(i.de)}${old&&ownsFurn(old)?` · statt ${esc(old.it)}`:""}</small><small class="fx">${esc(i.txt||"")}</small>
       ${locked?`<span class="owned dim">ab ${LEVELS[i.lv].it}</span>`:`<button class="buy" data-act="buy" data-id="${i.id}" ${S.coins<i.cost?"disabled":""}>${i.cost} €</button>`}</div>`;};
-  $("#screen").innerHTML=`${head("Shop")}
-    <p class="note">Du hast <b style="color:var(--gold)">${S.coins} €</b> · Trinkgeld jetzt ×${mult().toFixed(2)}</p>
+  const pct=Math.round(Math.min(TIP_CAP,fx("tip"))*100);
+  $("#screen").innerHTML=`${head("Il negozio","Einrichtung")}
+    <p class="note">Du hast <b style="color:var(--gold)">${S.coins} €</b> · Trinkgeld +${pct} %${pct>=TIP_CAP*100?" (Maximum)":""}${fx("guest")?` · +${fx("guest")} Gäste`:""}${S.boost?` · 🍀 ×${S.boost.x} am nächsten Tag`:""}</p>
+    ${boardHTML()}
     ${up?`<div class="item up"><span class="ic">${up.ic}</span><span class="nm">${esc(up.it)}<small>${esc(up.de)}</small></span><button class="buy" data-act="buy" data-id="${up.id}" ${S.coins<up.cost?"disabled":""}>${up.cost} €</button></div>`:`<div class="panel"><p class="note" style="margin:0">Höchste Stufe erreicht: ${esc(LEVELS[S.level].it)}!</p></div>`}
-    <div class="cards">${list.map(card).join("")||`<p class="note">Alles für diese Stufe gekauft. Steig auf, dann gibt es Neues.</p>`}</div>
-    ${bought.length?`<p class="note owned-row">Schon gekauft: ${bought.map(i=>`<span title="${esc(i.de)}">${i.ic}</span>`).join(" ")}</p>`:""}
-    ${Object.keys(S.deko).length?`<p class="note owned-row">Aus Truhen: ${Object.entries(S.deko).map(([id,n])=>{const d=decoById(id);return d?`<span title="${esc(d.it)} · ${esc(d.de)}" class="${d.rare?"rare":""}">${d.ic}${n>1?`<sub>${n}</sub>`:""}</span>`:"";}).join(" ")}</p>`:""}
-    ${S.boost?`<p class="note">🍀 Trinkgeld ×${S.boost.x} am nächsten Spieltag</p>`:""}`;
+    <div class="cards scroll">${list.map(card).join("")||`<p class="note">Alles für diese Stufe gekauft. Steig auf, dann gibt es Neues.</p>`}
+    ${Object.keys(S.deko).length?`<p class="note owned-row">Aus Truhen: ${Object.entries(S.deko).map(([id,n])=>{const d=decoById(id);return d?`<span title="${esc(d.it)} · ${esc(d.de)}" class="${d.rare?"rare":""}">${d.ic}${n>1?`<sub>${n}</sub>`:""}</span>`:"";}).join(" ")}</p>`:""}</div>`;
 }
 function rBook(){
   const e=Object.entries(S.book).sort((a,b)=>b[1].miss-a[1].miss);

@@ -36,6 +36,7 @@ oder erst beim Spielen aufgerufen wird.
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
 | `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Markt-Stufe, Preis), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
+| `einrichtung.js` | Möbel mit Ausbaustufen (`START_FURN`, Einrichtung in `SHOP`), ihre Boni (`fx`, Trinkgeld höchstens +50 %), Aufstellen auf dem Raster 8 × 6 (`S.place`) |
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände, Versionen mit Umwandlung (`SAVE_V`, `MIGRATE`), Kopie im Handy-Speicher (Capacitor Preferences), tägliche Sicherheitskopie |
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
@@ -71,6 +72,12 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 - Eine Pizza ist freigeschaltet, sobald man alle ihre Zutaten besitzt. Gäste bestellen nur, was man backen kann. Eine neu freigeschaltete Pizza bestellt am nächsten Tag garantiert jemand (`S.newPz`).
 - Sterne: Für je drei fehlerfreie Pizzen einer Sorte gibt es einen Stern, höchstens drei (`S.pz`). Unter zwei Sternen steht das Rezept in der Aufgabe. Mit drei Sternen gibt es +1 € Trinkgeld.
 - Spielstände vor Version 4 behalten alle zwölf alten Zutaten plus die neuen Start-Zutaten.
+
+## Einrichtung und Kaffee
+
+- Der Laden startet mit Elektroofen, Bretter-Theke, Plastiktisch und Kühlbox. Im Shop gibt es pro Stufe neue Möbel; Ofen, Theke, Tische, Kühlung und Kaffeemaschine haben drei Ausbaustufen.
+- Jedes Stück hat einen eigenen Bonus (`fx` in `SHOP`): mehr Gäste, günstigere Zutaten, Hilfen. Nach dem Kauf fragt Signor Moretti, wohin es soll; man stellt es auf ein grünes Feld. Ofen, Kaffee und Kühlung nur an die Küchenwand (oberste Reihe), Tische nur in den Gastraum (untere drei Reihen).
+- Kaffee (`CAFFE` in `inhalt/dialoge.js`) gibt es ab der Moka-Kanne. Die Reihenfolge der Zutaten zählt, eine falsche Tasse kostet nur Trinkgeld.
 
 ## Testen
 

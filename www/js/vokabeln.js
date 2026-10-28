@@ -13,6 +13,7 @@ function collectWords(text,de,weight){
   });
 }
 function collectStep(st){
+  if(st.kind==="coffee"){collectWords(st.it,st.de,1);st.want.concat(st.cup).forEach(k=>collectWords(k,COF_ING[k]?COF_ING[k][0]:CUPS[k],1));return;}
   if(st.kind==="pizza"){collectWords(st.it,st.de,1);[...st.want].forEach(k=>collectWords(k,ING[k][0],1));return;}
   collectWords(st.it,st.de,st.wrong||st.gaveUp?3:1);
   if(st.corDe){const c=st.opts.find(o=>o.ok);if(c)collectWords(c.t,st.corDe,st.wrong||st.gaveUp?3:1);
