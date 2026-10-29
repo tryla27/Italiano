@@ -29,10 +29,16 @@ function mapSVG(){
     <g transform="translate(360 40)"><circle r="18" fill="#1b221f" opacity=".75"/><path d="M0-13 L5 0 L0 13 L-5 0Z" fill="#f3eee2"/><path d="M0-13 L5 0 L-5 0Z" fill="#e5533f"/><text y="-21" text-anchor="middle" class="mp-de" style="fill:#1b221f">N</text></g>
     ${PLACES.map(pin).join("")}</svg>`;
 }
+// Karte als 3D-Viertel (stadt3d.js); ohne WebGL die flache Karte
 function rMap(){
-  $("#screen").innerHTML=`${head("La mappa","Karte · tippe auf einen Ort")}
-    <div class="map">${mapSVG()}</div>
+  const city=cityCan();
+  const pins=PLACES.map(p=>{const open=placeOpen(p);
+    return `<button class="city-pin${open?"":" shut"}" data-act="place" data-p="${p.id}" aria-label="${p.it}, ${p.de}${open?"":" (geschlossen)"}"><b>${open?"":"🔒 "}${p.it}</b><small>${p.de}</small></button>`;}).join("");
+  $("#screen").innerHTML=`${head("La mappa",city?"Il quartiere · tippe auf einen Ort":"Karte · tippe auf einen Ort")}
+    ${city?`<div class="map city" id="city3d"><div class="city-pins">${pins}</div>
+      <p class="loc-hint">Ein Finger dreht, zwei Finger zoomen und verschieben.</p></div>`:`<div class="map">${mapSVG()}</div>`}
     ${mapMsg?`<p class="banner">${esc(mapMsg)}</p>`:""}`;
+  if(city&&!cityMount($("#city3d")))render(); // WebGL ging doch nicht: flache Karte
 }
 let mapMsg="";
 // Zum Ort gehen: Tür-Geräusch, dann sofort dort.

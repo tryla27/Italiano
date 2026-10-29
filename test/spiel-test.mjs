@@ -331,7 +331,11 @@ check(await page.evaluate(() => S.coins === 77 && S.level === 1 && S.muted === f
 for (const trip of ["gelateria", "porto"]) {
   await fresh({ setupDone: true, coins: 10, day: 2 });
   await act("map");
-  if (trip === "gelateria") await shot("karte");
+  if (trip === "gelateria") {
+    await page.waitForTimeout(1500);
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 5, "Karte zeigt kein 3D-Viertel mit fünf Orten");
+    await shot("karte");
+  }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
   await shot(`ausflug-${trip}`);
   for (let i = 0; i < 10 && await page.evaluate(() => screen === "play"); i++) {

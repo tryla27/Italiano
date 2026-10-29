@@ -542,3 +542,14 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .bubble .react .it{font-size:.95rem;font-weight:600}
 .bubble .react small{display:block;font-style:normal;font-size:.78rem;opacity:.7}
 .appver{margin:0;text-align:center;font-size:.76rem;color:var(--chalk-dim)}
+/* Karte als 3D-Viertel (stadt3d.js) */
+#screen.s-map>.map.city{flex:1 1 0;min-height:340px}
+.map.city{position:relative;background:#bfe1ee;line-height:normal}
+.city-pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.city-pin{position:absolute;left:0;top:0;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 10px 6px;border-radius:10px;
+  background:#1b221f;border:2px solid #f4c64f;color:#f3eee2;font:inherit;line-height:1.1;white-space:nowrap;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.city-pin::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-6px;border:6px solid transparent;border-top-color:#f4c64f;border-bottom:0}
+.city-pin b{font-family:var(--hand);font-weight:400;font-size:.95rem}
+.city-pin small{font-size:.66rem;color:var(--chalk-dim)}
+.city-pin.shut{border-color:#3c4842;opacity:.85}
+.city-pin.shut::after{border-top-color:#3c4842}

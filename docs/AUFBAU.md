@@ -46,7 +46,8 @@ oder erst beim Spielen aufgerufen wird.
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
 | `szenen.js` | Umgebungen: Pizzeria, Markt, Eisladen, Hafen, laufende Figuren (`walker`: Gast kommt herein und geht, Passanten auf Markt und Hafen). Nutzt die Bilder aus `www/bilder/umgebungen/` (Ausschnitt und Platz der Figur in `SCENE_IMG`), sonst gezeichnete Ersatz-Szenen |
-| `karte.js` | Karte mit allen Orten: antippen spielt das Tür-Geräusch und geht direkt dorthin |
+| `karte.js` | Karte mit allen Orten: antippen spielt das Tür-Geräusch und geht direkt dorthin. Zeigt das 3D-Viertel aus `stadt3d.js`, ohne WebGL die flache Karte |
+| `stadt3d.js` | La mappa als 3D-Viertel von Neapel: Piazza mit Brunnen, Häuserreihen, Promenade, Hafen, Meer, Capri und Vesuv aus einfachen Formen (gleiche Teile zu wenigen Meshes zusammengelegt), dazu Vespa, Terrasse, Schirme und Boot aus `www/modelle/`. Orte stehen in `CITY_SPOTS`, Schilder darüber sind HTML-Knöpfe mit `data-act="place"` |
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt mit Feilschen (`hagStart`, `hagOffer`), Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
