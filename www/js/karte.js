@@ -4,8 +4,17 @@ const PLACES=[
   {id:"mercato",it:"Il Mercato",de:"mittwochs + samstags",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
   {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:"bilder/umgebungen/eisladen.webp",vb:"60 380 280 280"},
   {id:"porto",it:"Il Porto",de:"Ausflug",x:150,y:402,img:"bilder/umgebungen/hafen.webp",vb:"60 300 280 280"},
-  {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true}
+  {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true},
+  // Lernorte gibt es nur im 3D-Viertel; auf der flachen Karte sind es die Knöpfe der Startseite
+  {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Memory",city:1},
+  {id:"biblioteca",it:"La Biblioteca",de:"Bücher · Notizbuch",city:1},{id:"forno",it:"Il Forno",de:"Rezepte",city:1}
 ];
+const CITY_GO={
+  scuola:()=>{screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;render();},
+  bar:()=>startMemo(),
+  biblioteca:()=>{screen="biblio";render();},
+  forno:()=>{menuOpen=true;render();}
+};
 function placeOpen(p){
   if(p.locked)return false;
   if(p.id==="mercato")return !!(G&&!G.summary&&G.phase==="market");
@@ -27,16 +36,27 @@ function mapSVG(){
   return `<svg class="map-svg" viewBox="0 0 400 540" role="img" aria-label="Karte">${DEFS}
     <image href="bilder/karte.webp" width="400" height="540"/>
     <g transform="translate(360 40)"><circle r="18" fill="#1b221f" opacity=".75"/><path d="M0-13 L5 0 L0 13 L-5 0Z" fill="#f3eee2"/><path d="M0-13 L5 0 L-5 0Z" fill="#e5533f"/><text y="-21" text-anchor="middle" class="mp-de" style="fill:#1b221f">N</text></g>
-    ${PLACES.map(pin).join("")}</svg>`;
+    ${PLACES.filter(p=>!p.city).map(pin).join("")}</svg>`;
 }
+// Schilder über den Orten im 3D-Viertel
+function cityPinsHTML(){
+  return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="bar"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.de;
+    return `<button class="city-pin${open?"":" shut"}${p.city?" learn":""}" data-act="place" data-p="${p.id}" aria-label="${p.it}, ${de}${open?"":" (geschlossen)"}"><b>${open?"":"🔒 "}${p.it}</b><small>${de}</small></button>`;}).join("");
+}
+const cityBox=()=>`<div class="map city" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
+  <p class="loc-hint">Ein Finger dreht, zwei Finger zoomen. Tippe auf ein Haus.</p></div>`;
+// Karte als 3D-Viertel (stadt3d.js); ohne WebGL die flache Karte
 function rMap(){
-  $("#screen").innerHTML=`${head("La mappa","Karte · tippe auf einen Ort")}
-    <div class="map">${mapSVG()}</div>
+  const city=cityCan();
+  $("#screen").innerHTML=`${head("La mappa",city?"Il quartiere · tippe auf einen Ort":"Karte · tippe auf einen Ort")}
+    ${city?cityBox():`<div class="map">${mapSVG()}</div>`}
     ${mapMsg?`<p class="banner">${esc(mapMsg)}</p>`:""}`;
+  if(city&&!cityMount($("#city3d")))render(); // WebGL ging doch nicht: flache Karte
 }
 let mapMsg="";
 // Zum Ort gehen: Tür-Geräusch, dann sofort dort.
 function goPlace(id){
+  if(CITY_GO[id]){mapMsg="";sfx("door");return CITY_GO[id]();}
   const p=PLACES.find(q=>q.id===id); if(!p)return;
   if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":isMarketDay(S.day)?"Heute ist Markttag: der Markt öffnet nach dem letzten Gast.":`Markt ist nur mercoledì und sabato. Nächster Markttag: ${giorno(nextMarketDay(S.day))[0]}.`;sfx("wrong");return render();}
   mapMsg=""; sfx("door");

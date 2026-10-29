@@ -47,6 +47,8 @@ function vocabStatus(){
   if(!open)return `Alle ${days.length} ${days.length===1?"Tag":"Tage"} gelernt ✓`;
   return vocabUnlocked(open)?`Tag ${open}: ${S.vocab.days[open].length} Wörter warten`:`Tag ${open} wartet`;
 }
+// Wartet ein Vokabeltag, der schon frei ist? (Schild über der Scuola)
+function vocabWaiting(){const open=Object.keys(S.vocab.days).map(Number).sort((a,b)=>a-b).find(d=>!S.vocab.done[d]);return open!=null&&vocabUnlocked(open);}
 function startVocab(d){
   const list=d==="book"?bookList():S.vocab.days[d]; if(!list||list.length<2||(d!=="book"&&!vocabUnlocked(d)))return;
   S.vocabRun={day:d,list:d==="book"?list:undefined,queue:shuffle(list.map((_,k)=>({k,st:0}))).map((q,i)=>({...q,dir:i%2?"de":"it"})),total:list.length,mastered:0,wrong:0,showTip:false,res:null,typed:"",opts:null,missed:false};

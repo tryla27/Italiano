@@ -6,11 +6,19 @@ function render(){
   rTopbar();
   if(volOpen){
     const sl=(id,label,v)=>`<div class="vrow"><label for="${id}">${label}</label><input type="range" id="${id}" min="0" max="100" step="5" value="${Math.round(v*100)}" ${S.muted?"disabled":""}><output id="${id}-o">${Math.round(v*100)} %</output></div>`;
-    $("#overlay").innerHTML=`<div class="sheet top${S.muted?" muted":""}" role="dialog" aria-label="Einstellungen"><h2>Impostazioni<small>Einstellungen</small></h2>
+    // Ein Menü für Pause und Einstellungen: oben Weiter / Zur Stadt / Abbrechen, darunter Ton und Spielstand
+    const voc=screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished, run=voc||(screen==="play"&&G&&!G.summary);
+    const nav=run?`<div class="pausenav"><button class="next" data-act="vol">Weiter</button>
+        <button class="sec" data-act="${voc?"vcity":"quit"}">Zurück zur Stadt<small>später genau hier weitermachen</small></button>
+        <button class="sec abort" data-act="${voc?"vabort":"abort"}">Abbrechen<small>${voc?"Fortschritt dieser Runde geht verloren":"ohne Belohnung: kein Trinkgeld, kein neuer Tag"}</small></button></div>`
+      :screen!=="home"?`<div class="pausenav"><button class="sec" data-act="home">Zurück zur Stadt</button></div>`:"";
+    $("#overlay").innerHTML=`<div class="sheet top${S.muted?" muted":""}" role="dialog" aria-label="${run?"Pause und Einstellungen":"Einstellungen"}"><h2>${run?"Pausa":"Impostazioni"}<small>${run?"Pause · Einstellungen":"Einstellungen"}</small></h2>
+      ${nav}
       <button class="mutebig${S.muted?" on":""}" data-act="mute" aria-pressed="${S.muted}">${ICON.off} ${S.muted?"Alles stumm · antippen für Ton":"Alles stumm schalten"}</button>
       ${sl("v-music","Musik",S.vol.music)}${sl("v-sfx","Geräusche",S.vol.sfx)}${canSpeak?sl("v-voice","Vorlese-Stimme",S.vol.voice):""}
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
       <p class="savenote">${cloudState==="cloud"?"☁ Spielstand in deinem Konto gesichert":"✓ Spielstand auf diesem Gerät gespeichert"}</p>
+      <p class="appver">${APP_BUILD.indexOf("__")===0?"Browser-Version":`App-Version v1.${esc(APP_BUILD)}`}${UPDATE?` · neu: ${esc(UPDATE.tag)}`:""}</p>
       <div class="savecode"><b>Spielstand mitnehmen</b>
         <p>Mit diesem Code holst du deinen Fortschritt auf ein anderes Gerät, zum Beispiel vom Android-Handy aufs iPhone.</p>
         <div class="row"><button class="sec" data-act="code-copy">Code kopieren</button><button class="sec" data-act="code-paste">Code einfügen</button></div>
@@ -20,7 +28,7 @@ function render(){
         ${codeBox&&codeBox.mode==="file"?`<p class="codemsg">${esc(codeBox.msg||"")}</p>`:""}
         ${codeBox&&codeBox.mode!=="file"?`<textarea id="codebox" rows="3" ${codeBox.mode==="copy"?"readonly":'placeholder="Code hier einfügen …"'}>${esc(codeBox.text||"")}</textarea>
         ${codeBox.mode==="paste"?`<button class="serve" data-act="code-load">Spielstand laden</button>`:""}${codeBox.msg?`<p class="codemsg">${esc(codeBox.msg)}</p>`:""}`:""}</div>
-      <button class="next" data-act="vol">Fertig</button></div>`;
+      <button class="next" data-act="vol">${run?"Weiter spielen":"Fertig"}</button></div>`;
   }
   else if(pauseOpen){const voc=screen==="vocab";
     $("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Pausa"><h2>Pausa<small>Pause</small></h2>
@@ -30,13 +38,13 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,locale:rLocale})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
   armBack();
 }
-// Kopfzeile für Untermenüs: zurück zur Pizzeria, Titel, Ton und Einstellungen in einer Zeile
+// Kopfzeile für Untermenüs: zurück zur Stadt (Startseite), Titel, Ton und Einstellungen in einer Zeile
 const tools=()=>`<span class="tools"><button class="tb sm${S.muted?" on":""}" data-act="mute" aria-label="${S.muted?"Ton einschalten":"Alles stumm schalten"}" aria-pressed="${S.muted}">${S.muted?ICON.off:ICON.on}</button><button class="tb sm" data-act="vol" aria-label="Einstellungen">${ICON.gear}</button></span>`;
-const head=(title,sub)=>`<div class="head"><button class="back" data-act="home" aria-label="Zurück zur Pizzeria">‹ Pizzeria</button><h2 class="t">${title}${sub?`<small>${sub}</small>`:""}</h2>${tools()}</div>`;
+const head=(title,sub)=>`<div class="head"><button class="back" data-act="home" aria-label="Zurück zur Stadt">‹ Stadt</button><h2 class="t">${title}${sub?`<small>${sub}</small>`:""}</h2>${tools()}</div>`;
 // Leiste oben links: Einstellungen und schnelles Stummschalten, auf jedem Bildschirm.
 const ICON={
   gear:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>`,
@@ -50,25 +58,50 @@ function rTopbar(){
   $("#topbar").innerHTML=`<button class="tb" data-act="vol" aria-label="Einstellungen" aria-expanded="${volOpen}">${ICON.gear}</button>
     <button class="tb${S.muted?" on":""}" data-act="mute" aria-label="${S.muted?"Ton einschalten":"Alles stumm schalten"}" aria-pressed="${S.muted}">${S.muted?ICON.off:ICON.on}</button>`;
 }
-function rHome(){
+// Teile der Startseite (mit und ohne 3D-Viertel)
+function homeSign(){
   const L=LEVELS[S.level];
-  $("#screen").innerHTML=`
-  <div class="sign"><span class="lvl">${L.it} · Napoli</span><h1>Parla <span>Pizza!</span></h1><span class="lvl-de">Stufe ${S.level+1} von ${LEVELS.length} · ${L.de}</span>${tools()}</div>
-  ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}
-  ${!LADEN_EINRICHTEN?"":S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
-  <div class="stats">
+  return `<div class="sign"><span class="lvl">${L.it} · Napoli</span><h1>Parla <span>Pizza!</span></h1><span class="lvl-de">Stufe ${S.level+1} von ${LEVELS.length} · ${L.de}</span>${tools()}</div>
+  ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}`;
+}
+function homeStats(){
+  return `<div class="stats">
     <div class="stat"><b>${S.coins}</b><span>Euro</span></div>
     <div class="stat"><b>${S.day}</b><span>Tag</span></div>
     <div class="stat"><b>${S.streak}</b><span>Serie</span></div>
     <div class="stat"><b>${S.learned.length}</b><span>Gelernt</span></div>
-  </div>
-  <div class="week" aria-label="Woche">${GIORNI.map((g,i)=>{const d=S.day-wday(S.day)+i;return `<span class="wd${d===S.day?" now":""}${d<S.day?" past":""}${MARKT_TAGE.includes(i)?" mk":""}" title="${g[1]}${MARKT_TAGE.includes(i)?", Markttag":""}"><b>${g[2]}</b>${MARKT_TAGE.includes(i)?"🧺":""}</span>`;}).join("")}</div>
-  <p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${inspToday()&&!(G&&!G.summary)?"🩺 Heute kommt das Gesundheitsamt! · ":""}${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>
-  ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Belohnung für Vokabeltag ${S.chest.day}</small></button>`:""}
-  ${G&&!G.summary
+  </div>`;
+}
+function homeStart(){
+  return G&&!G.summary
     ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · ${cap(giorno(S.day)[0])}, Tag ${S.day}</small></button>`
-    :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`}
+    :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`;
+}
+const weekNote=()=>`<p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${inspToday()&&!(G&&!G.summary)?"🩺 Heute kommt das Gesundheitsamt! · ":""}${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>`;
+// Startseite als 3D-Viertel: von hier geht es zu allen Orten, auch zum Lernen (Scuola, Bar, Biblioteca, Forno)
+function rHomeCity(){
+  $("#screen").innerHTML=`${homeSign()}
+  ${homeStats()}
+  ${weekNote()}
+  ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Belohnung für Vokabeltag ${S.chest.day}</small></button>`:""}
+  ${cityBox()}
+  ${mapMsg?`<p class="banner">${esc(mapMsg)}</p>`:""}
+  ${homeStart()}
+  <div class="row3 home3"><button class="sec" data-act="locale">Il mio locale</button><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="help">So geht's</button></div>
+  ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
+  if(!cityMount($("#city3d"))){render();}
+}
+function rHome(){
+  if(S.setupDone&&cityCan())return rHomeCity();
+  $("#screen").innerHTML=`
+  ${homeSign()}
+  ${!LADEN_EINRICHTEN?"":S.setupDone?roomHTML(false,false):`<div class="shelf"><span class="empty">Dein Laden ist noch leer. Richte ihn zuerst ein!</span></div>`}
+  ${homeStats()}
+  <div class="week" aria-label="Woche">${GIORNI.map((g,i)=>{const d=S.day-wday(S.day)+i;return `<span class="wd${d===S.day?" now":""}${d<S.day?" past":""}${MARKT_TAGE.includes(i)?" mk":""}" title="${g[1]}${MARKT_TAGE.includes(i)?", Markttag":""}"><b>${g[2]}</b>${MARKT_TAGE.includes(i)?"🧺":""}</span>`;}).join("")}</div>
+  ${weekNote()}
+  ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Belohnung für Vokabeltag ${S.chest.day}</small></button>`:""}
+  ${homeStart()}
   ${S.setupDone?`<div class="placerow"><button class="placebtn locbtn" data-act="locale"><span class="locthumb">${locThumbHTML()}</span><b>Il mio locale</b><small>Dein Restaurant in 3D</small></button>
     <button class="placebtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><b>La mappa</b><small>Markt, Eisladen, Hafen</small></button></div>`:""}
   <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"Paare finden":"Bonus heute!"}</small></button></div>

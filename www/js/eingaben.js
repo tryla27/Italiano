@@ -37,12 +37,12 @@ function handleClick(e){
   if(a==="file-load"){const f=$("#savefile");if(f){f.value="";f.click();}return;}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
   if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
-  if(a==="home"||a==="quit"){pauseOpen=false;if(screen==="summary")G=null;screen="home";return render();}
-  if(a==="pause"){pauseOpen=!pauseOpen;return render();}
+  if(a==="home"||a==="quit"){pauseOpen=false;volOpen=false;codeBox=null;if(screen==="summary")G=null;screen="home";return render();}
+  if(a==="pause"){volOpen=!volOpen;pauseOpen=false;codeBox=null;return render();} // Pause und Einstellungen sind ein Menü
   if(a==="help"){helpOpen=!helpOpen;return render();}
   // Abbrechen ohne Belohnung: Trinkgeld und Tag kommen erst am Ende dazu, also einfach verwerfen
-  if(a==="abort"){pauseOpen=false;G=null;screen="home";save();return render();}
-  if(a==="vabort"){pauseOpen=false;S.vocabRun=null;S.vocabPaused=null;screen="vocab";save();return render();}
+  if(a==="abort"){pauseOpen=false;volOpen=false;G=null;screen="home";save();return render();}
+  if(a==="vabort"){pauseOpen=false;volOpen=false;S.vocabRun=null;S.vocabPaused=null;screen="vocab";save();return render();}
   if(a==="shop"){screen="shop";return render();}
   if(a==="map"){mapMsg="";if(screen==="vocab"&&S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;screen="map";return render();}
   if(a==="place")return goPlace(t.dataset.p);
@@ -54,7 +54,8 @@ function handleClick(e){
   if(a==="qidk"){const Q=S.setupQuiz,it=roomItem(S.room[Q.queue[Q.qi]].id);note(it.it,it.de);sfx("wrong");Q.flash=Q.queue[Q.qi];Q.flashOk=true;Q.queue.push(Q.queue[Q.qi]);Q.qi++;Q.wrong=0;Q.showTip=false;Q.revealed=false;render();showName(document.querySelector(`.ri[data-i="${Q.queue[Q.queue.length-1]}"]`),it);return;}
   if(a==="setupDone"){S.setupDone=true;S.setupQuiz=null;G=null;return startDay();}
   if(a==="vocab"){screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;return render();}
-  if(a==="vlist"){pauseOpen=false;if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="vocab";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
+  if(a==="vlist"){pauseOpen=false;volOpen=false;if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="vocab";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
+  if(a==="vcity"){pauseOpen=false;volOpen=false;if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;else if(S.vocabRun)S.vocabRun.paused=true;screen="home";const R=S.vocabRun;S.vocabRun=null;S.vocabPaused=R&&!R.finished?R:S.vocabPaused;return render();}
   if(a==="vstart"){const d=t.dataset.d==="book"?"book":+t.dataset.d;if(S.vocabPaused&&S.vocabPaused.day===d&&!S.vocab.done[d]){S.vocabRun=S.vocabPaused;S.vocabPaused=null;screen="vocab";return render();}S.vocabPaused=null;return startVocab(d);}
   if(a==="vsay"){const R=S.vocabRun;return speak(vList(R)[R.queue[0].k].it);}
   if(a==="vopt"){const R=S.vocabRun;if(R.res==="ok")return;return vocabAnswer(R.opts[+t.dataset.i]);}
@@ -66,6 +67,19 @@ function handleClick(e){
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
   if(a==="memo")return startMemo();
+  if(a==="biblio"){LETTURA=null;stopPoesia();POESIA=null;screen="biblio";return render();}
+  if(a==="leggi")return startLettura(t.dataset.b,+t.dataset.c);
+  if(a==="lpag")return letturaPage(+t.dataset.d);
+  if(a==="ltr"){LETTURA.tr=!LETTURA.tr;return render();}
+  if(a==="lsay2"){const C=libro(LETTURA.b).capitoli[LETTURA.c];return speak(C.pagine[LETTURA.p][0]);}
+  if(a==="lq")return letturaAnswer(+t.dataset.i);
+  if(a==="lqnext")return letturaNext();
+  if(a==="poesia")return startPoesia(t.dataset.p);
+  if(a==="pline"){stopPoesia();POESIA.line=+t.dataset.i;speak(poesia(POESIA.id).versi[+t.dataset.i][0]);return render();}
+  if(a==="pall")return poesiaReadAll(0);
+  if(a==="ptr"){POESIA.tr=!POESIA.tr;return render();}
+  if(a==="pquiz"){POESIA.end=null;return startPoesiaQuiz();}
+  if(a==="pans")return poesiaAnswer(+t.dataset.i);
   if(a==="mflip")return memoFlip(+t.dataset.i);
   if(a==="sound"){S.sound=!S.sound;save();return render();}
   if(a==="sayit")return speak(t.dataset.t);
@@ -127,9 +141,10 @@ function armBack(){
 function goBack(){
   if(chestUI){chestTap();return;}
   if(volOpen||menuOpen||pauseOpen||helpOpen){volOpen=menuOpen=pauseOpen=helpOpen=false;codeBox=null;}
-  else if(screen==="play"&&G&&!G.summary)pauseOpen=true;
-  else if(screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished)pauseOpen=true;
+  else if(screen==="play"&&G&&!G.summary)volOpen=true;
+  else if(screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished)volOpen=true;
   else if(screen==="vocab"&&S.vocabRun){S.vocabRun=null;}
+  else if(screen==="lettura"||screen==="poesia"){LETTURA=null;stopPoesia();POESIA=null;screen="biblio";}
   else if(screen!=="home"){if(screen==="summary")G=null;screen="home";}
   sfx("click"); render();
 }
