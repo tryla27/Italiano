@@ -204,10 +204,12 @@ const SCENE_IMG={
   porto:{src:"bilder/umgebungen/hafen.webp",oy:250}
 };
 function imageScene(id,person,enter,label,extra){
-  const I=SCENE_IMG[id]; if(!I)return null;
-  let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="700"/>`+(extra||"");
+  // Pizzeria: dein eigenes 3D-Restaurant (restaurant3d.js), sonst das gemalte Bild
+  const I=(id==="pizzeria"&&locStage())||SCENE_IMG[id]; if(!I)return null;
+  let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="${I.h||700}" preserveAspectRatio="none"/>`+(extra||"");
   if(person&&person.name&&I.stand){const [x,y,h]=I.stand;
     s+=(person.prev?walker(person.prev,2,x,y,h,"walk walkout"):"")+walker(person.name,person.mood,x,y,h,enter?"walk walkin":"");}
+  if(I.fg)s+=`<image href="${I.fg}" x="0" y="0" width="400" height="${I.h}" preserveAspectRatio="none" pointer-events="none"/>`;
   else if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${figure(person,x,y,w,enter?"enter2":"")}</g>`;}
   return `<svg class="stage-svg" viewBox="0 0 400 ${SCENE_H}" role="img" aria-label="${label}">${s}</svg>`;
 }

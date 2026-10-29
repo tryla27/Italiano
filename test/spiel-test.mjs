@@ -283,6 +283,11 @@ await shot("einrichtung-3d-moka");
   check(await page.evaluate(k => JSON.stringify(S.locale) === k, keep), "Möbelplätze gehen beim Neuladen verloren");
 }
 check(await page.evaluate(() => { screen = "home"; render(); return !!document.querySelector('.locbtn[data-act="locale"]'); }), "Startseite hat keinen Knopf zum Restaurant");
+// Spieltag zeigt das eigene 3D-Restaurant (Blick hinter der Theke) statt des gemalten Bilds
+await page.waitForFunction(() => L3.stage && L3.stage.sig === locSig(), null, { timeout: 15000 }).catch(() => {});
+check(await page.evaluate(() => { G = null; startDay(); G.phase = "guest"; G.entered = -1; screen = "play"; render(); const im = document.querySelector(".stage image"); return !!im && /^data:image/.test(im.getAttribute("href")) && !!document.querySelector(".stage .walker"); }), "Spieltag zeigt nicht das 3D-Restaurant");
+await shot("spieltag-3d");
+await page.evaluate(() => { G = null; screen = "home"; render(); });
 check(await page.evaluate(() => { S.owned = SHOP.filter(i => i.fx && i.fx.tip).map(i => i.id); return mult() === 1 + TIP_CAP; }), "Trinkgeld-Deckel fehlt");
 check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
 // Holzofen: eine falsche Pizza pro Tag zählt nicht

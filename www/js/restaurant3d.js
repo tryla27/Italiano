@@ -59,7 +59,7 @@ function loc3dInit(){
   if(L3.ok!==null)return L3.ok;
   try{
     if(!window.THREE)throw 0;
-    const r=new THREE.WebGLRenderer({antialias:true,alpha:false,powerPreference:"low-power"});
+    const r=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:"low-power"});
     r.setPixelRatio(Math.min(window.devicePixelRatio||1,1.75));
     r.setClearColor(0x1b221f);
     r.domElement.className="loc-canvas";
@@ -494,6 +494,37 @@ function locThumbSoon(){
       Object.assign(L3,{th:keep.th,ph:keep.ph,rad:keep.rad}); L3.tgt.copy(keep.t);
       if(oldHost&&oldHost.isConnected)locResize();
       document.querySelectorAll(".locthumb").forEach(el=>el.innerHTML=locThumbHTML());
+      locStageRender(); if(oldHost&&oldHost.isConnected)locResize();
     }catch(e){console.warn("3D-Vorschau",e);} finally{L3.thumbBusy=false;}
   },60);
+}
+
+/* Spieltag: Blick hinter der Theke in dein eigenes Restaurant (statt des gemalten Pizzeria-Bilds).
+   Zwei Bilder: der Raum und davor nur die Theke (durchsichtig), damit der Gast hinter der Theke steht.
+   szenen.js nimmt es über locStage() wie die anderen Hintergründe (400 × 260, stand = Platz des Gasts). */
+function locStage(){return L3.stage||null;}
+function locStageRender(){
+  const B=L3.byKey.bancone; if(!B||!B.pos||B.st||!B.obj){L3.stage=null;return;}
+  const T=THREE, a=B.pos.r*Math.PI/2, at=(lx,lz)=>[B.pos.x+lx*Math.cos(a)+lz*Math.sin(a),B.pos.z-lx*Math.sin(a)+lz*Math.cos(a)];
+  const clampIn=([x,z])=>[Math.max(-LW/2+.3,Math.min(LW/2-.3,x)),Math.max(-LD/2+.3,Math.min(LD/2-.3,z))];
+  const [cx,cz]=clampIn(at(0,-1.5)), [lx,lz]=at(0,3.2), cam=new T.PerspectiveCamera(58,400/260,.1,60);
+  cam.position.set(cx,2.05,cz); cam.lookAt(lx,.95,lz); cam.updateMatrixWorld(true);
+  const r=L3.r, W=800, H=520; r.setSize(W,H,false);
+  // Wände alle zeigen; was direkt an der Kamera steht (Ofen hinter der Theke), ausblenden
+  L3.walls.forEach(w=>{w.g.visible=true;w.low.visible=false;w.deco.forEach(o=>o.visible=true);});
+  const hidden=[]; L3.items.forEach(I=>{if(!I.obj||!I.pos||I.st)return;const b=boxAt(I,I.pos.x,I.pos.y,I.pos.z,I.pos.r);
+    if(cx>b.x0-.35&&cx<b.x1+.35&&cz>b.z0-.35&&cz<b.z1+.35&&I!==B){I.obj.visible=false;hidden.push(I);}
+    else if(zoneOf(I.d)==="wall")I.obj.visible=true;});
+  L3.box.visible=false; L3.grid.visible=false;
+  r.setClearColor(0xd9c2a0,1); r.render(L3.scene,cam); const bg=r.domElement.toDataURL("image/jpeg",.85);
+  // Nur die Theke mit allem, was darauf steht
+  const keep=new Set([B.obj,...riders(B).map(x=>x.I.obj)]), off=[];
+  L3.scene.children.forEach(o=>{if(!o.isLight&&!keep.has(o)&&o.visible){o.visible=false;off.push(o);}});
+  r.setClearColor(0x000000,0); r.render(L3.scene,cam); const fg=r.domElement.toDataURL("image/png");
+  off.forEach(o=>o.visible=true); hidden.forEach(I=>I.obj.visible=true); r.setClearColor(0x1b221f,1);
+  // Platz des Gasts: vor der Theke, Füße auf dem Boden, Kopf auf 1,72 m
+  const [gx,gz]=at(-.55,1.5), p=(x,y,z)=>{const v=new T.Vector3(x,y,z).project(cam);return [(v.x+1)/2*400,(1-v.y)/2*260];};
+  const f=p(gx,0,gz), h=p(gx,1.72,gz), size=(f[1]-h[1])*250/240;
+  L3.stage={src:bg,fg,oy:0,h:260,stand:[Math.round(f[0]),Math.round(f[1]),Math.round(size)],sig:locSig()};
+  L3.dirty=true;
 }
