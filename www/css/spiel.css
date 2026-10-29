@@ -553,3 +553,11 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .city-pin small{font-size:.66rem;color:var(--chalk-dim)}
 .city-pin.shut{border-color:#3c4842;opacity:.85}
 .city-pin.shut::after{border-top-color:#3c4842}
+/* Startseite als 3D-Viertel */
+#screen.s-home>.map.city{flex:1 1 0;min-height:280px}
+.row3.home3{grid-template-columns:repeat(3,1fr)}
+.city-pin.learn{border-color:#8fd0a8}
+.city-pin.learn::after{border-top-color:#8fd0a8}
+.s-home .city-pin{padding:3px 8px 4px}
+.s-home .city-pin b{font-size:.84rem}
+.s-home .city-pin small{font-size:.6rem}

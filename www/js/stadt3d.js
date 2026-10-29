@@ -6,7 +6,8 @@
 const C3={ok:null,r:null,scene:null,cam:null,host:null,tgt:null,th:-.12,ph:.92,rad:70,fitted:false,
   ptrs:new Map(),drag:null,pinch:null,raf:0,last:0,t:0,sea:null,boats:[],picks:[],batch:{}};
 // Wo die Orte stehen: x, z und Höhe des Schilds über dem Boden
-const CITY_SPOTS={pizzeria:[-5,-11,8.6],mercato:[8,-.5,5.2],gelateria:[14,12.2,5.4],porto:[-15,26,4.2],capri:[30,50,9]};
+const CITY_SPOTS={pizzeria:[-5,-11,8.6],mercato:[8,-.5,5.2],gelateria:[14,12.2,5.4],porto:[-15,26,4.2],capri:[30,50,9],
+  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8]};
 const PIAZZA=[-11,14,-7,9];              // x0, x1, z0, z1
 const PROM_Z=[10,18];                    // Uferpromenade, danach Kaimauer und Meer
 const WALL_COLS=["#f0c987","#e8a38a","#f3e2bf","#d98c5f","#f6d7a6","#e9b9a4","#d9c38f"];
@@ -102,7 +103,7 @@ function buildCity(){
   const free=(x0,x1,z0,z1)=>{
     const over=(a)=>x0<a[1]&&x1>a[0]&&z0<a[3]&&z1>a[2];
     return ![[PIAZZA[0]-1,PIAZZA[1]+1,PIAZZA[2]-1,PIAZZA[3]+1],[-1.5,2.5,-60,0],[-21,-17,-60,PROM_Z[0]],[18,22,-60,PROM_Z[0]],[-60,60,-20,-16.5],
-      [-10,-.5,-15,-7],[-60,60,PROM_Z[0]-.5,60],[30,60,-6,20]].some(over);
+      [-10,-.5,-15,-7],[2.5,11.5,-15.5,-8],[-17.5,-11,-14.5,-7.5],[22.5,31.5,-5.5,4.5],[-60,60,PROM_Z[0]-.5,60],[30,60,-6,20]].some(over);
   };
   for(let gx=-42;gx<42;gx+=6)for(let gz=-38;gz<10;gz+=6){
     const x0=gx,x1=gx+6,z0=gz,z1=gz+6; if(!free(x0,x1,z0,z1))continue;
@@ -122,7 +123,7 @@ function buildCity(){
     else c3add(rnd()<.5?"leaf":"leaf2",new T.CylinderGeometry(0,1.2,3.6,7),x,3.2,z);
     c3add("shadow",flatPlane(4,4),x,.03,z);
   };
-  for(let x=-40;x<=40;x+=8)if(Math.abs(x-14)>5)tree(x,PROM_Z[0]+.8,false);
+  for(let x=-40;x<=40;x+=8)if(Math.abs(x-14)>5&&Math.abs(x+6)>5)tree(x,PROM_Z[0]+.8,false);
   for(let i=0;i<70;i++){const a=rnd()*Math.PI*2,rr=48+rnd()*50,x=Math.cos(a)*rr,z=-20+Math.sin(a)*rr*.7;if(z>PROM_Z[0]-2&&x<38)continue;tree(x,z,rnd()<.6);}
   [[-9,4],[13,6],[-10,-5]].forEach(([x,z])=>tree(x,z,true));
   // Laternen an der Piazza
@@ -154,7 +155,7 @@ function buildCity(){
   isl.computeVertexNormals(); c3add("hill",isl,30,3.3,50);
   [[26,46],[33,45],[29,44]].forEach(([x,z])=>c3add("whitewall",new T.BoxGeometry(1.6,1.4,1.6),x,1.6,z));
   // Orte
-  buildPizzeria(); buildMarket(); buildGelateria(); buildPort();
+  buildPizzeria(); buildMarket(); buildGelateria(); buildPort(); buildLearning();
   // Alles Gesammelte zu Meshes
   const M={roof:c3mat(0xc4673f),roof2:c3mat(0xe2d3b8),white:c3mat(0xf3eee2),whitewall:c3mat(0xfbf7ef),balcony:c3mat(0x6e4a32),
     trunk:c3mat(0x7a5a3a),leaf:c3mat(0x5f9147),leaf2:c3mat(0x7aa65a),iron:c3mat(0x2b2f2c),lamp:c3mat(0xffe3a6,{emissive:0x8a6a2a}),
@@ -211,6 +212,41 @@ function buildPort(){
   const s=signMesh("PORTO",2.6,.8,"#2f78c4","#f3eee2"); s.position.set(-15,1.6,PROM_Z[1]+.9); g.add(s);
   c3box(.1,1.2,.1,c3mat(0x2b2f2c),-15,.6,PROM_Z[1]+.85,g);
 }
+// Lernorte: Scuola (Vokabeln), Bar (Memory), Biblioteca (Notizbuch), Forno (Rezepte)
+function civic(id,x,z,w,d,h,col,sign,bg,fg){
+  const g=placeGroup(id);
+  const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:facadeTex(col)})); wall.position.set(x,h/2,z); g.add(wall);
+  c3box(w+.3,.4,d+.3,c3mat(0xc4673f),x,h+.2,z,g);
+  c3box(1.6,2.4,.12,c3mat(0x6b4126),x,1.2,z+d/2+.03,g);
+  const s=signMesh(sign,Math.min(w-1,sign.length*.55+1.2),.9,bg,fg); s.position.set(x,3,z+d/2+.05); g.add(s);
+  return g;
+}
+function buildLearning(){
+  // Scuola mit Glockenturm, Fahne und Tafel davor
+  let x=7,z=-11.75; const sc=civic("scuola",x,z,8,6,7,"#f3e2bf","SCUOLA","#2f4a3c","#f3eee2");
+  c3box(1.8,2.2,1.8,c3mat(0xf3eee2),x,8.5,z-1,sc); c3box(2.1,.3,2.1,c3mat(0xc4673f),x,9.75,z-1,sc);
+  const bell=new THREE.Mesh(new THREE.CylinderGeometry(.25,.5,.7,10),c3mat(0xd9a93a)); bell.position.set(x,8.8,z-.05); sc.add(bell);
+  c3box(.08,3,.08,c3mat(0x2b2f2c),x-3.6,8.5,z+2.6,sc);
+  [0x3a9a4a,0xf3eee2,0xd8402f].forEach((c,i)=>c3box(.4,.8,.04,c3mat(c),x-3.36+i*.4,9.5,z+2.6,sc));
+  cityModel("lavagna",x+2.6,0,z+4.4,0,sc);
+  // Forno mit Schornstein und Brotkisten
+  x=-14.2;z=-11; const fo=civic("forno",x,z,5.5,5.5,6.4,"#e8a38a","FORNO","#6b4126","#f6e3a6");
+  c3box(.9,2.6,.9,c3mat(0x9a4a32),x+1.4,7.5,z-1,fo);
+  const aw=new THREE.Mesh(new THREE.BoxGeometry(5.4,.1,1.3),c3mat(0xffffff,{map:awningTex("#6b4126","#f6e3a6")})); aw.position.set(x,2.55,z+3.3); aw.rotation.x=.3; fo.add(aw);
+  [-1.6,1.6].forEach(dx=>{c3box(1.1,.6,.8,c3mat(0x8a5a36),x+dx,.3,z+3.4,fo);c3box(.9,.2,.6,c3mat(0xd9a45a),x+dx,.7,z+3.4,fo);});
+  // Bar am Hafen: Kiosk mit Tischen davor
+  x=-6;z=12.2; const bar=placeGroup("bar");
+  const k=new THREE.Mesh(wallBox(5,3,3),c3mat(0xffffff,{map:facadeTex("#bfe0d0")})); k.position.set(x,1.5,z); bar.add(k);
+  c3box(5.3,.3,3.3,c3mat(0xf3eee2),x,3.15,z,bar);
+  c3box(4,1,.1,c3mat(0xffe3a6,{emissive:0x6a4a10}),x,1.4,z+1.52,bar);
+  const aw2=new THREE.Mesh(new THREE.BoxGeometry(5.2,.1,1.4),c3mat(0xffffff,{map:awningTex("#3a9a4a","#f3eee2")})); aw2.position.set(x,2.5,z+2); aw2.rotation.x=.3; bar.add(aw2);
+  const s=signMesh("BAR",2.4,.8,"#1b221f","#f4c64f"); s.position.set(x,3.75,z+1.52); bar.add(s);
+  cityModel("tischgruppe",x-1.4,0,z+3.6,0,bar); cityModel("tisch",x+2,0,z+3.8,0,bar);
+  // Biblioteca: hell, mit Säulen und Stufen
+  x=27;z=-1; const bi=civic("biblioteca",x,z,8,6.5,8,"#f6efe2","BIBLIOTECA","#7a4a2a","#f6efe2");
+  c3box(8.4,.35,2.2,c3mat(0xe2d6bd),x,.17,z+4.3,bi); c3box(8.6,.5,2.2,c3mat(0xf3eee2),x,4.35,z+4.3,bi);
+  [-3.4,-1.2,1.2,3.4].forEach(dx=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(.28,.32,3.8,10),c3mat(0xf3eee2));c.position.set(x+dx,2.25,z+4.9);bi.add(c);});
+}
 
 /* ---------- Kamera, Zeichnen, Schilder ---------- */
 function cityCam(){
@@ -222,7 +258,11 @@ function cityCam(){
 function cityResize(){
   const h=C3.host; if(!h)return; const w=h.clientWidth||300, hh=h.clientHeight||300;
   C3.r.setSize(w,hh,false); C3.cam.aspect=w/hh; C3.cam.fov=w<hh?48:38; C3.cam.updateProjectionMatrix();
-  if(!C3.fitted){C3.fitted=true; if(w<hh){C3.rad=Math.min(120,62*hh/w*.7);C3.tgt.set(2,0,1);}}
+  // Beim ersten Mal so weit herauszoomen, dass alle Orte im Viertel zu sehen sind (Capri darf draußen bleiben)
+  if(!C3.fitted){C3.fitted=true; if(w<hh)C3.tgt.set(5,0,1);
+    const v=new THREE.Vector3(), all=Object.entries(CITY_SPOTS).filter(([k])=>k!=="capri").map(([,s])=>s);
+    for(C3.rad=30;C3.rad<120;C3.rad+=3){cityCam();C3.cam.updateMatrixWorld();
+      if(all.every(s=>{v.set(s[0],s[2],s[1]).project(C3.cam);return Math.abs(v.x)<.82&&v.y<.88&&v.y>-.8;}))break;}}
 }
 function cityPins(){
   const pins=C3.host&&C3.host.querySelectorAll(".city-pin"); if(!pins)return;
@@ -233,7 +273,7 @@ function cityPins(){
 }
 // Läuft nur, solange die Karte offen ist: Wellen und schaukelnde Boote, höchstens 30 Bilder pro Sekunde
 function cityLoop(now){
-  C3.raf=0; if(!C3.host||!C3.host.isConnected||screen!=="map")return;
+  C3.raf=0; if(!C3.host||!C3.host.isConnected||screen!=="map"&&screen!=="home")return;
   C3.raf=requestAnimationFrame(cityLoop);
   if(now-C3.last<33)return; const dt=Math.min(.1,(now-C3.last)/1000); C3.last=now; C3.t+=dt;
   C3.sea.offset.set(C3.t*.015,C3.t*.008);

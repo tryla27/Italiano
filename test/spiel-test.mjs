@@ -52,8 +52,12 @@ async function shot(name) {
   await page.screenshot({ path: join(OUT, file) });
   console.log("  Screenshot:", file);
 }
+// Knöpfe, die auf der Startseite jetzt Häuser im 3D-Viertel sind
+const PIN = { vocab: "scuola", memo: "bar", book: "biblioteca", menu: "forno" };
 async function act(a, extra = "") {
-  const el = page.locator(`[data-act="${a}"]${extra}`).first();
+  let el = page.locator(`[data-act="${a}"]${extra}`).first();
+  if (!(await el.count()) && !extra && PIN[a]) el = page.locator(`.city-pin[data-p="${PIN[a]}"]`).first();
+  if (!(await el.count()) && a === "map" && await page.locator(".map.city").count()) return true; // Startseite ist schon die Karte
   if (!(await el.count())) { console.log(`  (Knopf "${a}" nicht gefunden)`); return false; }
   await el.click();
   return true;
@@ -282,7 +286,7 @@ await shot("einrichtung-3d-moka");
   await page.waitForFunction(() => L3.items.length && !L3.building && L3.syncSig === locStruct(), null, { timeout: 15000 }).catch(() => {});
   check(await page.evaluate(k => JSON.stringify(S.locale) === k, keep), "Möbelplätze gehen beim Neuladen verloren");
 }
-check(await page.evaluate(() => { screen = "home"; render(); return !!document.querySelector('.locbtn[data-act="locale"]'); }), "Startseite hat keinen Knopf zum Restaurant");
+check(await page.evaluate(() => { screen = "home"; render(); return !!document.querySelector('[data-act="locale"]'); }), "Startseite hat keinen Knopf zum Restaurant");
 check(await page.evaluate(() => { S.owned = SHOP.filter(i => i.fx && i.fx.tip).map(i => i.id); return mult() === 1 + TIP_CAP; }), "Trinkgeld-Deckel fehlt");
 check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
 // Holzofen: eine falsche Pizza pro Tag zählt nicht
@@ -333,7 +337,7 @@ for (const trip of ["gelateria", "porto"]) {
   await act("map");
   if (trip === "gelateria") {
     await page.waitForTimeout(1500);
-    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 5, "Karte zeigt kein 3D-Viertel mit fünf Orten");
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 9, "Karte zeigt kein 3D-Viertel mit allen Orten");
     await shot("karte");
   }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
@@ -348,11 +352,25 @@ for (const trip of ["gelateria", "porto"]) {
   check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
 }
 
+// Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
+await fresh({ setupDone: true, coins: 10, day: 2 });
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin").length === 9), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+await shot("startseite-stadt");
+for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "book"]]) {
+  await page.evaluate(() => { screen = "home"; render(); });
+  await page.locator(`.city-pin[data-p="${p}"]`).click();
+  check(await page.evaluate(w => screen === w, want), `Haus ${p} führt nicht zu ${want}`);
+}
+await page.evaluate(() => { screen = "home"; render(); });
+await page.locator('.city-pin[data-p="forno"]').click();
+check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");
+await page.evaluate(() => { menuOpen = false; render(); });
+
 // Karte: Markt ist außerhalb des Spieltags zu, die Pizzeria startet den Tag
 await fresh({ setupDone: true, coins: 10, day: 2 });
 await act("map");
 await page.locator('.map [data-act="place"][data-p="mercato"]').click();
-check(await page.evaluate(() => screen === "map" && /Markt/.test(mapMsg)), "Geschlossener Markt auf der Karte reagiert nicht");
+check(await page.evaluate(() => (screen === "map" || screen === "home") && /Markt/.test(mapMsg)), "Geschlossener Markt auf der Karte reagiert nicht");
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
 check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
 
