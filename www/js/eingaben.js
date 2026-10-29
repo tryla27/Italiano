@@ -67,6 +67,13 @@ function handleClick(e){
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
   if(a==="memo")return startMemo();
+  if(a==="biblio"){LETTURA=null;screen="biblio";return render();}
+  if(a==="leggi")return startLettura(t.dataset.b,+t.dataset.c);
+  if(a==="lpag")return letturaPage(+t.dataset.d);
+  if(a==="ltr"){LETTURA.tr=!LETTURA.tr;return render();}
+  if(a==="lsay2"){const C=libro(LETTURA.b).capitoli[LETTURA.c];return speak(C.pagine[LETTURA.p][0]);}
+  if(a==="lq")return letturaAnswer(+t.dataset.i);
+  if(a==="lqnext")return letturaNext();
   if(a==="mflip")return memoFlip(+t.dataset.i);
   if(a==="sound"){S.sound=!S.sound;save();return render();}
   if(a==="sayit")return speak(t.dataset.t);
@@ -131,6 +138,7 @@ function goBack(){
   else if(screen==="play"&&G&&!G.summary)volOpen=true;
   else if(screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished)volOpen=true;
   else if(screen==="vocab"&&S.vocabRun){S.vocabRun=null;}
+  else if(screen==="lettura"){LETTURA=null;screen="biblio";}
   else if(screen!=="home"){if(screen==="summary")G=null;screen="home";}
   sfx("click"); render();
 }

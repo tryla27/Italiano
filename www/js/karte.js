@@ -7,12 +7,12 @@ const PLACES=[
   {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true},
   // Lernorte gibt es nur im 3D-Viertel; auf der flachen Karte sind es die Knöpfe der Startseite
   {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Memory",city:1},
-  {id:"biblioteca",it:"La Biblioteca",de:"Notizbuch",city:1},{id:"forno",it:"Il Forno",de:"Rezepte",city:1}
+  {id:"biblioteca",it:"La Biblioteca",de:"Bücher · Notizbuch",city:1},{id:"forno",it:"Il Forno",de:"Rezepte",city:1}
 ];
 const CITY_GO={
   scuola:()=>{screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;render();},
   bar:()=>startMemo(),
-  biblioteca:()=>{screen="book";render();},
+  biblioteca:()=>{screen="biblio";render();},
   forno:()=>{menuOpen=true;render();}
 };
 function placeOpen(p){

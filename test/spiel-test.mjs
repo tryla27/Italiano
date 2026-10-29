@@ -53,7 +53,7 @@ async function shot(name) {
   console.log("  Screenshot:", file);
 }
 // Knöpfe, die auf der Startseite jetzt Häuser im 3D-Viertel sind
-const PIN = { vocab: "scuola", memo: "bar", book: "biblioteca", menu: "forno" };
+const PIN = { vocab: "scuola", memo: "bar", menu: "forno" };
 async function act(a, extra = "") {
   let el = page.locator(`[data-act="${a}"]${extra}`).first();
   if (!(await el.count()) && !extra && PIN[a]) el = page.locator(`.city-pin[data-p="${PIN[a]}"]`).first();
@@ -357,11 +357,20 @@ for (const trip of ["gelateria", "porto"]) {
 await fresh({ setupDone: true, coins: 10, day: 2 });
 check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin").length === 9), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
 await shot("startseite-stadt");
-for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "book"]]) {
+for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "biblio"]]) {
   await page.evaluate(() => { screen = "home"; render(); });
   await page.locator(`.city-pin[data-p="${p}"]`).click();
   check(await page.evaluate(w => screen === w, want), `Haus ${p} führt nicht zu ${want}`);
 }
+// Biblioteca: Kapitel lesen, Fragen beantworten, einmal Geld
+await page.evaluate(() => { screen = "home"; render(); });
+await page.locator('.city-pin[data-p="biblioteca"]').click();
+check(await page.evaluate(() => screen === "biblio") && await page.locator('[data-act="leggi"]').count() >= 3, "Biblioteca zeigt kein Bücherregal");
+await page.locator('[data-act="leggi"][data-c="0"]').click();
+await shot("buch-lesen");
+check(await page.evaluate(() => LIBRI.every(B => B.capitoli.every(C => C.pagine.every(([it]) => (it.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+'?/g) || []).every(w => lookup(w)))))), "Buch hat Wörter ohne Übersetzung");
+await page.evaluate(() => { const before = S.coins; LETTURA.p = libro("pinocchio").capitoli[0].pagine.length - 1; letturaPage(1); for (let i = 0; i < 3; i++) { const C = libro("pinocchio").capitoli[0]; letturaAnswer(LETTURA.q.opts.indexOf(C.domande[LETTURA.q.i][1])); letturaNext(); } window.__libGain = S.coins - before; });
+check(await page.evaluate(() => window.__libGain === LIBRO_PREMIO && S.libri.pinocchio.done.includes(0) && LETTURA.end), "Kapitel gibt kein Geld oder wird nicht gemerkt");
 await page.evaluate(() => { screen = "home"; render(); });
 await page.locator('.city-pin[data-p="forno"]').click();
 check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");
