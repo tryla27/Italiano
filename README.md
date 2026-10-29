@@ -10,9 +10,9 @@ Ordner `www/` und läuft auch in jedem Browser.
 ## App bekommen
 
 Jeder Push auf `main` baut die App automatisch (GitHub Actions). Die fertige Datei
-`ParlaPizza.apk` liegt danach unter **Releases**.
+`ParlaPizza-v1.N.apk` (mit der Versionsnummer im Namen) liegt danach unter **Releases**.
 
-1. Auf dem Handy die neueste Release öffnen und `ParlaPizza.apk` herunterladen.
+1. Auf dem Handy die neueste Release öffnen und `ParlaPizza-v1.N.apk` herunterladen. Welche Version installiert ist, steht unten in den Einstellungen (Zahnrad).
 2. Datei antippen. Android fragt einmal, ob Apps aus dieser Quelle installiert werden dürfen: erlauben.
 3. Installieren, fertig.
 

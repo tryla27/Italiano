@@ -11,6 +11,7 @@ function render(){
       ${sl("v-music","Musik",S.vol.music)}${sl("v-sfx","Geräusche",S.vol.sfx)}${canSpeak?sl("v-voice","Vorlese-Stimme",S.vol.voice):""}
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
       <p class="savenote">${cloudState==="cloud"?"☁ Spielstand in deinem Konto gesichert":"✓ Spielstand auf diesem Gerät gespeichert"}</p>
+      <p class="appver">${APP_BUILD.indexOf("__")===0?"Browser-Version":`App-Version v1.${esc(APP_BUILD)}`}${UPDATE?` · neu: ${esc(UPDATE.tag)}`:""}</p>
       <div class="savecode"><b>Spielstand mitnehmen</b>
         <p>Mit diesem Code holst du deinen Fortschritt auf ein anderes Gerät, zum Beispiel vom Android-Handy aufs iPhone.</p>
         <div class="row"><button class="sec" data-act="code-copy">Code kopieren</button><button class="sec" data-act="code-paste">Code einfügen</button></div>
