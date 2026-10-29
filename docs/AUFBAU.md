@@ -53,7 +53,7 @@ oder erst beim Spielen aufgerufen wird.
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
 | `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
 | `truhe.js` | Belohnungs-Truhe nach bestandenem Vokabeltag: Belohnungen würfeln (4 % selten), Sprite-Animation, Karten |
-| `bildschirme.js` | Alle Bildschirme (jeder passt ohne Scrollen), Kopfzeile mit Zurück, Ton und Zahnrad, Einstellungen, Pause-Fenster, „So geht's“ |
+| `bildschirme.js` | Alle Bildschirme (jeder passt ohne Scrollen), Kopfzeile mit „‹ Stadt“, Ton und Zahnrad, „So geht's“. Pause und Einstellungen sind ein Menü: im Spiel oben Weiter / Zurück zur Stadt / Abbrechen, darunter Ton und Spielstand |
 | `eingaben.js` | Klicks, Antippen, langes Drücken, Regler |
 | `start.js` | Start: Spielstand laden, Cloud abgleichen, nach App-Updates suchen |
 

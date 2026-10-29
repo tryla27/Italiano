@@ -561,3 +561,5 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .s-home .city-pin{padding:3px 8px 4px}
 .s-home .city-pin b{font-size:.84rem}
 .s-home .city-pin small{font-size:.6rem}
+/* Pause im Einstellungsmenü */
+.pausenav{display:flex;flex-direction:column;gap:8px;padding-bottom:12px;margin-bottom:4px;border-bottom:2px solid var(--line)}

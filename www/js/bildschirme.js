@@ -6,7 +6,14 @@ function render(){
   rTopbar();
   if(volOpen){
     const sl=(id,label,v)=>`<div class="vrow"><label for="${id}">${label}</label><input type="range" id="${id}" min="0" max="100" step="5" value="${Math.round(v*100)}" ${S.muted?"disabled":""}><output id="${id}-o">${Math.round(v*100)} %</output></div>`;
-    $("#overlay").innerHTML=`<div class="sheet top${S.muted?" muted":""}" role="dialog" aria-label="Einstellungen"><h2>Impostazioni<small>Einstellungen</small></h2>
+    // Ein Menü für Pause und Einstellungen: oben Weiter / Zur Stadt / Abbrechen, darunter Ton und Spielstand
+    const voc=screen==="vocab"&&S.vocabRun&&!S.vocabRun.finished, run=voc||(screen==="play"&&G&&!G.summary);
+    const nav=run?`<div class="pausenav"><button class="next" data-act="vol">Weiter</button>
+        <button class="sec" data-act="${voc?"vcity":"quit"}">Zurück zur Stadt<small>später genau hier weitermachen</small></button>
+        <button class="sec abort" data-act="${voc?"vabort":"abort"}">Abbrechen<small>${voc?"Fortschritt dieser Runde geht verloren":"ohne Belohnung: kein Trinkgeld, kein neuer Tag"}</small></button></div>`
+      :screen!=="home"?`<div class="pausenav"><button class="sec" data-act="home">Zurück zur Stadt</button></div>`:"";
+    $("#overlay").innerHTML=`<div class="sheet top${S.muted?" muted":""}" role="dialog" aria-label="${run?"Pause und Einstellungen":"Einstellungen"}"><h2>${run?"Pausa":"Impostazioni"}<small>${run?"Pause · Einstellungen":"Einstellungen"}</small></h2>
+      ${nav}
       <button class="mutebig${S.muted?" on":""}" data-act="mute" aria-pressed="${S.muted}">${ICON.off} ${S.muted?"Alles stumm · antippen für Ton":"Alles stumm schalten"}</button>
       ${sl("v-music","Musik",S.vol.music)}${sl("v-sfx","Geräusche",S.vol.sfx)}${canSpeak?sl("v-voice","Vorlese-Stimme",S.vol.voice):""}
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
@@ -21,7 +28,7 @@ function render(){
         ${codeBox&&codeBox.mode==="file"?`<p class="codemsg">${esc(codeBox.msg||"")}</p>`:""}
         ${codeBox&&codeBox.mode!=="file"?`<textarea id="codebox" rows="3" ${codeBox.mode==="copy"?"readonly":'placeholder="Code hier einfügen …"'}>${esc(codeBox.text||"")}</textarea>
         ${codeBox.mode==="paste"?`<button class="serve" data-act="code-load">Spielstand laden</button>`:""}${codeBox.msg?`<p class="codemsg">${esc(codeBox.msg)}</p>`:""}`:""}</div>
-      <button class="next" data-act="vol">Fertig</button></div>`;
+      <button class="next" data-act="vol">${run?"Weiter spielen":"Fertig"}</button></div>`;
   }
   else if(pauseOpen){const voc=screen==="vocab";
     $("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="Pausa"><h2>Pausa<small>Pause</small></h2>
@@ -35,9 +42,9 @@ function render(){
   if(screen==="home"||screen==="shop")locThumbSoon();
   armBack();
 }
-// Kopfzeile für Untermenüs: zurück zur Pizzeria, Titel, Ton und Einstellungen in einer Zeile
+// Kopfzeile für Untermenüs: zurück zur Stadt (Startseite), Titel, Ton und Einstellungen in einer Zeile
 const tools=()=>`<span class="tools"><button class="tb sm${S.muted?" on":""}" data-act="mute" aria-label="${S.muted?"Ton einschalten":"Alles stumm schalten"}" aria-pressed="${S.muted}">${S.muted?ICON.off:ICON.on}</button><button class="tb sm" data-act="vol" aria-label="Einstellungen">${ICON.gear}</button></span>`;
-const head=(title,sub)=>`<div class="head"><button class="back" data-act="home" aria-label="Zurück zur Pizzeria">‹ Pizzeria</button><h2 class="t">${title}${sub?`<small>${sub}</small>`:""}</h2>${tools()}</div>`;
+const head=(title,sub)=>`<div class="head"><button class="back" data-act="home" aria-label="Zurück zur Stadt">‹ Stadt</button><h2 class="t">${title}${sub?`<small>${sub}</small>`:""}</h2>${tools()}</div>`;
 // Leiste oben links: Einstellungen und schnelles Stummschalten, auf jedem Bildschirm.
 const ICON={
   gear:`<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.6 7.6 0 0 0-1.7-1L15 3.3h-4l-.4 2.6a7.6 7.6 0 0 0-1.7 1l-2.5-1-2 3.5L6.6 11a7.5 7.5 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1a7.6 7.6 0 0 0 1.7 1l.3 2.6h4l.4-2.6a7.6 7.6 0 0 0 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" transform="translate(-1 0)"/></svg>`,
