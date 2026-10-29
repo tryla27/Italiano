@@ -371,6 +371,10 @@ await shot("buch-lesen");
 check(await page.evaluate(() => LIBRI.every(B => B.capitoli.every(C => C.pagine.every(([it]) => (it.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+'?/g) || []).every(w => lookup(w)))))), "Buch hat Wörter ohne Übersetzung");
 await page.evaluate(() => { const before = S.coins; LETTURA.p = libro("pinocchio").capitoli[0].pagine.length - 1; letturaPage(1); for (let i = 0; i < 3; i++) { const C = libro("pinocchio").capitoli[0]; letturaAnswer(LETTURA.q.opts.indexOf(C.domande[LETTURA.q.i][1])); letturaNext(); } window.__libGain = S.coins - before; });
 check(await page.evaluate(() => window.__libGain === LIBRO_PREMIO && S.libri.pinocchio.done.includes(0) && LETTURA.end), "Kapitel gibt kein Geld oder wird nicht gemerkt");
+// Poesie: Kinderreim ergänzen, eine Stufe pro Spieltag, nach drei Stufen auswendig
+check(await page.evaluate(() => POESIE.every(P => P.versi.every(([it]) => poWords(it).every(w => lookup(w))))), "Gedicht hat Wörter ohne Übersetzung");
+check(await page.evaluate(() => { const solve = () => { startPoesia("giro"); startPoesiaQuiz(); while (POESIA.quiz) { const g = POESIA.quiz.gaps[POESIA.quiz.gi]; poesiaAnswer(g.opts.indexOf(g.word)); } };
+  const c0 = S.coins; solve(); solve(); const l1 = S.poesie.giro.lvl; S.day++; solve(); S.day++; solve(); return l1 === 1 && S.poesie.giro.lvl === POESIA_MAX && S.coins === c0 + POESIA_PREMIO; }), "Gedicht-Stufen oder Belohnung stimmen nicht");
 await page.evaluate(() => { screen = "home"; render(); });
 await page.locator('.city-pin[data-p="forno"]').click();
 check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");

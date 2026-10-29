@@ -585,3 +585,15 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .lett-q{font-size:1.2rem;font-weight:800;margin:0}
 .lett-end{align-items:center;text-align:center}
 .big-hand{font-size:2.4rem;margin:0}
+.pagina.poesia{display:flex;flex-direction:column;gap:6px}
+.verso{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;border-radius:8px;padding:3px 4px}
+.verso.on{background:#f6e3a6}
+.verso .it{font-size:1.1rem;line-height:1.35;font-family:var(--hand);font-size:1.45rem}
+.verso small.de{display:block;color:#7a7066;font-size:.8rem}
+.vplay{border:0;background:none;color:#a8382a;font-size:.9rem;padding:4px 2px}
+.gap{color:#a8382a;font-weight:800;letter-spacing:1px}
+.gap.now{background:#f6e3a6;border-radius:4px}
+.po-opts .opt{text-align:center;font-weight:800}
+.verso small.de{border:0;margin:0;padding:0;font-size:.8rem}
+.verso .it{font-size:1.3rem;line-height:1.25}
+.lett-tools.three{grid-template-columns:1fr 1fr 1.3fr}
