@@ -46,13 +46,15 @@ oder erst beim Spielen aufgerufen wird.
 | `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
 | `szenen.js` | Umgebungen: Pizzeria, Markt, Eisladen, Hafen, laufende Figuren (`walker`: Gast kommt herein und geht, Passanten auf Markt und Hafen). Nutzt die Bilder aus `www/bilder/umgebungen/` (Ausschnitt und Platz der Figur in `SCENE_IMG`), sonst gezeichnete Ersatz-Szenen |
-| `karte.js` | Karte mit allen Orten: antippen spielt das Tür-Geräusch und geht direkt dorthin |
+| `karte.js` | Karte mit allen Orten: antippen spielt das Tür-Geräusch und geht direkt dorthin. Zeigt das 3D-Viertel aus `stadt3d.js`, ohne WebGL die flache Karte |
+| `biblioteca.js` | La Biblioteca: Bücherregal (Bücher in `inhalt/libri.js`), Lesen Seite für Seite mit Antippen, Vorlesen und Übersetzung, drei Fragen pro Kapitel, beim ersten Mal 5 €. Fortschritt in `S.libri`. Regal „Poesie“ (`POESIE`): Kinderreime anhören, Reime ergänzen, eine Stufe pro Spieltag, nach 3 Stufen auswendig (+5 €, `S.poesie`) |
+| `stadt3d.js` | La mappa als 3D-Viertel von Neapel: Piazza mit Brunnen, Häuserreihen, Promenade, Hafen, Meer, Capri und Vesuv aus einfachen Formen (gleiche Teile zu wenigen Meshes zusammengelegt), dazu Vespa, Terrasse, Schirme und Boot aus `www/modelle/`. Orte stehen in `CITY_SPOTS`, Schilder darüber sind HTML-Knöpfe mit `data-act="place"`. Das Viertel ist auch die Startseite (`rHomeCity` in `bildschirme.js`); Lernhäuser: Scuola → Vokabeln, Bar → Memory, Biblioteca → Bücher und Notizbuch, Forno → Rezepte (`CITY_GO` in `karte.js`) |
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt mit Feilschen (`hagStart`, `hagOffer`), Abrechnung |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
 | `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
 | `truhe.js` | Belohnungs-Truhe nach bestandenem Vokabeltag: Belohnungen würfeln (4 % selten), Sprite-Animation, Karten |
-| `bildschirme.js` | Alle Bildschirme (jeder passt ohne Scrollen), Kopfzeile mit Zurück, Ton und Zahnrad, Einstellungen, Pause-Fenster, „So geht's“ |
+| `bildschirme.js` | Alle Bildschirme (jeder passt ohne Scrollen), Kopfzeile mit „‹ Stadt“, Ton und Zahnrad, „So geht's“. Pause und Einstellungen sind ein Menü: im Spiel oben Weiter / Zurück zur Stadt / Abbrechen, darunter Ton und Spielstand |
 | `eingaben.js` | Klicks, Antippen, langes Drücken, Regler |
 | `start.js` | Start: Spielstand laden, Cloud abgleichen, nach App-Updates suchen |
 

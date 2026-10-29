@@ -87,12 +87,12 @@ jobs:
           ./gradlew assembleDebug
 
       - name: APK umbenennen
-        run: cp android/app/build/outputs/apk/debug/app-debug.apk ParlaPizza.apk
+        run: cp android/app/build/outputs/apk/debug/app-debug.apk ParlaPizza-v1.${{ github.run_number }}.apk # Versionsnummer im Namen, damit man im Download-Ordner nicht die alte Datei erwischt
 
       - name: Prüfen, dass der richtige Schlüssel benutzt wurde
         run: |
           BT=$(ls -d "$ANDROID_HOME"/build-tools/* | sort -V | tail -1)
-          "$BT/apksigner" verify --print-certs ParlaPizza.apk | tee certs.txt
+          "$BT/apksigner" verify --print-certs ParlaPizza-v1.${{ github.run_number }}.apk | tee certs.txt
           grep -qi "SHA-256 digest: 7fae6aeda93d2829c87a34ba10d462581f011635476c42d9355317c3c36c3635" certs.txt || { echo "FALSCHER SCHLÜSSEL – Abbruch, sonst gehen Updates kaputt"; exit 1; }
 
       - name: Als Download veröffentlichen
@@ -100,5 +100,5 @@ jobs:
         with:
           tag_name: v1.${{ github.run_number }}
           name: Parla Pizza! v1.${{ github.run_number }}
-          body: Tippe unten auf ParlaPizza.apk, um die App auf dein Android-Handy zu laden.
-          files: ParlaPizza.apk
+          body: Tippe unten auf ParlaPizza-v1.${{ github.run_number }}.apk, um die App auf dein Android-Handy zu laden.
+          files: ParlaPizza-v1.${{ github.run_number }}.apk

@@ -541,3 +541,59 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .bubble .react{margin-top:6px;padding-top:6px;border-top:1px dashed rgba(0,0,0,.2);font-style:italic}
 .bubble .react .it{font-size:.95rem;font-weight:600}
 .bubble .react small{display:block;font-style:normal;font-size:.78rem;opacity:.7}
+.appver{margin:0;text-align:center;font-size:.76rem;color:var(--chalk-dim)}
+/* Karte als 3D-Viertel (stadt3d.js) */
+#screen.s-map>.map.city{flex:1 1 0;min-height:340px}
+.map.city{position:relative;background:#bfe1ee;line-height:normal}
+.city-pins{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.city-pin{position:absolute;left:0;top:0;pointer-events:auto;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 10px 6px;border-radius:10px;
+  background:#1b221f;border:2px solid #f4c64f;color:#f3eee2;font:inherit;line-height:1.1;white-space:nowrap;cursor:pointer;box-shadow:0 3px 8px rgba(0,0,0,.3)}
+.city-pin::after{content:"";position:absolute;left:50%;bottom:-8px;margin-left:-6px;border:6px solid transparent;border-top-color:#f4c64f;border-bottom:0}
+.city-pin b{font-family:var(--hand);font-weight:400;font-size:.95rem}
+.city-pin small{font-size:.66rem;color:var(--chalk-dim)}
+.city-pin.shut{border-color:#3c4842;opacity:.85}
+.city-pin.shut::after{border-top-color:#3c4842}
+/* Startseite als 3D-Viertel */
+#screen.s-home>.map.city{flex:1 1 0;min-height:280px}
+.row3.home3{grid-template-columns:repeat(3,1fr)}
+.city-pin.learn{border-color:#8fd0a8}
+.city-pin.learn::after{border-top-color:#8fd0a8}
+.s-home .city-pin{padding:3px 8px 4px}
+.s-home .city-pin b{font-size:.84rem}
+.s-home .city-pin small{font-size:.6rem}
+/* Pause im Einstellungsmenü */
+.pausenav{display:flex;flex-direction:column;gap:8px;padding-bottom:12px;margin-bottom:4px;border-bottom:2px solid var(--line)}
+/* Biblioteca: Bücherregal und Lesen */
+.biblio{display:flex;flex-direction:column;gap:14px;min-height:0}
+.libro{display:flex;flex-direction:column;gap:8px}
+.dorso{border-radius:12px;padding:12px 14px;background:var(--c);color:#fff;box-shadow:inset 6px 0 0 rgba(0,0,0,.25);display:flex;flex-direction:column}
+.dorso b{font-family:var(--game);font-weight:400;font-size:1.25rem;line-height:1.1}
+.dorso small{opacity:.85;font-size:.78rem}
+.cap-list{display:flex;flex-direction:column;gap:6px}
+.cap{display:grid;grid-template-columns:2em 1fr;gap:8px;align-items:center;text-align:left;background:var(--slate2);border:2px solid var(--line);border-radius:12px;padding:8px 10px;color:var(--chalk)}
+.cap .n{font-family:var(--game);font-size:1.3rem;color:var(--gold);text-align:center}
+.cap b{display:block}
+.cap small{color:var(--chalk-dim);font-size:.78rem}
+.cap.done{border-color:#4f7d57}
+.cap[aria-disabled="true"]{opacity:.5}
+.lett{display:flex;flex-direction:column;gap:12px;flex:1 1 auto;min-height:0}
+.pagina{background:#f3eee2;color:#2a2420;border-radius:14px;padding:16px 16px 18px;box-shadow:0 4px 0 rgba(0,0,0,.25);overflow-y:auto;min-height:0}
+.pagina .it{font-size:1.15rem;line-height:1.55;margin:0}
+.pagina .w{border-bottom:1px dotted rgba(42,36,32,.35)}
+.pagina .de{margin:12px 0 0;padding-top:10px;border-top:1px dashed rgba(42,36,32,.3);color:#5a5048;font-size:.95rem;line-height:1.45}
+.lett-tools,.lett-nav{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.lett-q{font-size:1.2rem;font-weight:800;margin:0}
+.lett-end{align-items:center;text-align:center}
+.big-hand{font-size:2.4rem;margin:0}
+.pagina.poesia{display:flex;flex-direction:column;gap:6px}
+.verso{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:start;border-radius:8px;padding:3px 4px}
+.verso.on{background:#f6e3a6}
+.verso .it{font-size:1.1rem;line-height:1.35;font-family:var(--hand);font-size:1.45rem}
+.verso small.de{display:block;color:#7a7066;font-size:.8rem}
+.vplay{border:0;background:none;color:#a8382a;font-size:.9rem;padding:4px 2px}
+.gap{color:#a8382a;font-weight:800;letter-spacing:1px}
+.gap.now{background:#f6e3a6;border-radius:4px}
+.po-opts .opt{text-align:center;font-weight:800}
+.verso small.de{border:0;margin:0;padding:0;font-size:.8rem}
+.verso .it{font-size:1.3rem;line-height:1.25}
+.lett-tools.three{grid-template-columns:1fr 1fr 1.3fr}

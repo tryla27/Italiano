@@ -10,9 +10,9 @@ Ordner `www/` und läuft auch in jedem Browser.
 ## App bekommen
 
 Jeder Push auf `main` baut die App automatisch (GitHub Actions). Die fertige Datei
-`ParlaPizza.apk` liegt danach unter **Releases**.
+`ParlaPizza-v1.N.apk` (mit der Versionsnummer im Namen) liegt danach unter **Releases**.
 
-1. Auf dem Handy die neueste Release öffnen und `ParlaPizza.apk` herunterladen.
+1. Auf dem Handy die neueste Release öffnen und `ParlaPizza-v1.N.apk` herunterladen. Welche Version installiert ist, steht unten in den Einstellungen (Zahnrad).
 2. Datei antippen. Android fragt einmal, ob Apps aus dieser Quelle installiert werden dürfen: erlauben.
 3. Installieren, fertig.
 
@@ -37,7 +37,9 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 
 ## Orte
 
-Alle Orte erreichst du über **La mappa** (Karte) auf der Startseite: antippen, die Ladentür klingelt,
+Die Startseite ist ein kleines Viertel von Neapel in 3D (ein Finger dreht, zwei Finger zoomen).
+Gelernt wird in den Häusern: **Scuola** (Vokabeln), **Bar** (Memory), **Biblioteca** (Bücher wie *Pinocchio* in einfachem Italienisch, dazu das Notizbuch) und **Forno** (Rezepte).
+Für alle Orte gilt: Gebäude oder Schild antippen, die Ladentür klingelt,
 und du bist dort. In der Pizzeria laufen die Gäste mit ganzem Körper herein und stehen neben der Bar.
 An Markttagen (mercoledì und sabato) geht es nach Feierabend auf den Markt mit mehreren Ständen; die Woche mit den Markttagen steht auf der Startseite. Als Ausflüge gibt es den **Eisladen** und
 den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, aber noch zu.

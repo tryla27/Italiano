@@ -52,8 +52,12 @@ async function shot(name) {
   await page.screenshot({ path: join(OUT, file) });
   console.log("  Screenshot:", file);
 }
+// Knöpfe, die auf der Startseite jetzt Häuser im 3D-Viertel sind
+const PIN = { vocab: "scuola", memo: "bar", menu: "forno" };
 async function act(a, extra = "") {
-  const el = page.locator(`[data-act="${a}"]${extra}`).first();
+  let el = page.locator(`[data-act="${a}"]${extra}`).first();
+  if (!(await el.count()) && !extra && PIN[a]) el = page.locator(`.city-pin[data-p="${PIN[a]}"]`).first();
+  if (!(await el.count()) && a === "map" && await page.locator(".map.city").count()) return true; // Startseite ist schon die Karte
   if (!(await el.count())) { console.log(`  (Knopf "${a}" nicht gefunden)`); return false; }
   await el.click();
   return true;
@@ -109,8 +113,9 @@ await act("vstart", '[data-d="book"]');
 check(await page.evaluate(() => S.vocabRun && S.vocabRun.day === "book" && S.vocabRun.total === 2), "Notizbuch lässt sich nicht üben");
 await shot("notizbuch-ueben");
 await act("pause");
-await act("vlist");
-await act("home");
+check(await page.locator('#overlay [data-act="vcity"]').count() === 1 && await page.locator('#overlay #v-music').count() === 1, "Pause und Einstellungen sind nicht ein Menü");
+await act("vcity");
+check(await page.evaluate(() => screen === "home" && !volOpen && S.vocabPaused), "Zurück zur Stadt aus den Vokabeln klappt nicht");
 if (await act("book")) await shot("heft");
 await act("home");
 
@@ -282,7 +287,7 @@ await shot("einrichtung-3d-moka");
   await page.waitForFunction(() => L3.items.length && !L3.building && L3.syncSig === locStruct(), null, { timeout: 15000 }).catch(() => {});
   check(await page.evaluate(k => JSON.stringify(S.locale) === k, keep), "Möbelplätze gehen beim Neuladen verloren");
 }
-check(await page.evaluate(() => { screen = "home"; render(); return !!document.querySelector('.locbtn[data-act="locale"]'); }), "Startseite hat keinen Knopf zum Restaurant");
+check(await page.evaluate(() => { screen = "home"; render(); return !!document.querySelector('[data-act="locale"]'); }), "Startseite hat keinen Knopf zum Restaurant");
 check(await page.evaluate(() => { S.owned = SHOP.filter(i => i.fx && i.fx.tip).map(i => i.id); return mult() === 1 + TIP_CAP; }), "Trinkgeld-Deckel fehlt");
 check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
 // Holzofen: eine falsche Pizza pro Tag zählt nicht
@@ -331,7 +336,11 @@ check(await page.evaluate(() => S.coins === 77 && S.level === 1 && S.muted === f
 for (const trip of ["gelateria", "porto"]) {
   await fresh({ setupDone: true, coins: 10, day: 2 });
   await act("map");
-  if (trip === "gelateria") await shot("karte");
+  if (trip === "gelateria") {
+    await page.waitForTimeout(1500);
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 9, "Karte zeigt kein 3D-Viertel mit allen Orten");
+    await shot("karte");
+  }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
   await shot(`ausflug-${trip}`);
   for (let i = 0; i < 10 && await page.evaluate(() => screen === "play"); i++) {
@@ -344,11 +353,38 @@ for (const trip of ["gelateria", "porto"]) {
   check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
 }
 
+// Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
+await fresh({ setupDone: true, coins: 10, day: 2 });
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin").length === 9), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+await shot("startseite-stadt");
+for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "biblio"]]) {
+  await page.evaluate(() => { screen = "home"; render(); });
+  await page.locator(`.city-pin[data-p="${p}"]`).click();
+  check(await page.evaluate(w => screen === w, want), `Haus ${p} führt nicht zu ${want}`);
+}
+// Biblioteca: Kapitel lesen, Fragen beantworten, einmal Geld
+await page.evaluate(() => { screen = "home"; render(); });
+await page.locator('.city-pin[data-p="biblioteca"]').click();
+check(await page.evaluate(() => screen === "biblio") && await page.locator('[data-act="leggi"]').count() >= 3, "Biblioteca zeigt kein Bücherregal");
+await page.locator('[data-act="leggi"][data-c="0"]').click();
+await shot("buch-lesen");
+check(await page.evaluate(() => LIBRI.every(B => B.capitoli.every(C => C.pagine.every(([it]) => (it.match(/[A-Za-zÀ-ÖØ-öø-ÿ]+'?/g) || []).every(w => lookup(w)))))), "Buch hat Wörter ohne Übersetzung");
+await page.evaluate(() => { const before = S.coins; LETTURA.p = libro("pinocchio").capitoli[0].pagine.length - 1; letturaPage(1); for (let i = 0; i < 3; i++) { const C = libro("pinocchio").capitoli[0]; letturaAnswer(LETTURA.q.opts.indexOf(C.domande[LETTURA.q.i][1])); letturaNext(); } window.__libGain = S.coins - before; });
+check(await page.evaluate(() => window.__libGain === LIBRO_PREMIO && S.libri.pinocchio.done.includes(0) && LETTURA.end), "Kapitel gibt kein Geld oder wird nicht gemerkt");
+// Poesie: Kinderreim ergänzen, eine Stufe pro Spieltag, nach drei Stufen auswendig
+check(await page.evaluate(() => POESIE.every(P => P.versi.every(([it]) => poWords(it).every(w => lookup(w))))), "Gedicht hat Wörter ohne Übersetzung");
+check(await page.evaluate(() => { const solve = () => { startPoesia("giro"); startPoesiaQuiz(); while (POESIA.quiz) { const g = POESIA.quiz.gaps[POESIA.quiz.gi]; poesiaAnswer(g.opts.indexOf(g.word)); } };
+  const c0 = S.coins; solve(); solve(); const l1 = S.poesie.giro.lvl; S.day++; solve(); S.day++; solve(); return l1 === 1 && S.poesie.giro.lvl === POESIA_MAX && S.coins === c0 + POESIA_PREMIO; }), "Gedicht-Stufen oder Belohnung stimmen nicht");
+await page.evaluate(() => { screen = "home"; render(); });
+await page.locator('.city-pin[data-p="forno"]').click();
+check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");
+await page.evaluate(() => { menuOpen = false; render(); });
+
 // Karte: Markt ist außerhalb des Spieltags zu, die Pizzeria startet den Tag
 await fresh({ setupDone: true, coins: 10, day: 2 });
 await act("map");
 await page.locator('.map [data-act="place"][data-p="mercato"]').click();
-check(await page.evaluate(() => screen === "map" && /Markt/.test(mapMsg)), "Geschlossener Markt auf der Karte reagiert nicht");
+check(await page.evaluate(() => (screen === "map" || screen === "home") && /Markt/.test(mapMsg)), "Geschlossener Markt auf der Karte reagiert nicht");
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
 check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
 
@@ -379,7 +415,7 @@ await act("start");
 await page.locator('[data-act="opt"]').first().click().catch(() => {});
 await page.goBack();
 await page.waitForTimeout(200);
-check(await page.evaluate(() => pauseOpen && screen === "play"), "Zurück-Knopf im Spiel öffnet keine Pause");
+check(await page.evaluate(() => volOpen && screen === "play") && await page.locator('#overlay [data-act="quit"]').count() === 1, "Zurück-Knopf im Spiel öffnet keine Pause mit „Zurück zur Stadt“");
 await shot("pause");
 await page.locator('#overlay [data-act="abort"]').click();
 check(await page.evaluate(() => screen === "home" && !G && S.coins === 25 && S.day === 2), "Abbrechen gibt doch Belohnung oder neuen Tag");
