@@ -16,6 +16,13 @@ Jeder Push auf `main` baut die App automatisch (GitHub Actions). Die fertige Dat
 2. Datei antippen. Android fragt einmal, ob Apps aus dieser Quelle installiert werden dürfen: erlauben.
 3. Installieren, fertig.
 
+### iPhone und Browser
+
+Derselbe Push stellt das Spiel auch als Webseite online: **https://tryla27.github.io/Italiano/**
+(einmalig nötig: unter *Settings → Pages* als *Source* „GitHub Actions“ wählen).
+Auf dem iPhone in Safari öffnen, *Teilen → Zum Home-Bildschirm*, dann startet es wie eine App.
+Der Spielstand liegt dann im Browser des Handys.
+
 ## Updates
 
 Die App sucht beim Start selbst nach einer neuen Version und zeigt dann auf der Startseite
