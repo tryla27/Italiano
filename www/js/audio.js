@@ -4,7 +4,7 @@
 const NativeTTS=(()=>{try{const C=window.Capacitor;return C&&C.isNativePlatform&&C.isNativePlatform()?(C.Plugins&&C.Plugins.TextToSpeech)||null:null;}catch(e){return null;}})();
 // Wirksame Lautstärke: 0, wenn in den Einstellungen „Alles stumm“ an ist.
 const vol=k=>S.muted?0:S.vol[k];
-const canSpeak=!!NativeTTS||"speechSynthesis" in window;
+const canSpeak=!!NativeTTS||"speechSynthesis" in window; // Gerätestimme (Ersatz, wenn eine Aufnahme fehlt)
 // Männer und Frauen klingen verschieden: eigene italienische Männer-/Frauenstimme, wenn das Gerät eine hat,
 // sonst dieselbe Stimme etwas tiefer bzw. höher. Ohne Sprecher (Vokabeln, Notizbuch) spricht die Standardstimme.
 const MALE_VOICE=/\b(male|uomo|luca|cosimo|diego|giorgio|paolo|roberto|benigno|calogero|giuseppe|marco)\b|it-it-x-it[cd]/i;
@@ -18,7 +18,67 @@ function pickVoice(list,sex){
 }
 let nativeVoices=null;
 if(NativeTTS&&NativeTTS.getSupportedVoices)NativeTTS.getSupportedVoices().then(r=>{nativeVoices=(r&&r.voices)||[];}).catch(()=>{nativeVoices=[];});
+/* Aufgenommene Stimmen (tools/stimmen, Kokoro): Frauen sprechen mit Sara, Männer mit Nicola.
+   Jede Figur klingt etwas anders (VOICE_RATE: kleiner = langsamer und tiefer, größer = schneller und heller).
+   Ohne Sprecher (Vokabeln, Bücher, eigene Antworten, Anrufer) spricht Sara.
+   Sätze mit Zahlen oder Pizzen werden aus aufgenommenen Bausteinen zusammengesetzt.
+   Gibt es keine Aufnahme (neuer Satz, ohne Internet), spricht wie früher die Stimme des Geräts. */
+const VOICE_RATE={"Nonna Pina":.92,"Zio Gennaro":.93,"Signor Bianchi":.95,"Signor Marino":.95,"Signor Esposito":.96,"Dottor Ferri":.97,
+  "Signor Moretti":.97,"Dottoressa Severini":.97,"Professoressa Conte":.98,"Signora Rossi":1,"Marco":1,"Signora Lucia":1.01,
+  "Turista Klaus":1.02,"Chiara":1.03,"Matteo":1.04,"Giulia":1.05,"Sofia":1.06};
+const REC=(()=>{const o={};try{for(const v in STIMMEN)o[v]=new Set(STIMMEN[v].split(" "));}catch(e){}return o;})();
+const recNorm=t=>String(t).trim().replace(/\s+/g," ");
+// Dieselbe Kennung wie tools/stimmen/aufnehmen.py: FNV-1a über die Zeichen, Base36
+function recKey(t){let h=0x811c9dc5;for(let i=0;i<t.length;i++){h^=t.charCodeAt(i);h=Math.imul(h,0x01000193)>>>0;}return h.toString(36);}
+// Ganzer Satz aufgenommen? Sonst in möglichst wenige Bausteine zerlegen (an Leerzeichen), sonst null.
+function recParts(v,t){
+  const all=REC[v], bs=REC[v+"b"]; if(!all)return null;
+  t=recNorm(t); const k=recKey(t); if(all.has(k))return [k];
+  if(!bs)return null;
+  const w=t.split(" "), n=w.length, best=[[]];
+  for(let i=0;i<n;i++){if(!best[i])continue;
+    for(let j=i+1;j<=n;j++){const kk=recKey(w.slice(i,j).join(" "));if(bs.has(kk)&&(!best[j]||best[j].length>best[i].length+1))best[j]=best[i].concat(kk);}}
+  return best[n]||null;
+}
+const recBuf=new Map(); // zuletzt gehörte Aufnahmen, fertig dekodiert
+function recLoad(url){
+  if(recBuf.has(url)){const p=recBuf.get(url);recBuf.delete(url);recBuf.set(url,p);return p;}
+  const p=fetch(url).then(r=>{if(!r.ok)throw new Error(url);return r.arrayBuffer();})
+    .then(b=>new Promise((ok,no)=>AC.decodeAudioData(b,ok,no)));
+  p.catch(()=>recBuf.delete(url));
+  recBuf.set(url,p); while(recBuf.size>40)recBuf.delete(recBuf.keys().next().value);
+  return p;
+}
+let recNow=null;
+function stopVoice(){
+  if(recNow){const r=recNow;recNow=null;r.src.forEach(s=>{try{s.stop();}catch(e){}});duck(false);}
+  try{if(NativeTTS)NativeTTS.stop().catch(()=>{});else speechSynthesis.cancel();}catch(e){}
+}
+// Spielt die Bausteine nahtlos hintereinander; false, wenn eine Aufnahme fehlt
+async function recPlay(v,parts,rate,tok){
+  try{
+    const bufs=await Promise.all(parts.map(k=>recLoad(`stimmen/${v}/${k}.mp3`)));
+    if(recNow!==tok)return true;
+    if(AC.state==="suspended")AC.resume();
+    const g=AC.createGain(); g.gain.value=vol("voice"); g.connect(AC.destination);
+    let t=AC.currentTime+.03;
+    bufs.forEach(b=>{const s=AC.createBufferSource();s.buffer=b;s.playbackRate.value=rate;s.connect(g);s.start(t);tok.src.push(s);t+=b.duration/rate+.05;});
+    tok.src[tok.src.length-1].onended=()=>{if(recNow===tok){recNow=null;duck(false);}};
+    duck(true); return true;
+  }catch(e){return false;}
+}
 function speak(t,who){
+  if(vol("voice")<=0)return;
+  const sex=sexOf(who), v=sex||"f", parts=initAudio()?recParts(v,t):null;
+  stopVoice();
+  if(parts){
+    const tok={src:[]}; recNow=tok;
+    recPlay(v,parts,VOICE_RATE[who]||1,tok).then(ok=>{if(!ok&&recNow===tok){recNow=null;deviceSpeak(t,who);}});
+    return;
+  }
+  deviceSpeak(t,who);
+}
+function deviceSpeak(t,who){
   if(!canSpeak||vol("voice")<=0)return;
   const sex=sexOf(who);
   if(NativeTTS){

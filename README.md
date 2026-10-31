@@ -39,7 +39,7 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 |---|---|
 | Am Windows-PC starten und ändern | [docs/ANLEITUNG-PC.md](docs/ANLEITUNG-PC.md) |
 | Ordner, Dateien, Spielstand, Bau | [docs/AUFBAU.md](docs/AUFBAU.md) |
-| Neue Sätze und Wörter | `www/js/inhalt/` |
+| Neue Sätze und Wörter | `www/js/inhalt/` (danach die Stimmen aufnehmen, siehe [AUFBAU](docs/AUFBAU.md#stimmen)) |
 | Automatischer Test | `node test/spiel-test.mjs` |
 
 ## Orte

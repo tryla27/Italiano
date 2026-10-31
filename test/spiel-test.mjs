@@ -143,6 +143,15 @@ check(await page.evaluate(() => {
   const m = pickVoice(list, sexOf("Zio Gennaro")), f = pickVoice(list, sexOf("Nonna Pina")), one = pickVoice([list[1]], "m");
   return m.voice.i === 2 && f.voice.i === 1 && one.voice.i === 0 && one.pitch < 1 && pickVoice(list, null).pitch === 1;
 }), "Stimmenwahl nach Figur stimmt nicht");
+// Aufgenommene Stimmen: Männer und Frauen haben eigene Aufnahmen, Bestellungen werden aus Bausteinen zusammengesetzt
+check(await page.evaluate(async () => {
+  const m = recParts("m", PERS["Zio Gennaro"].greet[0][0]), f = recParts("f", PERS["Nonna Pina"].greet[0][0]);
+  const order = recParts("m", "Allora, prendo due margherite senza basilico ma con funghi, per favore.");
+  const phone = recParts("f", "Pronto, pizzeria? Vorrei ordinare tre diavole per le otto. L'indirizzo è via Roma, numero dodici.");
+  const none = recParts("f", "Questa frase non esiste nel gioco, davvero.");
+  const r = await fetch(`stimmen/m/${m[0]}.mp3`);
+  return m && m.length === 1 && f && f.length === 1 && order && order.length > 1 && phone && phone.length > 1 && none === null && r.ok;
+}), "Aufgenommene Stimmen fehlen oder werden nicht gefunden");
 
 // Laden einrichten ist vorerst aus: neuer Spieler und alter Stand mitten im Einrichten starten direkt
 await fresh(null);
