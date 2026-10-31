@@ -81,16 +81,25 @@ function homeStart(){
 }
 const weekNote=()=>`<p class="weeknote">Heute: <b>${giorno(S.day)[0]}</b> (${giorno(S.day)[1]}) · ${inspToday()&&!(G&&!G.summary)?"🩺 Heute kommt das Gesundheitsamt! · ":""}${isMarketDay(S.day)?"Markttag! Nach Feierabend geht's zum Markt.":`nächster Markt: ${giorno(nextMarketDay(S.day))[0]}`}</p>`;
 // Startseite als 3D-Viertel: von hier geht es zu allen Orten, auch zum Lernen (Scuola, Bar, Biblioteca, Forno)
+// Schmale Kopfzeile für die Stadt: Name, Stufe, Werte und der heutige Tag in zwei dünnen Zeilen
+function homeBar(){
+  const L=LEVELS[S.level], g=giorno(S.day), insp=inspToday()&&!(G&&!G.summary), mk=isMarketDay(S.day);
+  const day=insp?"🩺 Gesundheitsamt kommt!":mk?"Markttag!":`Markt: ${giorno(nextMarketDay(S.day))[0]}`;
+  return `<div class="hbar"><div class="hb-top"><div class="hb-name"><b>Parla <span>Pizza!</span></b><small>${L.it} · Stufe ${S.level+1}/${LEVELS.length}</small></div>${tools()}</div>
+    <div class="hb-vals"><span><b>${S.coins}</b> €</span><span>Tag <b>${S.day}</b></span><span>Serie <b>${S.streak}</b></span><span><b>${S.learned.length}</b> Wörter</span>
+    <span class="hb-day${mk||insp?" hot":""}" title="Heute: ${g[0]} (${g[1]})"><b>${g[0]}</b> · ${day}</span></div></div>
+  ${UPDATE?`<button class="update" data-act="update">Neue Version ${esc(UPDATE.tag)} verfügbar · jetzt laden<small>Dein Spielstand bleibt erhalten</small></button>`:""}`;
+}
 function rHomeCity(){
-  $("#screen").innerHTML=`${homeSign()}
-  ${homeStats()}
-  ${weekNote()}
+  S.homeSeen=(S.homeSeen||0)+1; const newbie=S.homeSeen<=3; // Hinweise nur bei den ersten Besuchen
+  $("#screen").innerHTML=`${homeBar()}
   ${S.chest?`<button class="big chestbtn" data-act="chestopen">🎁 Il forziere!<small>Belohnung für Vokabeltag ${S.chest.day}</small></button>`:""}
   ${cityBox()}
   ${mapMsg?`<p class="banner">${esc(mapMsg)}</p>`:""}
   ${homeStart()}
-  <div class="row3 home3"><button class="sec" data-act="locale">Il mio locale</button><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="help">So geht's</button></div>
-  ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
+  <div class="home-ic"><button class="sec" data-act="locale" aria-label="Il mio locale"><i>🏠</i>Locale</button><button class="sec" data-act="shop" aria-label="Shop">${ICON.shop}Shop</button><button class="sec" data-act="help" aria-label="So geht's"><i>?</i>Hilfe</button></div>
+  ${!newbie||musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
+  if(!newbie){const h=$("#city3d .loc-hint");if(h)h.remove();}
   if(!cityMount($("#city3d"))){render();}
 }
 function rHome(){
