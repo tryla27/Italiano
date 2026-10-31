@@ -41,6 +41,7 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 | Ordner, Dateien, Spielstand, Bau | [docs/AUFBAU.md](docs/AUFBAU.md) |
 | Neue Sätze und Wörter | `www/js/inhalt/` (danach die Stimmen aufnehmen, siehe [AUFBAU](docs/AUFBAU.md#stimmen)) |
 | Automatischer Test | `node test/spiel-test.mjs` |
+| Sind alle Wörter antippbar? | `node test/woerter-test.mjs` |
 
 ## Orte
 

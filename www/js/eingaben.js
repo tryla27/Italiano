@@ -41,7 +41,7 @@ function handleClick(e){
   if(a==="pause"){volOpen=!volOpen;pauseOpen=false;codeBox=null;return render();} // Pause und Einstellungen sind ein Menü
   if(a==="help"){helpOpen=!helpOpen;return render();}
   // Abbrechen ohne Belohnung: Trinkgeld und Tag kommen erst am Ende dazu, also einfach verwerfen
-  if(a==="abort"){pauseOpen=false;volOpen=false;G=null;screen="home";save();return render();}
+  if(a==="abort"){pauseOpen=false;volOpen=false;dropDay();screen="home";save();return render();}
   if(a==="vabort"){pauseOpen=false;volOpen=false;S.vocabRun=null;S.vocabPaused=null;screen="vocab";save();return render();}
   if(a==="shop"){screen="shop";return render();}
   if(a==="map"){mapMsg="";if(screen==="vocab"&&S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;screen="map";return render();}
@@ -89,6 +89,7 @@ function handleClick(e){
   if(a==="lsay"){const I=L3.byKey[L3.sel];if(I)speak(I.it);return;}
   if(a==="lrot"){locRotate();return render();}
   if(a==="lstore"){locStore();return render();}
+  if(a==="lhome"){locHome();return;}
   if(a==="ldone"){L3.sel=null;L3.msg="";req3d();L3.dirty=true;return render();}
   if(a==="lput"){locPut(t.dataset.k);return render();}
   if(a==="menu"){menuOpen=!menuOpen;return render();}

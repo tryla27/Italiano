@@ -19,6 +19,7 @@ Italiano/
 │   └── music/                ← Hintergrundmusik (MP3)
 ├── assets/                   ← Quellbilder für App-Icon und Startbild
 ├── test/spiel-test.mjs       ← automatischer Test im Handy-Browser
+├── test/woerter-test.mjs     ← prüft, ob jedes italienische Wort eine antippbare Übersetzung hat
 ├── tools/stimmen/            ← nimmt die Stimmen auf (siehe „Stimmen“ unten)
 ├── docs/                     ← Anleitungen (diese Datei, PC-Anleitung)
 ├── signing/debug.keystore    ← App-Schlüssel, NIEMALS löschen oder ersetzen

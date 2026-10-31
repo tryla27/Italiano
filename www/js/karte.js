@@ -43,8 +43,8 @@ function cityPinsHTML(){
   return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="bar"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.de;
     return `<button class="city-pin${open?"":" shut"}${p.city?" learn":""}" data-act="place" data-p="${p.id}" aria-label="${p.it}, ${de}${open?"":" (geschlossen)"}"><b>${open?"":"🔒 "}${p.it}</b><small>${de}</small></button>`;}).join("");
 }
-const cityBox=()=>`<div class="map city" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
-  <p class="loc-hint">Ein Finger dreht, zwei Finger zoomen. Tippe auf ein Haus.</p></div>`;
+const cityBox=()=>`<div class="map city full3d" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
+  <p class="loc-hint">Ein Finger dreht, zwei Finger zoomen. Tippe auf ein Haus.</p></div><div class="win3d"></div>`;
 // Karte als 3D-Viertel (stadt3d.js); ohne WebGL die flache Karte
 function rMap(){
   const city=cityCan();
@@ -62,5 +62,7 @@ function goPlace(id){
   mapMsg=""; sfx("door");
   if(id==="pizzeria"||id==="mercato"){if(G&&!G.summary&&!G.trip){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(G&&!G.summary&&G.trip===id){screen="play";render();autoSpeak();return;}
+  // Ein laufender Spieltag geht nicht einfach verloren, wenn man auf einen Ausflug tippt
+  if(G&&!G.summary&&!G.trip){mapMsg="Dein Spieltag läuft noch: erst in der Pizzeria fertig spielen (oder im Pause-Menü abbrechen).";sfx("wrong");return render();}
   G=null;return startTrip(id);
 }

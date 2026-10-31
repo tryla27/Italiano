@@ -40,6 +40,7 @@ function render(){
   $("#screen").className="s-"+screen;
   ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
+  fullBg();
   armBack();
 }
 // Kopfzeile für Untermenüs: zurück zur Stadt (Startseite), Titel, Ton und Einstellungen in einer Zeile
@@ -196,7 +197,7 @@ function rSummary(){
   if(sm.trip){const T=TRIPS[sm.trip];
     $("#screen").innerHTML=`<h2 class="t">${esc(T.it)}</h2><p class="note" style="margin:-8px 0 0">Ausflug zum ${esc(T.de)} beendet</p>
       <div class="panel" style="align-items:center">${starsHTML(G.stars)}<div class="review">${G.firstTry===G.steps?"Bravissimo!":G.firstTry>=G.steps/2?"Bene!":"Ci vediamo presto!"}<small>${G.firstTry} von ${G.steps} beim ersten Versuch richtig</small></div></div>
-      <div class="panel"><div class="line total"><span>Trinkgeld vom Ausflug</span><span>+${G.earned} €</span></div></div>
+      <div class="panel"><div class="line total"><span>Trinkgeld vom Ausflug</span><span>+${G.earned} €</span></div>${!G.practice?"":`<small class="note">Heute schon belohnt. Am nächsten Spieltag gibt es hier wieder Trinkgeld.</small>`}</div>
       <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
     return;}
   $("#screen").innerHTML=`
@@ -239,4 +240,15 @@ function rBook(){
     ${e.length>=2?`<button class="big" data-act="vstart" data-d="book">Notizbuch üben<small>${Math.min(e.length,12)} Wörter im Vokabelmodus</small></button>`:""}
     ${e.length?`<div class="items scroll">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}×</span></div>`).join("")}</div>`
       :`<div class="panel"><p class="note" style="margin:0">Noch leer. Sobald du etwas falsch hast, das rote ✕ drückst oder doppelt auf ein Wort tippst, landet es hier zum Wiederholen.</p></div>`}`;
+}
+
+/* Ganzer Bildschirm: 3D-Szenen (Viertel, Restaurant) liegen hinter allem; bei den Bild-Szenen (Spieltag, Markt,
+   Eisladen, Hafen) füllt dasselbe Bild weichgezeichnet den ganzen Hintergrund. */
+function fullBg(){
+  const b=document.body, sc=$("#screen"), full=!!sc.querySelector(".full3d");
+  b.classList.toggle("has3d",full);
+  const img=!full&&sc.querySelector(".stage-svg image");
+  const src=img&&img.getAttribute("href");
+  b.classList.toggle("hasbg",!!src);
+  if(src)b.style.setProperty("--scene-bg",`url("${src}")`); else b.style.removeProperty("--scene-bg");
 }

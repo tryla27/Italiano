@@ -524,6 +524,8 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .loc-canvas{width:100%!important;height:100%!important;display:block;touch-action:none}
 .loc-load,.loc-no3d{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;font-family:var(--hand);font-size:1.5rem;color:var(--chalk-dim);text-align:center;padding:20px}
 .loc-msg{position:absolute;left:8px;right:8px;top:8px;background:rgba(27,34,31,.9);border:1.5px solid var(--gold);border-radius:12px;padding:6px 10px;font-size:.85rem;line-height:1.25}
+.loc-home{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:rgba(27,34,31,.85);color:var(--chalk);font-size:1.3rem;line-height:1;padding:0;z-index:2}
+.loc-msg~.loc-home{top:auto;bottom:64px}
 .loc-hint{position:absolute;left:8px;right:8px;bottom:8px;margin:0;background:rgba(27,34,31,.78);border-radius:10px;padding:5px 8px;font-size:.76rem;color:var(--chalk-dim);text-align:center;pointer-events:none}
 .loc-sel{position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:6px;align-items:stretch}
 .loc-name{flex:1;min-width:0;text-align:left;border:2px solid var(--gold);background:rgba(27,34,31,.92);border-radius:12px;padding:5px 9px;color:var(--chalk)}
@@ -597,3 +599,44 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .verso small.de{border:0;margin:0;padding:0;font-size:.8rem}
 .verso .it{font-size:1.3rem;line-height:1.25}
 .lett-tools.three{grid-template-columns:1fr 1fr 1.3fr}
+
+/* ---------- Vollbild: Szene hinter dem ganzen Bildschirm, Knöpfe halbdurchsichtig darüber ---------- */
+:root{--glass:rgba(27,34,31,.55);--glass2:rgba(38,48,43,.58);--glass-line:rgba(243,238,226,.22)}
+/* 3D-Szene (Viertel, Restaurant) liegt fest hinter allem und deckt den ganzen Bildschirm */
+.full3d{position:fixed!important;inset:0;z-index:0;border:0!important;border-radius:0!important;margin:0}
+.win3d{flex:1 1 0!important;min-height:180px;pointer-events:none}
+body.has3d .app{pointer-events:none}
+body.has3d #screen{overflow:hidden}
+body.has3d #screen>*:not(.full3d){position:relative;z-index:1;pointer-events:auto}
+body.has3d #screen>.win3d{pointer-events:none}
+body.has3d #screen>.full3d{pointer-events:auto}
+body.has3d #overlay,body.has3d #pop{z-index:40}
+/* Hinweise und Knöpfe in der Szene bleiben im freien Fenster */
+.full3d .loc-hint{bottom:calc(var(--wb,0px) + 8px);left:calc(var(--wl,0px) + 8px);right:calc(var(--wr,0px) + 8px)}
+.full3d .loc-msg{top:calc(var(--wt,0px) + 8px);left:calc(var(--wl,0px) + 8px);right:calc(var(--wr,0px) + 8px)}
+.full3d .loc-home{top:calc(var(--wt,0px) + 8px);right:calc(var(--wr,0px) + 8px)}
+.full3d .loc-msg~.loc-home{top:calc(var(--wt,0px) + 58px);bottom:auto}
+.full3d .loc-sel{bottom:calc(var(--wb,0px) + 6px);left:calc(var(--wl,0px) + 6px);right:calc(var(--wr,0px) + 6px)}
+.full3d .loc-load{position:absolute;left:0;right:0;top:calc(var(--wt,0px) + 40px);text-align:center}
+#screen.s-home>.map.city,#screen.s-map>.map.city,#screen.s-locale>.loc-wrap{min-height:0}
+/* Bild-Szenen (Spieltag, Markt, Eisladen, Hafen): dasselbe Bild weich gezeichnet als Hintergrund */
+body.hasbg::before{content:"";position:fixed;inset:-30px;z-index:-1;background:var(--scene-bg) center/cover no-repeat;filter:blur(18px) brightness(.5) saturate(1.1)}
+body.hasbg{background:#141a17}
+/* Knöpfe und Felder: halbdurchsichtig, aber gut lesbar */
+.sign,.stat,.sec,.opt,.chip,.city-pin,.tb,.back,.loc-store,.loc-hint,.update,.placebtn,.locshop,.ing,.wd,.panel,.card,.tipbox,.mapbtn,.av,.bar,.quit,.cap,.item,.hag-item,.mcard,.cupb,.book-e,.pi{
+  background:var(--glass2)!important;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+.sign,.stat,.sec,.opt,.chip,.tb,.loc-store,.update,.placebtn,.locshop,.ing,.panel,.card,.tipbox,.mapbtn,.item,.mcard{border-color:var(--glass-line)!important}
+.ing[aria-pressed="true"]{background:rgba(244,198,79,.3)!important}
+.big{background:rgba(229,83,63,.82);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.bubble{background:rgba(243,238,226,.9)}
+.loc-msg{background:rgba(27,34,31,.72)}
+.head{background:var(--glass);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border-radius:14px;padding:4px 6px}
+.weeknote,.note.tiny{text-shadow:0 1px 3px rgba(0,0,0,.8)}
+body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-radius:10px;padding:3px 8px;align-self:center}
+/* Fenster und Menüs bleiben fest (dort soll nichts durchscheinen) */
+.sheet,.sheet .sec,.sheet .opt,.sheet .chip,#overlay .card{background:var(--slate2)!important;-webkit-backdrop-filter:none;backdrop-filter:none}
+/* Handy: Spielszene randlos über die ganze Breite */
+@media (max-width:560px){
+  .s-play .stage{margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));border-radius:0}
+  .s-play .stage-svg{border-radius:0}
+}
