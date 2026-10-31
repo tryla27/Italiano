@@ -330,10 +330,11 @@ function draw3d(){
 function locResize(){
   const h=L3.host; if(!h)return; const w=h.clientWidth||300, hh=h.clientHeight||300;
   L3.r.setSize(w,hh,false); L3.cam.aspect=w/hh;
+  const W=winBox(h.closest(".full3d"));
   // Hochformat: weiter weg, damit der ganze Raum passt
   L3.cam.fov=w<hh?46:38; L3.cam.updateProjectionMatrix();
-  // Beim ersten Öffnen und wenn das Handy gedreht wird: Kamera so setzen, dass der ganze Raum ins Bild passt
-  const fmt=w<hh?"hoch":"quer";
+  // Beim ersten Öffnen und wenn sich die Größe ändert: Kamera so setzen, dass der ganze Raum ins Bild passt
+  const fmt=w+"x"+hh+":"+W.y0.toFixed(2)+W.y1.toFixed(2);
   if(L3.fitted!==fmt){L3.fitted=fmt;locFit();}
   L3.dirty=true; req3d();
 }
@@ -341,11 +342,12 @@ function locResize(){
    und alles, was draußen steht, müssen ins Bild. Unten bleibt Platz für den Hinweis. */
 function locFit(){
   // Hochformat: fast von vorn, damit die Breite des Raums gut passt
-  if(L3.cam.aspect<1)locFitAt(.26,.68); else locFitAt(.62,.9);
+  const W=winBox(L3.host&&L3.host.closest(".full3d"));
+  if(L3.cam.aspect*(W.x1-W.x0)<W.y1-W.y0)locFitAt(.26,.68); else locFitAt(.62,.9);
   L3.home={th:L3.th,ph:L3.ph,rad:L3.rad,t:L3.tgt.clone()};
 }
 function locFitAt(th,ph){
-  const T=THREE, c=L3.cam, port=c.aspect<1;
+  const T=THREE, c=L3.cam, port=th<.5;
   L3.th=th; L3.ph=ph;
   const pts=[];
   for(const x of [-LW/2-.15,LW/2+.15])for(const z of [-LD/2-.15,LD/2+.15]){pts.push(new T.Vector3(x,0,z));if(z<0)pts.push(new T.Vector3(x,LH,z));}
@@ -354,7 +356,8 @@ function locFitAt(th,ph){
   L3.items.forEach(I=>{if(I.pos&&!I.st&&(zoneOf(I.d)==="out"||zoneOf(I.d)==="sea"))pts.push(new T.Vector3(I.pos.x,I.pos.y||0,I.pos.z));});
   const lo=new T.Vector3(1e9,1e9,1e9),hi=new T.Vector3(-1e9,-1e9,-1e9);pts.forEach(p=>{lo.min(p);hi.max(p);});
   L3.tgt.set((lo.x+hi.x)/2,.6,(lo.z+hi.z)/2);
-  const X0=-.94,X1=.94,Y0=port?-.8:-.62,Y1=.92; // Bildränder in NDC (unten der Hinweis)
+  // Bildränder in NDC: das freie Fenster zwischen den Knöpfen (Vollbild), unten Platz für den Hinweis
+  const W=winBox(L3.host&&L3.host.closest(".full3d")), X0=-.94,X1=.94, Y1=W.y1-.04, Y0=W.y0+(W.y1-W.y0)*(port?.1:.19);
   const spread=()=>{camUpdate();c.updateMatrixWorld();let a=1e9,b=-1e9,d=1e9,e=-1e9,behind=false;
     pts.forEach(p=>{const v=p.clone().project(c);if(v.z>1)behind=true;a=Math.min(a,v.x);b=Math.max(b,v.x);d=Math.min(d,v.y);e=Math.max(e,v.y);});return {a,b,d,e,behind};};
   for(let k=0;k<8;k++){
@@ -506,7 +509,7 @@ function rLocale(){
   const ready=L3.syncSig===locStruct()&&L3.locRef===S.locale&&!L3.building;
   if(L3.ok!==false&&!ready)L3.needUI=true;
   $("#screen").innerHTML=`${head("Il mio locale","Dein Restaurant in 3D")}
-    <div class="loc-wrap"><div id="loc3d" class="loc3d">${ready?"":`<p class="loc-load">Il locale si prepara …</p>`}</div>
+    <div class="loc-wrap full3d"><div id="loc3d" class="loc3d">${ready?"":`<p class="loc-load">Il locale si prepara …</p>`}</div>
       ${L3.msg?`<div class="loc-msg">${esc(L3.msg)}</div>`:""}
       ${I?`<div class="loc-sel"><button class="loc-name" data-act="lsay"><b>${esc(I.it)}</b><small>${esc(I.de)}</small></button>
         ${z!=="wall"?`<button class="sec loc-b" data-act="lrot" aria-label="Drehen">⟳<small>Drehen</small></button>`:""}
@@ -514,7 +517,7 @@ function rLocale(){
         <button class="sec loc-b" data-act="ldone" aria-label="Fertig">✓<small>Fertig</small></button></div>`
       :`<p class="loc-hint">Ein Finger dreht den Raum, zwei Finger zoomen. Tippe ein Möbelstück an und zieh es an seinen Platz.</p>`}
       <button class="loc-home" data-act="lhome" aria-label="Ganzen Raum zeigen" title="Ganzen Raum zeigen">⤢</button>
-    </div>
+    </div><div class="win3d"></div>
     ${stored.length?`<div class="loc-store"><b>Il magazzino</b><small>Lager · antippen zum Aufstellen</small><div class="chips">${stored.map(i=>`<button class="chip${i.rare?" rare":""}" data-act="lput" data-k="${esc(i.key)}">${i.ic} ${esc(i.it)}</button>`).join("")}</div></div>`:""}`;
   loc3dMount($("#loc3d"));
 }

@@ -43,8 +43,8 @@ function cityPinsHTML(){
   return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="bar"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.de;
     return `<button class="city-pin${open?"":" shut"}${p.city?" learn":""}" data-act="place" data-p="${p.id}" aria-label="${p.it}, ${de}${open?"":" (geschlossen)"}"><b>${open?"":"🔒 "}${p.it}</b><small>${de}</small></button>`;}).join("");
 }
-const cityBox=()=>`<div class="map city" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
-  <p class="loc-hint">Ein Finger dreht, zwei Finger zoomen. Tippe auf ein Haus.</p></div>`;
+const cityBox=()=>`<div class="map city full3d" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
+  <p class="loc-hint">Ein Finger dreht, zwei Finger zoomen. Tippe auf ein Haus.</p></div><div class="win3d"></div>`;
 // Karte als 3D-Viertel (stadt3d.js); ohne WebGL die flache Karte
 function rMap(){
   const city=cityCan();
