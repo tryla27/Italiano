@@ -640,3 +640,6 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
   .s-play .stage{margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));border-radius:0}
   .s-play .stage-svg{border-radius:0}
 }
+/* Schild, das einem anderen ausweicht: Strich bis zum Ort */
+.city-pin.lifted::before{content:"";position:absolute;left:50%;top:100%;width:2px;margin-left:-1px;height:var(--lift,0px);background:rgba(244,198,79,.8);pointer-events:none}
+.city-pin.lifted.learn::before{background:rgba(143,208,168,.85)}

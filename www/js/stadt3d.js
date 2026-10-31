@@ -275,10 +275,23 @@ function cityResize(){
 }
 function cityPins(){
   const pins=C3.host&&C3.host.querySelectorAll(".city-pin"); if(!pins)return;
-  const w=C3.host.clientWidth, h=C3.host.clientHeight, v=new THREE.Vector3();
+  const w=C3.host.clientWidth, h=C3.host.clientHeight, v=new THREE.Vector3(), cs=getComputedStyle(C3.host);
+  // Freies Fenster zwischen den Knöpfen (Vollbild): Schilder nur dort, nie unter Kopfzeile oder Knöpfen
+  const top=(parseFloat(cs.getPropertyValue("--wt"))||0)+4, bot=h-(parseFloat(cs.getPropertyValue("--wb"))||0)-4;
+  const list=[];
   pins.forEach(el=>{const s=CITY_SPOTS[el.dataset.p]; v.set(s[0],s[2],s[1]).project(C3.cam);
-    const W=C3.win||{y0:-1,y1:1}, on=v.z<1&&v.x>-1.15&&v.x<1.15&&v.y>W.y0-.02&&v.y<W.y1+.1;
-    el.style.display=on?"":"none"; if(on)el.style.transform=`translate(${(v.x+1)/2*w}px,${(1-v.y)/2*h}px) translate(-50%,-100%)`;});
+    if(!el._w){el._w=el.offsetWidth||90;el._h=el.offsetHeight||36;}
+    list.push({el,x:(v.x+1)/2*w,y:(1-v.y)/2*h,z:v.z,w:el._w,h:el._h+8});});
+  // Nahe Orte zuerst (weiter unten im Bild); weiter hinten liegende weichen nach oben aus, sonst werden sie ausgeblendet
+  list.sort((a,b)=>b.y-a.y);
+  const placed=[], hit=(r,q)=>r.x0<q.x1+3&&r.x1>q.x0-3&&r.y0<q.y1+2&&r.y1>q.y0-2;
+  list.forEach(P=>{let y=P.y, ok=P.z<1&&P.x>-P.w/3&&P.x<w+P.w/3&&y<=bot;
+    let r=null;
+    for(let k=0;ok&&k<6;k++){r={x0:P.x-P.w/2,x1:P.x+P.w/2,y0:y-P.h,y1:y};
+      const q=placed.find(q=>hit(r,q)); if(!q)break; y=q.y0-2; if(k===5)ok=false;}
+    if(ok&&(r.y0<top||P.y-y>P.h*1.6))ok=false;
+    P.el.style.display=ok?"":"none"; P.el.classList.toggle("lifted",ok&&y<P.y-2);
+    if(ok){placed.push(r);P.el.style.transform=`translate(${P.x}px,${y}px) translate(-50%,-100%)`;P.el.style.setProperty("--lift",(P.y-y)+"px");}});
 }
 // Läuft nur, solange die Karte offen ist: Wellen und schaukelnde Boote, höchstens 30 Bilder pro Sekunde
 function cityLoop(now){
