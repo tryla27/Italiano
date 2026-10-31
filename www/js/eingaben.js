@@ -41,7 +41,7 @@ function handleClick(e){
   if(a==="pause"){volOpen=!volOpen;pauseOpen=false;codeBox=null;return render();} // Pause und Einstellungen sind ein Menü
   if(a==="help"){helpOpen=!helpOpen;return render();}
   // Abbrechen ohne Belohnung: Trinkgeld und Tag kommen erst am Ende dazu, also einfach verwerfen
-  if(a==="abort"){pauseOpen=false;volOpen=false;G=null;screen="home";save();return render();}
+  if(a==="abort"){pauseOpen=false;volOpen=false;dropDay();screen="home";save();return render();}
   if(a==="vabort"){pauseOpen=false;volOpen=false;S.vocabRun=null;S.vocabPaused=null;screen="vocab";save();return render();}
   if(a==="shop"){screen="shop";return render();}
   if(a==="map"){mapMsg="";if(screen==="vocab"&&S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;screen="map";return render();}

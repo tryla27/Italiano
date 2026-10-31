@@ -197,7 +197,7 @@ function rSummary(){
   if(sm.trip){const T=TRIPS[sm.trip];
     $("#screen").innerHTML=`<h2 class="t">${esc(T.it)}</h2><p class="note" style="margin:-8px 0 0">Ausflug zum ${esc(T.de)} beendet</p>
       <div class="panel" style="align-items:center">${starsHTML(G.stars)}<div class="review">${G.firstTry===G.steps?"Bravissimo!":G.firstTry>=G.steps/2?"Bene!":"Ci vediamo presto!"}<small>${G.firstTry} von ${G.steps} beim ersten Versuch richtig</small></div></div>
-      <div class="panel"><div class="line total"><span>Trinkgeld vom Ausflug</span><span>+${G.earned} €</span></div></div>
+      <div class="panel"><div class="line total"><span>Trinkgeld vom Ausflug</span><span>+${G.earned} €</span></div>${!G.practice?"":`<small class="note">Heute schon belohnt. Am nächsten Spieltag gibt es hier wieder Trinkgeld.</small>`}</div>
       <button class="big" data-act="home">Weiter<small>Kasse: ${S.coins} €</small></button>`;
     return;}
   $("#screen").innerHTML=`

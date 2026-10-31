@@ -3,9 +3,9 @@
 // Laden einrichten ist vorerst ausgeschaltet und wird später neu gebaut (Code in laden.js bleibt).
 // Auf true setzen, um es wieder einzuschalten.
 const LADEN_EINRICHTEN=false;
-const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null,place:{},inspDue:null,cert:0,memDay:0,story:null,storiesDone:[],storyNext:3,locale:{},libri:{},poesie:{}};
+const S0={coins:0,level:0,owned:[],day:1,streak:0,last:"",book:{},learned:[],sound:true,vol:{music:.6,sfx:.8,voice:1},room:null,setupDone:!LADEN_EINRICHTEN,setupQuiz:null,vocab:{days:{},done:{}},vocabRun:null,muted:false,deko:{},chest:null,boost:null,ing:START_ING,pz:{},newPz:null,place:{},inspDue:null,cert:0,memDay:0,story:null,storiesDone:[],storyNext:3,locale:{},libri:{},poesie:{},tripDay:{}};
 // Listen und Objekte aus S0 kopieren, damit ein neues Spiel S0 nie verändert
-const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],storiesDone:[...(s.storiesDone||[])],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko),place:Object.assign({},s.place),locale:Object.assign({},s.locale),libri:JSON.parse(JSON.stringify(s.libri||{})),poesie:JSON.parse(JSON.stringify(s.poesie||{}))});
+const fresh0=s=>Object.assign(s,{vol:Object.assign({},S0.vol,s.vol||{}),ing:[...(s.ing||START_ING)],storiesDone:[...(s.storiesDone||[])],pz:Object.assign({},s.pz),deko:Object.assign({},s.deko),place:Object.assign({},s.place),locale:Object.assign({},s.locale),libri:JSON.parse(JSON.stringify(s.libri||{})),poesie:JSON.parse(JSON.stringify(s.poesie||{})),tripDay:Object.assign({},s.tripDay)});
 let S=fresh0(Object.assign({},S0));
 /* Speichern: nach JEDER Aktion. Sofort auf dem Gerät, und zusätzlich in deinem Claude-Konto (falls verfügbar). */
 const KEY="pizzeria-parola";
