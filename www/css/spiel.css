@@ -524,6 +524,8 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .loc-canvas{width:100%!important;height:100%!important;display:block;touch-action:none}
 .loc-load,.loc-no3d{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;font-family:var(--hand);font-size:1.5rem;color:var(--chalk-dim);text-align:center;padding:20px}
 .loc-msg{position:absolute;left:8px;right:8px;top:8px;background:rgba(27,34,31,.9);border:1.5px solid var(--gold);border-radius:12px;padding:6px 10px;font-size:.85rem;line-height:1.25}
+.loc-home{position:absolute;right:8px;top:8px;width:40px;height:40px;border-radius:10px;border:1.5px solid var(--line);background:rgba(27,34,31,.85);color:var(--chalk);font-size:1.3rem;line-height:1;padding:0;z-index:2}
+.loc-msg~.loc-home{top:auto;bottom:64px}
 .loc-hint{position:absolute;left:8px;right:8px;bottom:8px;margin:0;background:rgba(27,34,31,.78);border-radius:10px;padding:5px 8px;font-size:.76rem;color:var(--chalk-dim);text-align:center;pointer-events:none}
 .loc-sel{position:absolute;left:6px;right:6px;bottom:6px;display:flex;gap:6px;align-items:stretch}
 .loc-name{flex:1;min-width:0;text-align:left;border:2px solid var(--gold);background:rgba(27,34,31,.92);border-radius:12px;padding:5px 9px;color:var(--chalk)}

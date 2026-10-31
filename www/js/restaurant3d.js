@@ -313,7 +313,7 @@ async function locSync(){
 
 /* ---------- Kamera und Zeichnen ---------- */
 function camUpdate(){
-  const c=L3.cam,t=L3.tgt; L3.ph=Math.max(.32,Math.min(1.3,L3.ph)); L3.rad=Math.max(4.5,Math.min(24,L3.rad));
+  const c=L3.cam,t=L3.tgt; L3.ph=Math.max(.32,Math.min(1.3,L3.ph)); L3.rad=Math.max(4.5,Math.min(34,L3.rad));
   c.position.set(t.x+L3.rad*Math.sin(L3.ph)*Math.sin(L3.th),t.y+L3.rad*Math.cos(L3.ph),t.z+L3.rad*Math.sin(L3.ph)*Math.cos(L3.th));
   c.lookAt(t);
   // Wände zwischen Kamera und Raum ausblenden, dort bleibt nur die Sockelleiste
@@ -332,9 +332,47 @@ function locResize(){
   L3.r.setSize(w,hh,false); L3.cam.aspect=w/hh;
   // Hochformat: weiter weg, damit der ganze Raum passt
   L3.cam.fov=w<hh?46:38; L3.cam.updateProjectionMatrix();
-  if(!L3.fitted){L3.fitted=true;if(w<hh){L3.th=.38;L3.ph=.72;L3.rad=Math.min(22,12.5*hh/w*.8);L3.tgt.set(.3,0,1.7);}}
+  // Beim ersten Öffnen und wenn das Handy gedreht wird: Kamera so setzen, dass der ganze Raum ins Bild passt
+  const fmt=w<hh?"hoch":"quer";
+  if(L3.fitted!==fmt){L3.fitted=fmt;locFit();}
   L3.dirty=true; req3d();
 }
+/* Ganzen Raum zeigen: alle Ecken (Boden und Wandoberkante), die Tür mit dem Gehweg davor
+   und alles, was draußen steht, müssen ins Bild. Unten bleibt Platz für den Hinweis. */
+function locFit(){
+  // Hochformat: fast von vorn, damit die Breite des Raums gut passt
+  if(L3.cam.aspect<1)locFitAt(.26,.68); else locFitAt(.62,.9);
+  L3.home={th:L3.th,ph:L3.ph,rad:L3.rad,t:L3.tgt.clone()};
+}
+function locFitAt(th,ph){
+  const T=THREE, c=L3.cam, port=c.aspect<1;
+  L3.th=th; L3.ph=ph;
+  const pts=[];
+  for(const x of [-LW/2-.15,LW/2+.15])for(const z of [-LD/2-.15,LD/2+.15]){pts.push(new T.Vector3(x,0,z));if(z<0)pts.push(new T.Vector3(x,LH,z));}
+  // Oberkante der hinteren Wände (die vorderen sind ausgeblendet) und der Platz vor der Tür
+  pts.push(new T.Vector3(-LW/2,LH,LD/2),new T.Vector3(0,0,LD/2+1));
+  L3.items.forEach(I=>{if(I.pos&&!I.st&&(zoneOf(I.d)==="out"||zoneOf(I.d)==="sea"))pts.push(new T.Vector3(I.pos.x,I.pos.y||0,I.pos.z));});
+  const lo=new T.Vector3(1e9,1e9,1e9),hi=new T.Vector3(-1e9,-1e9,-1e9);pts.forEach(p=>{lo.min(p);hi.max(p);});
+  L3.tgt.set((lo.x+hi.x)/2,.6,(lo.z+hi.z)/2);
+  const X0=-.94,X1=.94,Y0=port?-.8:-.62,Y1=.92; // Bildränder in NDC (unten der Hinweis)
+  const spread=()=>{camUpdate();c.updateMatrixWorld();let a=1e9,b=-1e9,d=1e9,e=-1e9,behind=false;
+    pts.forEach(p=>{const v=p.clone().project(c);if(v.z>1)behind=true;a=Math.min(a,v.x);b=Math.max(b,v.x);d=Math.min(d,v.y);e=Math.max(e,v.y);});return {a,b,d,e,behind};};
+  for(let k=0;k<8;k++){
+    // Abstand: so nah wie möglich, solange alles ins Bild passt
+    let r0=4.5,r1=34;for(let j=0;j<22;j++){L3.rad=(r0+r1)/2;const s=spread();if(!s.behind&&s.a>=X0&&s.b<=X1&&s.d>=Y0&&s.e<=Y1)r1=L3.rad;else r0=L3.rad;}
+    L3.rad=r1; const s=spread();
+    // Mitte des Bildes auf die Mitte des Raums schieben
+    const hy=Math.tan(c.fov*Math.PI/360)*L3.rad, hx=hy*c.aspect;
+    const dx=((s.a+s.b)/2-(X0+X1)/2)*hx, dy=((s.d+s.e)/2-(Y0+Y1)/2)*hy;
+    // nur waagerecht schieben: links/rechts im Bild, hoch/runter im Bild heißt nach hinten/vorn auf dem Boden
+    const right=new T.Vector3().setFromMatrixColumn(c.matrixWorld,0); right.y=0;
+    const f=new T.Vector3(Math.sin(L3.th),0,Math.cos(L3.th));
+    L3.tgt.addScaledVector(right,dx).addScaledVector(f,-dy/Math.cos(L3.ph));
+  }
+  camUpdate();
+}
+// Ansicht zurück auf den ganzen Raum
+function locHome(){const h=L3.home;if(!h){locFit();}else{L3.th=h.th;L3.ph=h.ph;L3.rad=h.rad;L3.tgt.copy(h.t);}L3.dirty=true;req3d();}
 function selBox(){
   const I=L3.sel&&L3.byKey[L3.sel]; L3.grid.visible=!!(L3.drag&&L3.drag.moved&&I&&I.pos&&zoneOf(I.d)!=="wall"&&zoneOf(I.d)!=="out"&&zoneOf(I.d)!=="sea");
   if(!I||!I.pos||I.st||!I.lb){L3.box.visible=false;return;}
@@ -475,6 +513,7 @@ function rLocale(){
         <button class="sec loc-b" data-act="lstore" aria-label="Einlagern">📦<small>Lager</small></button>
         <button class="sec loc-b" data-act="ldone" aria-label="Fertig">✓<small>Fertig</small></button></div>`
       :`<p class="loc-hint">Ein Finger dreht den Raum, zwei Finger zoomen. Tippe ein Möbelstück an und zieh es an seinen Platz.</p>`}
+      <button class="loc-home" data-act="lhome" aria-label="Ganzen Raum zeigen" title="Ganzen Raum zeigen">⤢</button>
     </div>
     ${stored.length?`<div class="loc-store"><b>Il magazzino</b><small>Lager · antippen zum Aufstellen</small><div class="chips">${stored.map(i=>`<button class="chip${i.rare?" rare":""}" data-act="lput" data-k="${esc(i.key)}">${i.ic} ${esc(i.it)}</button>`).join("")}</div></div>`:""}`;
   loc3dMount($("#loc3d"));
