@@ -12,8 +12,9 @@ const ING={
   acciughe:["Sardellen","#8f8a86",2,14],capperi:["Kapern","#7d8f4a",2,10],peperoni:["Paprika","#f2b134",2,8],
   zucchine:["Zucchini","#5d9a3f",2,8],melanzane:["Auberginen","#5b2f63",2,10],gorgonzola:["Gorgonzola","#e3e0c6",2,15],
   parmigiano:["Parmesan","#f1d98a",2,17],fontina:["Fontina","#f4e0a0",2,14],
+  scamorza:["Scamorza","#e9b56a",2,13],pecorino:["Pecorino","#efe4bf",3,17],
   crudo:["Rohschinken","#c75a5a",3,20],rucola:["Rucola","#4f8a2a",3,7],salsiccia:["Bratwurst","#9c5a3a",3,15],
-  friarielli:["Stielmus","#2f6b2a",3,11],ricotta:["Ricotta","#fbf8f0",3,13],
+  friarielli:["Stielmus","#2f6b2a",3,11],ricotta:["Ricotta","#fbf8f0",3,13],provola:["Provola","#d9a55a",3,14],
   cozze:["Miesmuscheln","#2c2f3a",4,18],gamberi:["Garnelen","#f08a5a",4,22],prezzemolo:["Petersilie","#3a8a3a",4,4],
   bufala:["Büffelmozzarella","#fffdf6",4,21]
 };
@@ -23,7 +24,7 @@ const BANCHE=[
   {id:"verdura",it:"Frutta e verdura",ic:"🍅",who:"Signora Carmela",say:["Buongiorno! Pomodori freschi, appena raccolti!","Guten Tag! Frische Tomaten, gerade geerntet!"],
     ing:["pomodoro","basilico","aglio","cipolla","peperoni","zucchine","melanzane","funghi","carciofi","rucola","friarielli","prezzemolo"]},
   {id:"latticini",it:"Latticini",ic:"🧀",who:"Signora Lucia",say:["La mozzarella è di stamattina. Cosa Le do?","Der Mozzarella ist von heute Morgen. Was darf ich Ihnen geben?"],
-    ing:["mozzarella","bufala","ricotta","gorgonzola","parmigiano","fontina"]},
+    ing:["mozzarella","bufala","ricotta","gorgonzola","parmigiano","fontina","scamorza","pecorino","provola"]},
   {id:"salumi",it:"Salumeria",ic:"🥓",who:"Signor Peppe",say:["Salame, prosciutto, salsiccia: tutto buonissimo!","Salami, Schinken, Bratwurst: alles sehr lecker!"],
     ing:["salame","prosciutto","crudo","salsiccia"]},
   {id:"pesce",it:"Pescheria",ic:"🐟",who:"Zio Totò",say:["Pesce fresco del golfo! Guardi che gamberi!","Frischer Fisch aus dem Golf! Schauen Sie, was für Garnelen!"],
@@ -50,8 +51,11 @@ const PIZZE=[
   {n:"napoletana",p:8,pl:"napoletane",lv:2,ing:["pomodoro","mozzarella","acciughe","capperi","origano"]},
   {n:"ortolana",p:9,pl:"ortolane",lv:2,ing:["pomodoro","mozzarella","peperoni","zucchine","melanzane"]},
   {n:"quattro formaggi",p:10,pl:"quattro formaggi",lv:2,ing:["mozzarella","gorgonzola","parmigiano","fontina"]},
+  {n:"zucchine e scamorza",p:9,pl:"zucchine e scamorza",lv:2,ing:["mozzarella","zucchine","scamorza"]},
   {n:"crudo e rucola",p:11,pl:"crudo e rucola",lv:3,ing:["pomodoro","mozzarella","crudo","rucola","parmigiano"]},
   {n:"salsiccia e friarielli",p:10,pl:"salsiccia e friarielli",lv:3,ing:["mozzarella","salsiccia","friarielli"]},
+  {n:"cinque formaggi",p:12,pl:"cinque formaggi",lv:3,ing:["mozzarella","gorgonzola","parmigiano","fontina","pecorino"]},
+  {n:"salsiccia e provola",p:11,pl:"salsiccia e provola",lv:3,ing:["pomodoro","provola","salsiccia","basilico"]},
   {n:"calzone",p:10,pl:"calzoni",lv:3,ing:["pomodoro","mozzarella","ricotta","salame"]},
   {n:"frutti di mare",p:12,pl:"frutti di mare",lv:4,ing:["pomodoro","aglio","cozze","gamberi","prezzemolo"]},
   {n:"bufalina",p:11,pl:"bufaline",lv:4,ing:["pomodoro","bufala","basilico"]}

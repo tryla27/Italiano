@@ -59,9 +59,10 @@ function mkPinText(){if(G&&!G.summary&&G.phase==="market")return "Signor Esposit
 // Zum Ort gehen: Tür-Geräusch, dann sofort dort.
 // Neuen Spieltag beginnen, aber nur mit Zutaten im Vorrat: sonst erst auf den Markt
 function openDay(){
-  G=null;
-  if(kitchenEmpty()){mkMsg="Deine Küche ist leer! Kauf hier Zutaten, dann kannst du öffnen.";mapMsg="";sfx("wrong");screen="mercato";return render();}
-  mapMsg=""; return startDay();
+  G=null; mapMsg="";
+  if(mkRescue()){sfx("coins");screen="mercato";return render();}
+  if(kitchenEmpty()){mkMsg="Deine Küche ist leer! Kauf hier Zutaten, dann kannst du öffnen.";sfx("wrong");screen="mercato";return render();}
+  return startDay();
 }
 function goPlace(id){
   if(CITY_GO[id]){mapMsg="";sfx("door");return CITY_GO[id]();}

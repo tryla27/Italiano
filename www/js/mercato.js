@@ -29,6 +29,17 @@ const mkListCost=()=>mkList().reduce((a,x)=>a+x.n*mkPrice(x.k),0);
 const kitchenEmpty=()=>!cookPizze(1).length;
 // Knapp: eine Zutat der eigenen Pizzen reicht nicht mehr für einen Tag
 const stockLow=()=>mkList().length>0;
+// Notnagel gegen Sackgassen: Küche leer und kein Geld für die günstigste Pizza → die Händler schenken
+// je eine Kiste der fehlenden Zutaten dieser Pizza. Gibt true zurück, wenn geholfen wurde.
+function mkRescue(){
+  if(!kitchenEmpty())return false;
+  const miss=p=>p.ing.filter(k=>stockOf(k)<1), cost=p=>miss(p).reduce((a,k)=>a+mkPrice(k),0);
+  const best=availPizze().sort((a,b)=>cost(a)-cost(b))[0];
+  if(!best||S.coins>=cost(best))return false;
+  miss(best).forEach(k=>addStock(k,KISTE));
+  mkMsg=`Die Händler helfen dir aus: je eine Kiste für die ${cap(best.n)}, geschenkt. Verdiene damit neues Geld!`;
+  save(); return true;
+}
 function mkBuy(k){
   const p=mkPrice(k); if(!ING[k]||S.coins<p){sfx("wrong");return false;}
   S.coins-=p; mkMsg=addStock(k,KISTE); sfx("coins"); save(); return true;

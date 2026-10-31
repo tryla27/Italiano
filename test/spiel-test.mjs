@@ -420,6 +420,9 @@ check(await page.evaluate(() => { S.lager = { pomodoro: 1, mozzarella: 1, basili
 check(await page.evaluate(() => { G = null; S.lager = {}; screen = "home"; render(); return true; }), "");
 await act("start");
 check(await page.evaluate(() => screen === "mercato" && !G && /leer/.test(mkMsg)), "Leere Küche schickt nicht zum Markt");
+// Keine Sackgasse: leere Küche und kein Geld → die Händler schenken eine Kiste je Zutat der günstigsten Pizza
+check(await page.evaluate(() => { S.lager = {}; S.coins = 0; screen = "home"; openDay(); const ok = screen === "mercato" && /geschenkt/.test(mkMsg) && !kitchenEmpty(); openDay(); return ok && screen === "play" && !!G; }), "Ohne Geld und Zutaten geht es nicht weiter");
+await page.evaluate(() => { G = null; screen = "home"; render(); });
 await page.evaluate(() => { screen = "home"; render(); });
 
 // Jede Antwortmöglichkeit hat eine deutsche Übersetzung, auch bei der Rechnung mit Zahl
