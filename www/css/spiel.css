@@ -643,3 +643,20 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 /* Schild, das einem anderen ausweicht: Strich bis zum Ort */
 .city-pin.lifted::before{content:"";position:absolute;left:50%;top:100%;width:2px;margin-left:-1px;height:var(--lift,0px);background:rgba(244,198,79,.8);pointer-events:none}
 .city-pin.lifted.learn::before{background:rgba(143,208,168,.85)}
+/* Startseite (Stadt): schmale Kopfzeile und kleine Symbol-Knöpfe, damit mehr Stadt zu sehen ist */
+.hbar{background:var(--glass2);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);border:1.5px solid var(--glass-line);border-radius:16px;padding:6px 8px 7px 12px;display:flex;flex-direction:column;gap:5px}
+.hb-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.hb-name{display:flex;flex-direction:column;line-height:1.05;min-width:0}
+.hb-name b{font-family:var(--game);font-weight:400;font-size:1.35rem;color:var(--chalk)}
+.hb-name b span{color:var(--tomato)}
+.hb-name small{font-family:var(--hand);font-size:1rem;color:var(--gold);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar .tools{position:static}
+.hb-vals{display:flex;flex-wrap:wrap;gap:4px 6px;font-size:.78rem;color:var(--chalk-dim)}
+.hb-vals>span{background:rgba(0,0,0,.22);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.hb-vals b{color:var(--chalk);font-weight:800}
+.hb-vals .hb-day.hot{background:rgba(244,198,79,.25);color:var(--gold)}
+.home-ic{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.home-ic .sec{display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 4px;font-size:.85rem;border-radius:12px}
+.home-ic .sec i{font-style:normal;font-size:1rem;line-height:1;color:var(--gold);font-weight:900}
+.home-ic .sec svg{width:18px;height:18px;color:var(--gold)}
+.s-home>.big:not(.chestbtn){padding:9px 16px;font-size:1.4rem}
