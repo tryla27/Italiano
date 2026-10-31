@@ -15,10 +15,12 @@ Italiano/
 │   │   └── inhalt/           ← reine Inhalte: Dialoge und Wörterbuch
 │   ├── bilder/umgebungen/    ← Hintergrundbilder der Spielorte (WebP)
 │   ├── modelle/              ← 3D-Modelle aus Blender (glTF .glb) für das Restaurant
+│   ├── stimmen/              ← aufgenommene Sätze (MP3): f = Frauenstimme, m = Männerstimme
 │   └── music/                ← Hintergrundmusik (MP3)
 ├── assets/                   ← Quellbilder für App-Icon und Startbild
 ├── test/spiel-test.mjs       ← automatischer Test im Handy-Browser
 ├── test/woerter-test.mjs     ← prüft, ob jedes italienische Wort eine antippbare Übersetzung hat
+├── tools/stimmen/            ← nimmt die Stimmen auf (siehe „Stimmen“ unten)
 ├── docs/                     ← Anleitungen (diese Datei, PC-Anleitung)
 ├── signing/debug.keystore    ← App-Schlüssel, NIEMALS löschen oder ersetzen
 ├── .github/workflows/        ← baut bei jedem Push auf main die Android-App
@@ -44,7 +46,8 @@ oder erst beim Spielen aufgerufen wird.
 | `lib/three-mini.js` | three.js 0.170 (nur die benötigten Teile, Quelle `docs/three/entry.js`) |
 | `restaurant3d.js` | Il mio locale: Restaurant in 3D mit den Modellen aus `www/modelle/` (`MODEL`: welches Modell, wohin es darf). Drehen, Zoomen, Ziehen, Drehen, Einlagern, Vorschaubild für Startseite und Shop |
 | `speichern.js` | Spielstand `S`, Speichern nach jeder Aktion, Laden alter Spielstände, Versionen mit Umwandlung (`SAVE_V`, `MIGRATE`), Kopie im Handy-Speicher (Capacitor Preferences), tägliche Sicherheitskopie |
-| `audio.js` | Vorlese-Stimme (Männer/Frauen), Musik, Geräusche, „Alles stumm“ |
+| `audio.js` | Vorlese-Stimme (aufgenommene Männer-/Frauenstimmen, sonst Gerätestimme), Musik, Geräusche, „Alles stumm“ |
+| `inhalt/stimmen.js` | Liste der aufgenommenen Sätze (automatisch erzeugt, nicht von Hand ändern) |
 | `grafik.js` | Gesichter der Gäste (`CHARS`) und die Pizza |
 | `szenen.js` | Umgebungen: Pizzeria, Markt, Eisladen, Hafen, laufende Figuren (`walker`: Gast kommt herein und geht, Passanten auf Markt und Hafen). Nutzt die Bilder aus `www/bilder/umgebungen/` (Ausschnitt und Platz der Figur in `SCENE_IMG`), sonst gezeichnete Ersatz-Szenen |
 | `karte.js` | Karte mit allen Orten: antippen spielt das Tür-Geräusch und geht direkt dorthin. Zeigt das 3D-Viertel aus `stadt3d.js`, ohne WebGL die flache Karte |
@@ -119,6 +122,27 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 
 - Ab La Pizzeria kommt etwa jeden fünften Tag Dottoressa Severini (`S.inspDue`), nie zwei Tage hintereinander. Am Abend davor steht ein Brief in der Abrechnung.
 - Sie stellt vier von zwölf Fragen (`ISPEZIONE`). Ohne Fehler: Zertifikat, +15 € und drei Tage lang ein Stern mehr (`S.cert`). Ein oder zwei Fehler: sie kommt in drei Tagen wieder. Ab drei Fehlern: 20 € Strafe, sie kommt am nächsten Tag wieder.
+
+## Stimmen
+
+- Alle Sätze sind mit [Kokoro](https://github.com/hexgrad/kokoro) aufgenommen (Open Source, Apache-2.0, kostenlos): Frauen sprechen mit „Sara“, Männer mit „Nicola“. Wer spricht, kommt aus `CHARS` (`f:1` = Frau).
+- Jede Figur klingt etwas anders: `VOICE_RATE` in `audio.js` spielt die Aufnahme etwas langsamer und tiefer (Nonna Pina, Zio Gennaro) oder schneller und heller (Giulia, Sofia).
+- Vokabeln, Bücher, Gedichte, die eigenen Antworten und Anrufer sprechen mit Sara.
+- Bestellungen, Anrufe, Reservierungen und Preise gibt es in zu vielen Varianten. Dafür gibt es aufgenommene Bausteine („Vorrei due margherite“, „senza basilico“, „con funghi, per favore.“), die `recParts` beim Abspielen aneinandersetzt.
+- Fehlt eine Aufnahme (neuer Satz, Webseite ohne Internet), spricht wie früher die Stimme des Geräts.
+
+**Neue Sätze aufnehmen** (nach Änderungen in `inhalt/`), einmalig vorbereiten:
+
+```
+python -m venv venv && venv/bin/pip install kokoro-onnx soundfile
+```
+
+Dazu `kokoro-v1.0.onnx` und `voices-v1.0.bin` von https://github.com/thewh1teagle/kokoro-onnx/releases in einen Ordner laden. Außerdem braucht es `ffmpeg`. Dann:
+
+```
+node tools/stimmen/sammeln.mjs                      # welche Sätze, wer spricht
+venv/bin/python tools/stimmen/aufnehmen.py <modell-ordner>   # nimmt nur neue Sätze auf
+```
 
 ## Testen
 

@@ -27,7 +27,7 @@ function handleClick(e){
   if(t.dataset.act==="word"){const now=Date.now(),dbl=lastTap.el===t&&now-lastTap.t<350;lastTap=dbl?{el:null,t:0}:{el:t,t:now};return showWord(t,dbl);}
   const a=t.dataset.act;
   if(a!=="opt"&&a!=="serve")sfx(a==="ing"||a==="qty"?"select":"click");
-  if(a==="mute"){S.muted=!S.muted;initAudio();applyVolume();if(S.muted){try{speechSynthesis.cancel();}catch(e){}}else if(vol("music")>0)startMusic();save();return render();}
+  if(a==="mute"){S.muted=!S.muted;initAudio();applyVolume();if(S.muted)stopVoice();else if(vol("music")>0)startMusic();save();return render();}
   if(a==="vol"){volOpen=!volOpen;codeBox=null;return render();}
   if(a==="code-copy"){saveCode().then(c=>{codeBox={mode:"copy",text:c,msg:"Kopiert. Auf dem anderen Gerät unter Einstellungen → Code einfügen."};
     (navigator.clipboard?navigator.clipboard.writeText(c):Promise.reject()).catch(()=>{codeBox.msg="Halte den Code gedrückt und kopiere ihn.";render();});render();const b=$("#codebox");if(b)b.select();});return;}
