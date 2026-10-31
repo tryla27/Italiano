@@ -1,27 +1,44 @@
 /* Alle Inhalte: Zutaten, Speisekarte, Gäste-Sätze, Stufen, Shop, Bewertungen.
    Neue Sätze hier eintragen (Muster siehe Kommentar über GREET). */
 /* ---------- Content ---------- */
-// Zutaten: [Deutsch, Farbe, Stufe ab der sie am Markt liegt (-1 = von Anfang an da), Preis am Markt]
+// Zutaten: [Deutsch, Farbe, Stufe (-1 = von Anfang an in der Küche), Preis einer Kiste am Markt (10 Portionen)]
+// Jede Pizza verbraucht eine Portion von jeder ihrer Zutaten. Gekauft wird auf dem Markt (Il Mercato, mercato.js).
 const ING={
-  pomodoro:["Tomate","#d8402b",-1],mozzarella:["Mozzarella","#f6f0e2",-1],basilico:["Basilikum","#3f9a45",-1],
-  aglio:["Knoblauch","#efe6d2",-1],origano:["Oregano","#6f8a3a",-1],olio:["Olivenöl","#d6b532",-1],
-  salame:["Salami","#a3262a",0,15],
-  prosciutto:["Kochschinken","#e79a9a",1,18],funghi:["Pilze","#b08d6a",1,15],carciofi:["Artischocken","#8aa357",1,20],
-  olive:["Oliven","#2a2a2a",1,14],tonno:["Thunfisch","#c8a17f",1,18],cipolla:["Zwiebeln","#cfa6dc",1,10],
-  acciughe:["Sardellen","#8f8a86",2,22],capperi:["Kapern","#7d8f4a",2,16],peperoni:["Paprika","#f2b134",2,14],
-  zucchine:["Zucchini","#5d9a3f",2,14],melanzane:["Auberginen","#5b2f63",2,16],gorgonzola:["Gorgonzola","#e3e0c6",2,24],
-  parmigiano:["Parmesan","#f1d98a",2,26],fontina:["Fontina","#f4e0a0",2,22],
-  crudo:["Rohschinken","#c75a5a",3,30],rucola:["Rucola","#4f8a2a",3,14],salsiccia:["Bratwurst","#9c5a3a",3,26],
-  friarielli:["Stielmus","#2f6b2a",3,20],ricotta:["Ricotta","#fbf8f0",3,22],
-  cozze:["Miesmuscheln","#2c2f3a",4,32],gamberi:["Garnelen","#f08a5a",4,38],prezzemolo:["Petersilie","#3a8a3a",4,10],
-  bufala:["Büffelmozzarella","#fffdf6",4,36]
+  pomodoro:["Tomate","#d8402b",-1,7],mozzarella:["Mozzarella","#f6f0e2",-1,10],basilico:["Basilikum","#3f9a45",-1,4],
+  aglio:["Knoblauch","#efe6d2",-1,4],origano:["Oregano","#6f8a3a",-1,4],olio:["Olivenöl","#d6b532",-1,6],
+  salame:["Salami","#a3262a",0,13],
+  prosciutto:["Kochschinken","#e79a9a",1,14],funghi:["Pilze","#b08d6a",1,10],carciofi:["Artischocken","#8aa357",1,13],
+  olive:["Oliven","#2a2a2a",1,10],tonno:["Thunfisch","#c8a17f",1,14],cipolla:["Zwiebeln","#cfa6dc",1,6],
+  acciughe:["Sardellen","#8f8a86",2,14],capperi:["Kapern","#7d8f4a",2,10],peperoni:["Paprika","#f2b134",2,8],
+  zucchine:["Zucchini","#5d9a3f",2,8],melanzane:["Auberginen","#5b2f63",2,10],gorgonzola:["Gorgonzola","#e3e0c6",2,15],
+  parmigiano:["Parmesan","#f1d98a",2,17],fontina:["Fontina","#f4e0a0",2,14],
+  crudo:["Rohschinken","#c75a5a",3,20],rucola:["Rucola","#4f8a2a",3,7],salsiccia:["Bratwurst","#9c5a3a",3,15],
+  friarielli:["Stielmus","#2f6b2a",3,11],ricotta:["Ricotta","#fbf8f0",3,13],
+  cozze:["Miesmuscheln","#2c2f3a",4,18],gamberi:["Garnelen","#f08a5a",4,22],prezzemolo:["Petersilie","#3a8a3a",4,4],
+  bufala:["Büffelmozzarella","#fffdf6",4,21]
 };
+const KISTE=10; // Portionen pro Kiste
+// Die Stände auf dem Markt: jede Zutat gibt es an genau einem Stand. say = Begrüßung [Italienisch, Deutsch]
+const BANCHE=[
+  {id:"verdura",it:"Frutta e verdura",ic:"🍅",who:"Signora Carmela",say:["Buongiorno! Pomodori freschi, appena raccolti!","Guten Tag! Frische Tomaten, gerade geerntet!"],
+    ing:["pomodoro","basilico","aglio","cipolla","peperoni","zucchine","melanzane","funghi","carciofi","rucola","friarielli","prezzemolo"]},
+  {id:"latticini",it:"Latticini",ic:"🧀",who:"Signora Lucia",say:["La mozzarella è di stamattina. Cosa Le do?","Der Mozzarella ist von heute Morgen. Was darf ich Ihnen geben?"],
+    ing:["mozzarella","bufala","ricotta","gorgonzola","parmigiano","fontina"]},
+  {id:"salumi",it:"Salumeria",ic:"🥓",who:"Signor Peppe",say:["Salame, prosciutto, salsiccia: tutto buonissimo!","Salami, Schinken, Bratwurst: alles sehr lecker!"],
+    ing:["salame","prosciutto","crudo","salsiccia"]},
+  {id:"pesce",it:"Pescheria",ic:"🐟",who:"Zio Totò",say:["Pesce fresco del golfo! Guardi che gamberi!","Frischer Fisch aus dem Golf! Schauen Sie, was für Garnelen!"],
+    ing:["tonno","acciughe","cozze","gamberi"]},
+  {id:"alimentari",it:"Alimentari Esposito",ic:"🫒",who:"Signor Esposito",say:["Olio buono e olive di Gaeta. Prego!","Gutes Öl und Oliven aus Gaeta. Bitte sehr!"],
+    ing:["olio","origano","olive","capperi"]}
+];
 const START_ING=Object.keys(ING).filter(k=>ING[k][2]<0);
+// Ein neues Spiel startet mit einer Kiste von jeder Start-Zutat im Vorrat
+const START_LAGER=Object.fromEntries(START_ING.map(k=>[k,KISTE]));
 // Die zwölf Zutaten der alten Versionen: alte Spielstände behalten sie
 const OLD_ING=["pomodoro","mozzarella","basilico","funghi","prosciutto","salame","olive","cipolla","peperoni","tonno","carciofi","rucola"];
 const EXTRAS=Object.keys(ING).filter(k=>k!=="pomodoro"&&k!=="mozzarella");
-// Alle Pizzen mit echtem Namen. lv = Stufe, ab der man sie kennenlernt. Freigeschaltet ist eine Pizza,
-// sobald man alle ihre Zutaten besitzt.
+// Alle Pizzen mit echtem Namen. lv = Stufe, ab der Gäste sie bestellen. Freigeschaltet ist eine Pizza,
+// sobald man alle ihre Zutaten schon einmal gekauft hat; bestellt wird sie nur, wenn genug im Vorrat ist.
 const PIZZE=[
   {n:"marinara",p:5,pl:"marinare",lv:0,ing:["pomodoro","aglio","origano","olio"]},
   {n:"margherita",p:6,pl:"margherite",lv:0,ing:["pomodoro","mozzarella","basilico","olio"]},

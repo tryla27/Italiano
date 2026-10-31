@@ -38,7 +38,7 @@ oder erst beim Spielen aufgerufen wird.
 | Datei | Inhalt |
 |---|---|
 | `hilfen.js` | Kleine Helfer: `$`, Zufall, Mischen, Listen |
-| `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Markt-Stufe, Preis), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
+| `inhalt/dialoge.js` | Zutaten (`ING`: Farbe, Stufe, Kistenpreis), Marktstände (`BANCHE`), Pizzen (`PIZZE`), alle Gäste-Sätze, Stufen (`LEVELS`), Shop (`SHOP`), Ausflüge (`TRIPS`: Eisladen, Hafen) |
 | `inhalt/gaeste.js` | Stammgäste mit Persönlichkeit (`PERS`: eigene Begrüßungen, Plaudereien, Reaktionen auf Fehler) und Geschichten über mehrere Tage (`STORIES`) |
 | `inhalt/woerterbuch.js` | `DICT`: Italienisch → Deutsch zum Antippen |
 | `memory.js` | Zutaten-Memory: Bild und italienisches Wort als Paar finden, einmal pro Spieltag Geld (`S.memDay`) |
@@ -54,7 +54,8 @@ oder erst beim Spielen aufgerufen wird.
 | `biblioteca.js` | La Biblioteca: Bücherregal (Bücher in `inhalt/libri.js`), Lesen Seite für Seite mit Antippen, Vorlesen und Übersetzung, drei Fragen pro Kapitel, beim ersten Mal 5 €. Fortschritt in `S.libri`. Regal „Poesie“ (`POESIE`): Kinderreime anhören, Reime ergänzen, eine Stufe pro Spieltag, nach 3 Stufen auswendig (+5 €, `S.poesie`) |
 | `stadt3d.js` | La mappa als 3D-Viertel von Neapel: Piazza mit Brunnen, Häuserreihen, Promenade, Hafen, Meer, Capri und Vesuv aus einfachen Formen (gleiche Teile zu wenigen Meshes zusammengelegt), dazu Vespa, Terrasse, Schirme und Boot aus `www/modelle/`. Orte stehen in `CITY_SPOTS`, Schilder darüber sind HTML-Knöpfe mit `data-act="place"`. Das Viertel ist auch die Startseite (`rHomeCity` in `bildschirme.js`); Lernhäuser: Scuola → Vokabeln, Bar → Memory, Biblioteca → Bücher und Notizbuch, Forno → Rezepte (`CITY_GO` in `karte.js`) |
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
-| `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt mit Feilschen (`hagStart`, `hagOffer`), Abrechnung |
+| `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt mit Feilschen (`hagStart`, `hagOffer`), Abrechnung, Vorrat verbrauchen |
+| `mercato.js` | Il Mercato in der 3D-Stadt: fünf Stände (`BANCHE` in `inhalt/dialoge.js`) mit allen Zutaten, Kisten kaufen (`mkBuy`), „Vorrat auffüllen“ (`mkFill`), Markttag −20 % |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
 | `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
 | `truhe.js` | Belohnungs-Truhe nach bestandenem Vokabeltag: Belohnungen würfeln (4 % selten), Sprite-Animation, Karten |
@@ -77,10 +78,15 @@ Der Spielstand liegt dreifach: im Browser-Speicher, im Handy-Speicher der App (C
 und als tägliche Sicherheitskopie. Dazu kommt der Spielstand-Code in den Einstellungen zum Mitnehmen.
 App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, sonst geht kein Update.
 
-## Pizzen und Zutaten
+## Pizzen, Zutaten und Vorrat
 
-- Ein neues Spiel startet mit sechs Zutaten (`START_ING`). Weitere kauft man am Markttag beim Stand von Signor Esposito. Er bietet drei Zutaten an, die man noch nicht hat, aus der aktuellen Stufe oder darunter.
-- Eine Pizza ist freigeschaltet, sobald man alle ihre Zutaten besitzt. Gäste bestellen nur, was man backen kann. Eine neu freigeschaltete Pizza bestellt am nächsten Tag garantiert jemand (`S.newPz`).
+- Verkauft wird nur, was vorher eingekauft wurde. Jede Pizza verbraucht eine Portion von jeder ihrer Zutaten (bei „senza“ eine weniger, bei „con“ eine mehr). Der Vorrat steht in `S.lager` (Portionen je Zutat).
+- Eingekauft wird im **Mercato** (`mercato.js`): fünf Stände (Frutta e verdura, Latticini, Salumeria, Pescheria, Alimentari Esposito), zusammen alle 30 Zutaten (`BANCHE`). Eine Kiste hat 10 Portionen (`KISTE`), der Preis steht in `ING[k][3]`. Der Kühlschrank macht billiger, am Markttag (mercoledì, sabato) ist alles 20 % günstiger. Offen ist der Markt immer, wenn gerade kein Spieltag läuft.
+- „Vorrat auffüllen“ kauft so viele Kisten, dass es für etwa einen Spieltag reicht (`mkTargets`: nach Anteil an den Pizzen, die man backen kann).
+- Beim Planen eines Spieltags (`startDay`) legen die Bestellungen ihre Portionen zurück (`G.left`, `G.use`). Gäste bestellen nur, was im Vorrat ist; reicht es nicht, gehen sie gleich wieder (`G.away`). Abgezogen wird am Abend (`endDay`), Abbrechen kostet also nichts. Mit leerer Küche schickt „Apri il locale!“ zum Markt.
+- In der Abrechnung kosten nur noch Getränke und Kaffee pauschal 35 % ihres Preises; die Pizza-Zutaten sind ja schon bezahlt.
+- Ein neues Spiel startet mit einer Kiste von jeder der sechs Start-Zutaten (`START_LAGER`). Spielstände vor Version 5 bekommen zwei Kisten von jeder Zutat, die sie schon hatten.
+- Eine Pizza ist freigeschaltet, sobald man alle ihre Zutaten einmal gekauft hat (`S.ing`), und Gäste bestellen sie ab ihrer Stufe (`lv`). Eine neu freigeschaltete Pizza bestellt am nächsten Tag garantiert jemand (`S.newPz`).
 - Sterne: Für je drei fehlerfreie Pizzen einer Sorte gibt es einen Stern, höchstens drei (`S.pz`). Unter zwei Sternen steht das Rezept in der Aufgabe. Mit drei Sternen gibt es +1 € Trinkgeld.
 - Spielstände vor Version 4 behalten alle zwölf alten Zutaten plus die neuen Start-Zutaten.
 
@@ -94,6 +100,7 @@ App-Kennung (`capacitor.config.json`) und Schlüssel (`signing/`) nie ändern, s
 ## Feilschen am Markt
 
 - Signor Esposito (`CHARS`/`OUTFIT` in `grafik.js`) steht als ganze Figur im Markt. Beim Feilschen zeigt sein Gesicht, wie viel Geduld er noch hat.
+- Am Markttag nach Feierabend bietet er drei große Kisten (20 Portionen, doppelter Kistenpreis) an: zuerst Zutaten, die man noch nie hatte, dann was am knappsten ist. Bezahlt wird am Abend.
 - Preis antippen startet das Feilschen. Er nennt den Preis auf Italienisch, du wählst ein Gegenangebot. Unter 70 % des Preises ist er beleidigt und verliert Geduld; nach zwei Frechheiten gilt sein Preis. Sonst trifft er dich in der Mitte, nach zwei Runden kommt sein letzter Preis.
 - „Übersetzen“ zeigt die Zahlen auf Deutsch. „Lascio stare“ geht weg, der letzte Preis bleibt für diesen Markttag (`st.asks`).
 - Das Gesparte steht in der Abrechnung bei „Neue Zutaten“ (`G.haggled`).

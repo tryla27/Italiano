@@ -190,6 +190,9 @@ function buildMarket(){
     for(let k=0;k<4;k++)c3box(.8,.25,1.4,c3mat(fruit[(i+k)%fruit.length]),x-1.3+k*.86,1.02,z,g);
     [[-1.7,-.8],[1.7,-.8],[-1.7,.8],[1.7,.8]].forEach(([dx,dz])=>c3box(.1,2.4,.1,c3mat(0x6b4126),x+dx,1.2,z+dz,g));
     const aw=new THREE.Mesh(new THREE.BoxGeometry(4,.1,2.4),c3mat(0xffffff,{map:awningTex(cols[i][0],cols[i][1])})); aw.position.set(x,2.45,z); aw.rotation.x=.12; g.add(aw);
+    // Schild über jedem Stand und Kisten davor: hier gibt es alle Zutaten (mercato.js)
+    const sg=signMesh(["VERDURA","LATTICINI","SALUMI","PESCE"][i],2.4,.5,cols[i][0],cols[i][1]); sg.position.set(x,2.95,z+1.05); g.add(sg);
+    for(let k=0;k<2;k++){c3box(.7,.45,.5,c3mat(0xc99a5c),x-.9+k*1.8,.22,z+1.35,g);c3box(.6,.12,.4,c3mat(fruit[(i+k+2)%fruit.length]),x-.9+k*1.8,.5,z+1.35,g);}
   });
   const s=signMesh("MERCATO",3.4,.8,"#3a9a4a","#f3eee2"); s.position.set(7.75,3.3,-.25); g.add(s);
   c3box(.1,3.4,.1,c3mat(0x2b2f2c),7.75,1.7,-.3,g);

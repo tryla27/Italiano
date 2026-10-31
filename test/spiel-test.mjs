@@ -199,8 +199,8 @@ for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => 
   await page.goto(URL + "leer"); // leere Seite: das Spiel speichert beim Verlassen nicht über den Test-Stand
   await page.evaluate(r => { localStorage.clear(); localStorage.setItem("pizzeria-parola", JSON.stringify(r)); }, fx.raw);
   await page.goto(URL);
-  const got = await page.evaluate(() => ({ coins: S.coins, day: S.day, level: S.level, ing: S.ing.length }));
-  check(got.coins === fx.expect.coins && got.day === fx.expect.day && got.level === fx.expect.level && (!fx.expect.ing || got.ing === fx.expect.ing), `Spielstand ${fx.name} lädt falsch: ${JSON.stringify(got)}`);
+  const got = await page.evaluate(() => ({ coins: S.coins, day: S.day, level: S.level, ing: S.ing.length, lager: Math.min(...S.ing.map(stockOf)) }));
+  check(got.coins === fx.expect.coins && got.day === fx.expect.day && got.level === fx.expect.level && (!fx.expect.ing || got.ing === fx.expect.ing) && (!fx.expect.lager || got.lager === fx.expect.lager), `Spielstand ${fx.name} lädt falsch: ${JSON.stringify(got)}`);
   check(await page.evaluate(() => { try { for (const s of ["home", "shop", "map", "book", "vocab"]) { screen = s; render(); } screen = "home"; render(); return true; } catch (e) { return String(e); } }) === true, `Spielstand ${fx.name}: Bildschirm bricht`);
   check(await page.evaluate(() => { S.streak++; save(); S.streak--; save(); return JSON.parse(JSON.parse(localStorage.getItem("pizzeria-parola")).state).v === SAVE_V; }), `Spielstand ${fx.name} wird nicht auf die neue Version gehoben`);
 }
@@ -208,22 +208,23 @@ for (const f of (await readdir(join(ROOT, "test", "spielstaende"))).filter(f => 
 await fresh({ coins: 200, level: 1, day: 3, setupDone: true });
 check(await page.evaluate(() => { S.ing = [...START_ING]; for (let i = 0; i < 60; i++) { const o = orderStep(i % 3); if (![...o.want].every(hasIng)) return false; } return availPizze().length === 3; }), "Bestellung braucht Zutaten, die man nicht hat");
 // Markt-Stand: Salami kaufen schaltet die Diavola frei, am nächsten Tag wird sie bestellt
-check(await page.evaluate(() => { S.ing = [...START_ING]; S.level = 1; S.day = 3; startDay(); G.phase = "market"; G.mi = G.market.findIndex(m => m.kind === "stall"); render(); return G.mi >= 0 && !!document.querySelector('[data-act="stallbuy"][data-k="salame"]'); }), "Markt-Stand fehlt oder bietet keine Salami an");
+check(await page.evaluate(() => { S.ing = [...START_ING]; S.lager = { ...START_LAGER }; S.level = 1; S.day = 3; startDay(); G.phase = "market"; G.mi = G.market.findIndex(m => m.kind === "stall"); render(); return G.mi >= 0 && !!document.querySelector('[data-act="stallbuy"][data-k="salame"]'); }), "Markt-Stand fehlt oder bietet keine Salami an");
 await page.locator('[data-act="stallbuy"][data-k="salame"]').click();
 // Feilschen: Signor Esposito nennt den Preis, steht als Figur im Markt, macht Gegenangebote
-check(await page.evaluate(() => { const H = curStep().hag; return !!H && H.ask === 15 && H.offers.length >= 2 && /quindici/.test(H.say) && document.querySelectorAll('[data-act="hoffer"]').length === H.offers.length && !!document.querySelector(".stage .walker"); }), "Feilschen startet nicht");
+const P0 = await page.evaluate(() => espoPrice("salame"));
+check(await page.evaluate(P => { const H = curStep().hag; return !!H && H.ask === P && H.offers.length >= 2 && new RegExp(numIt(P)).test(H.say) && document.querySelectorAll('[data-act="hoffer"]').length === H.offers.length && !!document.querySelector(".stage .walker"); }, P0), "Feilschen startet nicht");
 await shot("markt-feilschen");
-check(await page.evaluate(() => { const H = curStep().hag; hagOffer(H.offers.reduce((a, o) => o.n < a.n ? o : a).n); return H.pat === 1 && H.ask === 15 && /scherza/.test(H.say); }), "Zu niedriges Angebot ärgert den Händler nicht");
-check(await page.evaluate(() => { const H = curStep().hag; const o = H.offers.find(x => x.n >= H.min && x.n < H.ask - 1); if (!o) return false; hagOffer(o.n); render(); return H.ask < 15 && H.ask > o.n && H.rounds === 1; }), "Gegenangebot fehlt");
+check(await page.evaluate(P => { const H = curStep().hag; hagOffer(H.offers.reduce((a, o) => o.n < a.n ? o : a).n); return H.pat === 1 && H.ask === P && /scherza/.test(H.say); }, P0), "Zu niedriges Angebot ärgert den Händler nicht");
+check(await page.evaluate(P => { const H = curStep().hag; const o = H.offers.find(x => x.n >= H.min && x.n < H.ask - 1); if (!o) return false; hagOffer(o.n); render(); return H.ask < P && H.ask > o.n && H.rounds === 1; }, P0), "Gegenangebot fehlt");
 await page.locator('[data-act="hpeek"]').click();
 await shot("markt-gegenangebot");
 await page.locator('[data-act="hdeal"]').click();
-check(await page.evaluate(() => hasIng("salame") && S.newPz === "diavola" && G.bought < 15 && G.haggled === 15 - G.bought && !curStep().hag && /Diavola/.test(G.banner)), "Kauf nach dem Feilschen klappt nicht");
+check(await page.evaluate(P => hasIng("salame") && stockOf("salame") === ESPO_KISTE && S.newPz === "diavola" && G.bought < P && G.haggled === P - G.bought && !curStep().hag && /Diavola/.test(G.banner), P0), "Kauf nach dem Feilschen klappt nicht");
 await shot("markt-stand");
 // Weggehen merkt sich den Preis; voller Preis ohne Feilschen geht auch
-check(await page.evaluate(() => { const st = curStep(), k = st.offer.find(x => !hasIng(x)); if (!k) return true; hagStart(k); hagLeave(); return !st.hag && st.asks[k] === ING[k][3]; }), "Weggehen beim Feilschen klappt nicht");
+check(await page.evaluate(() => { const st = curStep(), k = st.offer.find(x => !st.bought.includes(x)); if (!k) return true; hagStart(k); hagLeave(); return !st.hag && st.asks[k] === espoPrice(k); }), "Weggehen beim Feilschen klappt nicht");
 check(await page.evaluate(() => { const b = G.bought; while (G && screen === "play") advance(); return G.summary.buy === b; }), "Zutatenkauf fehlt in der Abrechnung");
-check(await page.evaluate(() => { G = null; startDay(); return G.guests.some(g => g.steps.some(s => s.named === "diavola")) && S.newPz === null; }), "Neue Pizza wird am nächsten Tag nicht bestellt");
+check(await page.evaluate(() => { G = null; S.lager = Object.fromEntries(S.ing.map(k => [k, 30])); startDay(); return G.guests.some(g => g.steps.some(s => s.named === "diavola")) && S.newPz === null; }), "Neue Pizza wird am nächsten Tag nicht bestellt");
 // Zutaten-Memory: vom Startbildschirm, Paare finden, einmal pro Spieltag Geld
 await page.evaluate(() => { G = null; screen = "home"; S.memDay = 0; render(); });
 await act("memo");
@@ -303,7 +304,7 @@ check(await page.evaluate(() => { G = null; startDay(); G.phase = "guest"; G.ent
 await shot("spieltag-3d");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
 check(await page.evaluate(() => { S.owned = SHOP.filter(i => i.fx && i.fx.tip).map(i => i.id); return mult() === 1 + TIP_CAP; }), "Trinkgeld-Deckel fehlt");
-check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
+check(await page.evaluate(() => { S.owned = ["tavoli2", "tavoli3", "terrazza"]; S.lager = Object.fromEntries(S.ing.map(k => [k, 99])); G = null; startDay(); return G.guests.length === LEVELS[S.level].guests + 3; }), "Tische bringen keine Gäste");
 // Holzofen: eine falsche Pizza pro Tag zählt nicht
 check(await page.evaluate(() => { S.owned = ["forno"]; G = null; startDay(); const gi = G.guests.findIndex(g => g.steps.some(x => x.kind === "pizza")); G.gi = gi; G.si = G.guests[gi].steps.findIndex(x => x.kind === "pizza"); render(); return true; }), "");
 await page.locator('[data-act="serve"]').click();
@@ -394,13 +395,32 @@ await page.locator('.city-pin[data-p="forno"]').click();
 check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");
 await page.evaluate(() => { menuOpen = false; render(); });
 
-// Karte: Markt ist außerhalb des Spieltags zu, die Pizzeria startet den Tag
+// Karte: Markt ist außerhalb des Spieltags offen, die Pizzeria startet den Tag
 await fresh({ setupDone: true, coins: 10, day: 2 });
 await act("map");
 await page.locator('.map [data-act="place"][data-p="mercato"]').click();
-check(await page.evaluate(() => (screen === "map" || screen === "home") && /Markt/.test(mapMsg)), "Geschlossener Markt auf der Karte reagiert nicht");
+check(await page.evaluate(() => screen === "mercato" && document.querySelectorAll('[data-act="mkbank"]').length === BANCHE.length), "Markt öffnet nicht außerhalb des Spieltags");
+await shot("mercato");
+await page.evaluate(() => { screen = "home"; render(); });
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
 check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
+// Während des Spieltags ist der Markt zu
+check(await page.evaluate(() => { goPlace("mercato"); const ok = screen !== "mercato" && /läuft noch/.test(mapMsg); mapMsg = ""; return ok; }), "Markt öffnet mitten im Spieltag");
+
+// Mercato: jede Zutat an genau einem Stand, Kiste kaufen, Pizzen verbrauchen den Vorrat, ohne Vorrat kein Spieltag
+await fresh({ setupDone: true, coins: 100, day: 2, level: 1 });
+check(await page.evaluate(() => { const all = BANCHE.flatMap(b => b.ing); return all.length === Object.keys(ING).length && new Set(all).size === all.length && all.every(k => ING[k] && ING[k][3] > 0); }), "Nicht jede Zutat gibt es genau einmal auf dem Markt");
+await page.evaluate(() => { S.ing = [...START_ING]; S.lager = { ...START_LAGER }; G = null; mkGo(); mkTab = "salumi"; render(); });
+await page.locator('[data-act="mkbuy"][data-k="salame"]').click();
+check(await page.evaluate(() => hasIng("salame") && stockOf("salame") === KISTE && S.coins === 100 - mkPrice("salame") && S.newPz === "diavola" && /Diavola/.test(mkMsg)), "Kiste kaufen im Mercato klappt nicht");
+await shot("mercato-salumeria");
+check(await page.evaluate(() => { S.lager.mozzarella = 0; const c = S.coins, n = mkList().length; mkFill(); return n > 0 && S.coins < c && mkList().length === 0 && stockOf("mozzarella") >= KISTE; }), "Vorrat auffüllen klappt nicht");
+check(await page.evaluate(() => { const before = { ...S.lager }; G = null; startDay(); const need = {}; G.guests.forEach(g => g.steps.forEach(st => { if (st.kind === "pizza") [...st.want].forEach(k => need[k] = (need[k] || 0) + st.qty); })); const ok = Object.keys(need).every(k => G.use[k] >= need[k]); while (G && screen === "play") { const st = curStep(); if (!st.done) { st.done = true; st.fb = ["good", ""]; } advance(); } return ok && Object.keys(G.use).every(k => S.lager[k] === before[k] - G.use[k]) && G.summary.used > 0; }), "Pizzen verbrauchen den Vorrat nicht");
+check(await page.evaluate(() => { S.lager = { pomodoro: 1, mozzarella: 1, basilico: 1, olio: 1 }; G = null; startDay(); const pz = G.guests.flatMap(g => g.steps).filter(st => st.kind === "pizza"); return pz.length === 1 && pz[0].qty === 1 && G.away > 0; }), "Gäste bestellen mehr, als im Vorrat ist");
+check(await page.evaluate(() => { G = null; S.lager = {}; screen = "home"; render(); return true; }), "");
+await act("start");
+check(await page.evaluate(() => screen === "mercato" && !G && /leer/.test(mkMsg)), "Leere Küche schickt nicht zum Markt");
+await page.evaluate(() => { screen = "home"; render(); });
 
 // Jede Antwortmöglichkeit hat eine deutsche Übersetzung, auch bei der Rechnung mit Zahl
 check(await page.evaluate(() => [GREET, TALK, PROB, DRINK, DIR, CRITIC, MARKET].flat().filter(x => x[3]).every(x => mcStep(x, "x").opts.every(o => o.de)) && deOf("Subito! Sono 12 euro.") === "Sofort! Das macht 12 Euro."), "Antworten ohne Übersetzung");
@@ -436,9 +456,9 @@ check(await page.evaluate(() => screen === "home" && !G && S.coins === 25 && S.d
 
 // Schlupflöcher: Markt-Zutaten durch Abbrechen umsonst, Ausflüge endlos wiederholen, Ausflug löscht laufenden Tag
 await fresh({ setupDone: true, coins: 100, day: 3, level: 1 });
-const k0 = await page.evaluate(() => { S.ing = [...START_ING]; startDay(); G.phase = "market"; G.mi = G.market.findIndex(s => s.kind === "stall"); const k = curStep().offer[0]; stallBuy(k, ING[k][3]); render(); return S.ing.includes(k) ? k : null; });
+const k0 = await page.evaluate(() => { S.ing = [...START_ING]; S.lager = { ...START_LAGER }; startDay(); G.phase = "market"; G.mi = G.market.findIndex(s => s.kind === "stall"); const k = curStep().offer[0]; stallBuy(k, espoPrice(k)); render(); return S.ing.includes(k) ? k : null; });
 await act("pause"); await page.locator('#overlay [data-act="abort"]').click();
-check(k0 && await page.evaluate(k => !S.ing.includes(k) && S.coins === 100, k0), "Abbrechen nach dem Markt behält die Zutaten ohne zu zahlen");
+check(k0 && await page.evaluate(k => !S.ing.includes(k) && !stockOf(k) && S.coins === 100, k0), "Abbrechen nach dem Markt behält die Zutaten ohne zu zahlen");
 check(await page.evaluate(() => { startDay(); goPlace("porto"); const ok = !G.trip && screen === "play" && /läuft noch/.test(mapMsg); G = null; mapMsg = ""; return ok; }), "Ausflug löscht einen laufenden Spieltag");
 check(await page.evaluate(() => { const run = () => { const c = S.coins; startTrip("porto"); G.guests[0].steps.forEach(() => { finish(); G.si++; }); endTrip(); return S.coins - c; }; const a = run(), b = run(); screen = "home"; G = null; render(); return a > 0 && b === 0; }), "Ausflug zahlt mehrmals am selben Spieltag Trinkgeld");
 
