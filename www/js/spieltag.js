@@ -104,9 +104,10 @@ function finish(){
     if(st.named){const n=st.named;if(pzStars(n)>=3)bonus++;
       if(st.wrong===0&&!st.peeked){const before=pzStars(n);S.pz[n]={ok:((S.pz[n]||{}).ok||0)+1};if(pzStars(n)>before)star=` ★ ${cap(n)}: ${pzStars(n)}. Stern!`;}}
     const extra=(g&&g.regular?1.5:1)*(g&&/^Turista/.test(g.name)?1+fx("tourist"):1);
-    const tip=Math.max(1,Math.round(base*mult()*extra*(S.boost&&!G.trip?S.boost.x:1)))+bonus;
-    G.earned+=tip; if(g)g.tip+=tip; kasse(tip,"Trinkgeld");
-    st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`+(st.bill?` · Rechnung ${st.bill} €`:"")+star];
+    // Ausflüge zahlen nur einmal pro Spieltag Trinkgeld (sonst könnte man sie endlos wiederholen)
+    const tip=G.practice?0:Math.max(1,Math.round(base*mult()*extra*(S.boost&&!G.trip?S.boost.x:1)))+bonus;
+    G.earned+=tip; if(g)g.tip+=tip; if(tip)kasse(tip,"Trinkgeld");
+    st.fb=[st.wrong?"meh":"good",(st.wrong?"Geschafft! ":pick(["Perfetto! ","Bravo! ","Esatto! ","Benissimo! "]))+(tip?`+${tip} € Trinkgeld${bonus?` (Combo +${bonus})`:""}`:"Heute nur zum Üben, Trinkgeld gibt es am nächsten Spieltag wieder.")+(st.bill?` · Rechnung ${st.bill} €`:"")+star];
   }
   if(st.wrong===0){G.firstTry++;learn(st.it);}
   if(st.kind==="pizza")st.cur=new Set(st.want);
@@ -147,13 +148,13 @@ function advance(){
 // Ausflug (Eisladen, Hafen): ein Gesprächspartner, ein paar Fragen, das Trinkgeld kommt direkt in die Kasse.
 function startTrip(id){
   const T=TRIPS[id];
-  G={guests:[{name:T.who,mood:2,steps:sample(T.pool,T.steps).map(m=>mcStep(m,"Was antwortest du?")),tip:0,bill:0}],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0,trip:id};
+  G={guests:[{name:T.who,mood:2,steps:sample(T.pool,T.steps).map(m=>mcStep(m,"Was antwortest du?")),tip:0,bill:0}],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0,trip:id,practice:S.tripDay[id]===S.day};
   screen="play"; render(); autoSpeak();
 }
 function endTrip(){
   G.summary={trip:G.trip};
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
-  S.coins+=G.earned; save();
+  S.coins+=G.earned; if(!G.practice)S.tripDay[G.trip]=S.day; save();
   screen="summary"; render(); kasse(G.earned,"in die Kasse");
 }
 // Was heute noch zum Einkaufen da ist: Kasse plus heutige Einnahmen, minus was heute schon fest weggeht
@@ -216,6 +217,15 @@ function hagLeave(){
   const st=curStep(), H=st&&st.hag; if(!H)return;
   st.asks[H.k]=H.ask; st.hag=null;
   st.it="Come vuole. Altro?"; st.de="Wie Sie wollen. Sonst noch etwas?"; speak(st.it,"Signor Esposito"); save();
+}
+// Laufenden Spieltag verwerfen (Abbrechen): Zutaten vom Markt werden erst am Abend bezahlt,
+// also gehen sie zurück an den Stand. Sonst gäbe es sie durch Abbrechen umsonst.
+function dropDay(){
+  if(G&&!G.summary&&!G.trip){
+    const back=G.market.flatMap(st=>st.bought||[]);
+    if(back.length){S.ing=S.ing.filter(k=>!back.includes(k));if(S.newPz&&!availPizze().some(p=>p.n===S.newPz))S.newPz=null;}
+  }
+  G=null;
 }
 function endDay(){
   const LV=LEVELS[S.level];

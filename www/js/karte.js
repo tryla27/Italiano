@@ -62,5 +62,7 @@ function goPlace(id){
   mapMsg=""; sfx("door");
   if(id==="pizzeria"||id==="mercato"){if(G&&!G.summary&&!G.trip){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(G&&!G.summary&&G.trip===id){screen="play";render();autoSpeak();return;}
+  // Ein laufender Spieltag geht nicht einfach verloren, wenn man auf einen Ausflug tippt
+  if(G&&!G.summary&&!G.trip){mapMsg="Dein Spieltag läuft noch: erst in der Pizzeria fertig spielen (oder im Pause-Menü abbrechen).";sfx("wrong");return render();}
   G=null;return startTrip(id);
 }

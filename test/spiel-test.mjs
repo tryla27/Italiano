@@ -177,7 +177,7 @@ await page.waitForTimeout(200);
 await shot("spielstand-datei");
 await page.evaluate(() => { S.coins = 7; save(); });
 await page.locator("#savefile").setInputFiles(saveFilePath);
-await page.waitForTimeout(400);
+await page.waitForFunction(() => S.coins === 123, null, { timeout: 5000 }).catch(() => {}); // Entpacken dauert manchmal länger
 check(await page.evaluate(() => S.coins === 123 && /geladen/.test($("#overlay").textContent)), "Spielstand-Datei lädt den Stand nicht");
 await page.locator("#savefile").setInputFiles({ name: "falsch.txt", mimeType: "text/plain", buffer: Buffer.from("Hallo") });
 await page.waitForTimeout(300);
@@ -424,6 +424,14 @@ check(await page.evaluate(() => volOpen && screen === "play") && await page.loca
 await shot("pause");
 await page.locator('#overlay [data-act="abort"]').click();
 check(await page.evaluate(() => screen === "home" && !G && S.coins === 25 && S.day === 2), "Abbrechen gibt doch Belohnung oder neuen Tag");
+
+// Schlupflöcher: Markt-Zutaten durch Abbrechen umsonst, Ausflüge endlos wiederholen, Ausflug löscht laufenden Tag
+await fresh({ setupDone: true, coins: 100, day: 3, level: 1 });
+const k0 = await page.evaluate(() => { S.ing = [...START_ING]; startDay(); G.phase = "market"; G.mi = G.market.findIndex(s => s.kind === "stall"); const k = curStep().offer[0]; stallBuy(k, ING[k][3]); render(); return S.ing.includes(k) ? k : null; });
+await act("pause"); await page.locator('#overlay [data-act="abort"]').click();
+check(k0 && await page.evaluate(k => !S.ing.includes(k) && S.coins === 100, k0), "Abbrechen nach dem Markt behält die Zutaten ohne zu zahlen");
+check(await page.evaluate(() => { startDay(); goPlace("porto"); const ok = !G.trip && screen === "play" && /läuft noch/.test(mapMsg); G = null; mapMsg = ""; return ok; }), "Ausflug löscht einen laufenden Spieltag");
+check(await page.evaluate(() => { const run = () => { const c = S.coins; startTrip("porto"); G.guests[0].steps.forEach(() => { finish(); G.si++; }); endTrip(); return S.coins - c; }; const a = run(), b = run(); screen = "home"; G = null; render(); return a > 0 && b === 0; }), "Ausflug zahlt mehrmals am selben Spieltag Trinkgeld");
 
 // Kein Scrollen nötig: Startseite, Shop und erster Gast passen auf den Bildschirm
 await fresh({ setupDone: true, coins: 25, day: 3 });
