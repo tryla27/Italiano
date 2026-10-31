@@ -102,3 +102,31 @@ jobs:
           name: Parla Pizza! v1.${{ github.run_number }}
           body: Tippe unten auf ParlaPizza-v1.${{ github.run_number }}.apk, um die App auf dein Android-Handy zu laden.
           files: ParlaPizza-v1.${{ github.run_number }}.apk
+
+  # Dieselbe Version als Webseite (für iPhone und alle ohne Android): https://<name>.github.io/<repo>/
+  web:
+    needs: apk
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Versionsnummer einsetzen
+        run: |
+          sed -i "s|__APP_BUILD__|${{ github.run_number }}|; s|__APP_REPO__|${{ github.repository }}|" www/js/start.js
+          grep -q "__APP_BUILD__" www/js/start.js && { echo "Versionsnummer nicht eingesetzt"; exit 1; } || true
+
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: www
+
+      - id: deploy
+        uses: actions/deploy-pages@v4
