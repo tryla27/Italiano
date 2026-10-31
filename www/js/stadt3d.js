@@ -259,16 +259,25 @@ function cityResize(){
   const h=C3.host; if(!h)return; const w=h.clientWidth||300, hh=h.clientHeight||300;
   C3.r.setSize(w,hh,false); C3.cam.aspect=w/hh; C3.cam.fov=w<hh?48:38; C3.cam.updateProjectionMatrix();
   // Beim ersten Mal so weit herauszoomen, dass alle Orte im Viertel zu sehen sind (Capri darf draußen bleiben)
-  if(!C3.fitted){C3.fitted=true; if(w<hh)C3.tgt.set(5,0,1);
+  // Beim ersten Mal (und wenn sich die Größe ändert) so weit herauszoomen, dass alle Orte im freien Fenster
+  // zwischen den Knöpfen zu sehen sind (Capri darf draußen bleiben); der Blickpunkt rückt in die Mitte des Fensters
+  const W=C3.win=winBox(h.classList.contains("full3d")?h:null), key=w+"x"+hh+":"+W.y0.toFixed(2)+W.y1.toFixed(2);
+  if(C3.fitted!==key){C3.fitted=key; C3.tgt.set(w<hh?5:0,0,w<hh?1:0);
     const v=new THREE.Vector3(), all=Object.entries(CITY_SPOTS).filter(([k])=>k!=="capri").map(([,s])=>s);
-    for(C3.rad=30;C3.rad<120;C3.rad+=3){cityCam();C3.cam.updateMatrixWorld();
-      if(all.every(s=>{v.set(s[0],s[2],s[1]).project(C3.cam);return Math.abs(v.x)<.82&&v.y<.88&&v.y>-.8;}))break;}}
+    const y0=W.y0+(W.y1-W.y0)*.12, y1=W.y1-(W.y1-W.y0)*.08, ym=(y0+y1)/2, yh=(y1-y0)/2;
+    for(let k=0;k<3;k++){
+      for(C3.rad=24;C3.rad<139;C3.rad+=2){cityCam();C3.cam.updateMatrixWorld();
+        if(all.every(s=>{v.set(s[0],s[2],s[1]).project(C3.cam);return Math.abs(v.x)<.84&&Math.abs(v.y-ym)<yh;}))break;}
+      // Mitte der Orte auf die Mitte des Fensters schieben (nur nach vorn/hinten)
+      let a=1e9,b=-1e9; all.forEach(s=>{v.set(s[0],s[2],s[1]).project(C3.cam);a=Math.min(a,v.y);b=Math.max(b,v.y);});
+      const dy=((a+b)/2-ym)*Math.tan(C3.cam.fov*Math.PI/360)*C3.rad/Math.cos(C3.ph);
+      C3.tgt.x-=Math.sin(C3.th)*dy; C3.tgt.z-=Math.cos(C3.th)*dy;}}
 }
 function cityPins(){
   const pins=C3.host&&C3.host.querySelectorAll(".city-pin"); if(!pins)return;
   const w=C3.host.clientWidth, h=C3.host.clientHeight, v=new THREE.Vector3();
   pins.forEach(el=>{const s=CITY_SPOTS[el.dataset.p]; v.set(s[0],s[2],s[1]).project(C3.cam);
-    const on=v.z<1&&v.x>-1.15&&v.x<1.15&&v.y>-1.15&&v.y<1.2;
+    const W=C3.win||{y0:-1,y1:1}, on=v.z<1&&v.x>-1.15&&v.x<1.15&&v.y>W.y0-.02&&v.y<W.y1+.1;
     el.style.display=on?"":"none"; if(on)el.style.transform=`translate(${(v.x+1)/2*w}px,${(1-v.y)/2*h}px) translate(-50%,-100%)`;});
 }
 // Läuft nur, solange die Karte offen ist: Wellen und schaukelnde Boote, höchstens 30 Bilder pro Sekunde

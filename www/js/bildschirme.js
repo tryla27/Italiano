@@ -40,6 +40,7 @@ function render(){
   $("#screen").className="s-"+screen;
   ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
+  fullBg();
   armBack();
 }
 // Kopfzeile für Untermenüs: zurück zur Stadt (Startseite), Titel, Ton und Einstellungen in einer Zeile
@@ -239,4 +240,15 @@ function rBook(){
     ${e.length>=2?`<button class="big" data-act="vstart" data-d="book">Notizbuch üben<small>${Math.min(e.length,12)} Wörter im Vokabelmodus</small></button>`:""}
     ${e.length?`<div class="items scroll">${e.map(([it,v])=>`<div class="book-e" data-act="sayit" data-t="${esc(it)}" role="button" tabindex="0"><span class="i">${esc(it)}</span><span class="d">${esc(v.de)}</span><span class="m">${v.miss}×</span></div>`).join("")}</div>`
       :`<div class="panel"><p class="note" style="margin:0">Noch leer. Sobald du etwas falsch hast, das rote ✕ drückst oder doppelt auf ein Wort tippst, landet es hier zum Wiederholen.</p></div>`}`;
+}
+
+/* Ganzer Bildschirm: 3D-Szenen (Viertel, Restaurant) liegen hinter allem; bei den Bild-Szenen (Spieltag, Markt,
+   Eisladen, Hafen) füllt dasselbe Bild weichgezeichnet den ganzen Hintergrund. */
+function fullBg(){
+  const b=document.body, sc=$("#screen"), full=!!sc.querySelector(".full3d");
+  b.classList.toggle("has3d",full);
+  const img=!full&&sc.querySelector(".stage-svg image");
+  const src=img&&img.getAttribute("href");
+  b.classList.toggle("hasbg",!!src);
+  if(src)b.style.setProperty("--scene-bg",`url("${src}")`); else b.style.removeProperty("--scene-bg");
 }
