@@ -16,7 +16,9 @@ const ING={
   crudo:["Rohschinken","#c75a5a",3,20],rucola:["Rucola","#4f8a2a",3,7],salsiccia:["Bratwurst","#9c5a3a",3,15],
   friarielli:["Stielmus","#2f6b2a",3,11],ricotta:["Ricotta","#fbf8f0",3,13],provola:["Provola","#d9a55a",3,14],
   cozze:["Miesmuscheln","#2c2f3a",4,18],gamberi:["Garnelen","#f08a5a",4,22],prezzemolo:["Petersilie","#3a8a3a",4,4],
-  bufala:["Büffelmozzarella","#fffdf6",4,21]
+  bufala:["Büffelmozzarella","#fffdf6",4,21],
+  // Stufe 9: gibt es nicht am Markt, nur bei Franco und seiner Ape (franco.js)
+  patate:["Kartoffeln","#e3c27a",9,6],melone:["Melone","#f2a65a",9,9]
 };
 const KISTE=10; // Portionen pro Kiste
 // Die Stände auf dem Markt: jede Zutat gibt es an genau einem Stand. say = Begrüßung [Italienisch, Deutsch]

@@ -20,7 +20,8 @@ const CHARS={
  "Dottoressa Severini":{f:1,skin:"#efc4a2",hair:"#2b2420",style:"bun",shirt:"#f4f4f0",lips:"#a8323e",glasses:"square",tie:"#2f6b8f"},
  "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1},
  "Signor Esposito":{skin:"#e0a87e",hair:"#3a2416",style:"cap",cap:"#2f6b3a",shirt:"#2f6b3a",bigmus:1},
- "Don Vincenzo":{skin:"#d9a07a",hair:"#eeeeee",style:"cap",cap:"#4a4a48",shirt:"#6b5a40",bigmus:1}
+ "Don Vincenzo":{skin:"#d9a07a",hair:"#eeeeee",style:"cap",cap:"#4a4a48",shirt:"#6b5a40",bigmus:1},
+ "Franco":{skin:"#c98e64",hair:"#2a2420",style:"cap",cap:"#2f4a7a",shirt:"#3a7ab8",bigmus:1}
 };
 // Kleidung für die ganzen Körper (szenen.js bodyFigure)
 const OUTFIT={
@@ -78,6 +79,8 @@ function ingIcon(k){
     cozze:`<path d="M5 19 Q2 9 10 3 Q14 2 15 6 Q19 14 13 21 Q8 22 5 19Z" fill="${c}" ${o}/><path d="M7 18 Q6 10 11 5" stroke="#5a6a8a" stroke-width="1.2" fill="none"/><ellipse cx="11" cy="14" rx="2.5" ry="3.5" fill="#f2a65a"/>`,
     gamberi:`<path d="M6 7 Q16 3 19 11 Q20 18 13 19 Q9 19 9 16 Q14 16 15 12 Q14 8 8 10Z" fill="${c}" ${o}/><path d="M12 15 Q15 14 15 11 M14 16 Q17 14 17 11" stroke="#fbd1b8" stroke-width="1" fill="none"/><path d="M9 16 l-4 3 l1 -4z" fill="${c}" ${o}/>`,
     prezzemolo:`<path d="M12 22 V12" stroke="#2a5a2a" stroke-width="1.6"/><g fill="${c}" ${o}><circle cx="12" cy="7" r="4"/><circle cx="7" cy="10" r="3.5"/><circle cx="17" cy="10" r="3.5"/><circle cx="9" cy="5" r="2.5"/><circle cx="15" cy="5" r="2.5"/></g>`,
+    patate:`<path d="M5 13 Q4 6 11 6 Q19 5 20 11 Q21 18 13 19 Q6 20 5 13Z" fill="${c}" ${o}/><g fill="#8a6238"><circle cx="9" cy="10" r="1"/><circle cx="15" cy="9" r="1"/><circle cx="13" cy="15" r="1"/></g>`,
+    melone:`<circle cx="12" cy="13" r="8.5" fill="#d9c27a" ${o}/><path d="M12 4.5 V21.5 M6 7 Q3 13 6 19 M18 7 Q21 13 18 19" stroke="#8a9a4a" stroke-width="1.2" fill="none"/><path d="M12 4.5 l1 -2.5" stroke="#4f7a2a" stroke-width="1.6"/>`,
     bufala:`<circle cx="12" cy="13" r="8.5" fill="${c}" ${o}/><path d="M12 4.5 q-1 -2 1 -2.5 q2 0 1 2.5z" fill="${c}" ${o}/><path d="M7 15 q5 4 10 0" stroke="#e6dfcc" stroke-width="1.5" fill="none"/><circle cx="9" cy="10" r="1.8" fill="#fff"/>`
   }[k]||`<circle cx="12" cy="12" r="7" fill="${c}"/>`;
   return `<svg class="ing-ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;

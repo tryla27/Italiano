@@ -156,6 +156,7 @@ function buildCity(){
   [[26,46],[33,45],[29,44]].forEach(([x,z])=>c3add("whitewall",new T.BoxGeometry(1.6,1.4,1.6),x,1.6,z));
   // Orte
   buildPizzeria(); buildMarket(); buildGelateria(); buildPort(); buildLearning();
+  if(typeof francoBuild==="function")francoBuild(); // Franco mit seiner Ape (franco.js)
   // Alles Gesammelte zu Meshes
   const M={roof:c3mat(0xc4673f),roof2:c3mat(0xe2d3b8),white:c3mat(0xf3eee2),whitewall:c3mat(0xfbf7ef),balcony:c3mat(0x6e4a32),
     trunk:c3mat(0x7a5a3a),leaf:c3mat(0x5f9147),leaf2:c3mat(0x7aa65a),iron:c3mat(0x2b2f2c),lamp:c3mat(0xffe3a6,{emissive:0x8a6a2a}),
@@ -284,7 +285,7 @@ function cityResize(){
       C3.tgt.x-=Math.sin(C3.th)*dy; C3.tgt.z-=Math.cos(C3.th)*dy;}}
 }
 function cityPins(){
-  const pins=C3.host&&C3.host.querySelectorAll(".city-pin"); if(!pins)return;
+  const pins=C3.host&&C3.host.querySelectorAll(".city-pin[data-p]"); if(!pins)return;
   const w=C3.host.clientWidth, h=C3.host.clientHeight, v=new THREE.Vector3();
   pins.forEach(el=>{const s=CITY_SPOTS[el.dataset.p]; v.set(s[0],s[2],s[1]).project(C3.cam);
     const W=C3.win||{y0:-1,y1:1}, on=v.z<1&&v.x>-1.15&&v.x<1.15&&v.y>W.y0-.02&&v.y<W.y1+.1;
@@ -297,6 +298,7 @@ function cityLoop(now){
   if(now-C3.last<33)return; const dt=Math.min(.1,(now-C3.last)/1000); C3.last=now; C3.t+=dt;
   C3.sea.offset.set(C3.t*.015,C3.t*.008);
   C3.boats.forEach(b=>{b.o.position.y=-.4+Math.sin(C3.t*1.4+b.p)*.08;b.o.rotation.z=Math.sin(C3.t*1.1+b.p)*.04;});
+  if(typeof francoTick==="function")francoTick(dt);
   cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
 }
 function cityMount(host){
@@ -329,8 +331,10 @@ function cityPointers(el){
     const D=C3.drag; C3.drag=null; if(!D||D.moved||C3.ptrs.size)return;
     const r=el.getBoundingClientRect(), rc=new THREE.Raycaster();
     rc.setFromCamera(new THREE.Vector2((e.clientX-r.left)/r.width*2-1,-(e.clientY-r.top)/r.height*2+1),C3.cam);
+    if(typeof francoHit==="function"&&francoHit(rc))return; // die Ape zuerst, auch wenn ein Haus davor steht
     const h=rc.intersectObjects(C3.picks,true)[0]; if(!h)return;
-    let o=h.object; while(o&&!o.userData.place)o=o.parent; if(o){goPlace(o.userData.place);save();}};
+    let o=h.object; while(o&&!o.userData.place)o=o.parent;
+    if(o){goPlace(o.userData.place);save();}};
   el.addEventListener("pointerup",up); el.addEventListener("pointercancel",up);
   el.addEventListener("wheel",e=>{e.preventDefault();C3.rad*=e.deltaY>0?1.1:.9;},{passive:false});
 }

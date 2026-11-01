@@ -353,7 +353,7 @@ for (const trip of ["gelateria", "porto"]) {
   await act("map");
   if (trip === "gelateria") {
     await page.waitForTimeout(1500);
-    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 10, "Karte zeigt kein 3D-Viertel mit allen Orten");
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 10, "Karte zeigt kein 3D-Viertel mit allen Orten");
     await shot("karte");
   }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
@@ -370,7 +370,7 @@ for (const trip of ["gelateria", "porto"]) {
 
 // Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
 await fresh({ setupDone: true, coins: 10, day: 2 });
-check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin").length === 10), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 10), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
 // La campagna: Wegweiser in der Stadt führt aufs Land mit Bauernhof, Don Vincenzo und Weinberg (noch zu)
 await page.evaluate(() => goPlace("campagna"));
 await page.waitForTimeout(1500);
@@ -425,7 +425,7 @@ check(await page.evaluate(() => { goPlace("mercato"); const ok = screen !== "mer
 
 // Mercato: jede Zutat an genau einem Stand, Kiste kaufen, Pizzen verbrauchen den Vorrat, ohne Vorrat kein Spieltag
 await fresh({ setupDone: true, coins: 100, day: 2, level: 1 });
-check(await page.evaluate(() => { const all = BANCHE.flatMap(b => b.ing); return all.length === Object.keys(ING).length && new Set(all).size === all.length && all.every(k => ING[k] && ING[k][3] > 0); }), "Nicht jede Zutat gibt es genau einmal auf dem Markt");
+check(await page.evaluate(() => { const all = BANCHE.flatMap(b => b.ing); return all.length === Object.keys(ING).filter(k => ING[k][2] < 9).length && new Set(all).size === all.length && all.every(k => ING[k] && ING[k][3] > 0); }), "Nicht jede Zutat gibt es genau einmal auf dem Markt (außer Francos Kartoffeln und Melonen)");
 await page.evaluate(() => { S.ing = [...START_ING]; S.lager = { ...START_LAGER }; G = null; mkGo(); mkTab = "salumi"; render(); });
 await page.locator('[data-act="mkbuy"][data-k="salame"]').click();
 check(await page.evaluate(() => hasIng("salame") && stockOf("salame") === KISTE && S.coins === 100 - mkPrice("salame") && S.newPz === "diavola" && /Diavola/.test(mkMsg)), "Kiste kaufen im Mercato klappt nicht");
@@ -480,6 +480,26 @@ await act("pause"); await page.locator('#overlay [data-act="abort"]').click();
 check(k0 && await page.evaluate(k => !S.ing.includes(k) && !stockOf(k) && S.coins === 100, k0), "Abbrechen nach dem Markt behält die Zutaten ohne zu zahlen");
 check(await page.evaluate(() => { startDay(); goPlace("porto"); const ok = !G.trip && screen === "play" && /läuft noch/.test(mapMsg); G = null; mapMsg = ""; return ok; }), "Ausflug löscht einen laufenden Spieltag");
 check(await page.evaluate(() => { const run = () => { const c = S.coins; startTrip("porto"); G.guests[0].steps.forEach(() => { finish(); G.si++; }); endTrip(); return S.coins - c; }; const a = run(), b = run(); screen = "home"; G = null; render(); return a > 0 && b === 0; }), "Ausflug zahlt mehrmals am selben Spieltag Trinkgeld");
+
+// Franco mit der Ape: fährt morgens durchs Viertel, hält beim Antippen an, verkauft Kisten in den Vorrat; während des Spieltags ist er weg
+await fresh({ setupDone: true, coins: 60, day: 2, level: 1 });
+await page.evaluate(() => { screen = "map"; render(); });
+await page.waitForTimeout(1500);
+if (await page.evaluate(() => typeof FR !== "undefined" && !!FR.g)) {
+  check(await page.evaluate(() => FR.g.visible && FR.v > 1), "Franco fährt morgens nicht durch die Stadt");
+  await page.evaluate(() => francoTap());
+  await page.waitForTimeout(1200);
+  check(await page.evaluate(() => FR.open && FR.v < .5 && !!document.querySelector(".fr-panel")), "Ape hält beim Antippen nicht an / kein Verkaufsfenster");
+  await shot("franco-ape");
+  await page.locator('.fr-good[data-k="melone"]').click();
+  check(await page.evaluate(() => stockOf("melone") === KISTE && S.ing.includes("melone") && S.coins === 60 - frPrice("melone")), "Kauf bei Franco landet nicht im Vorrat");
+  await page.locator(".fr-bye").click();
+  check(await page.evaluate(() => !FR.open), "Franco fährt nach Arrivederci nicht weiter");
+  await page.evaluate(() => { startDay(); screen = "map"; render(); });
+  await page.waitForTimeout(300);
+  check(await page.evaluate(() => !FR.g.visible && !C3.picks.includes(FR.g)), "Franco fährt auch während des Spieltags herum");
+  await page.evaluate(() => { G = null; });
+}
 
 // Kein Scrollen nötig: Startseite, Shop und erster Gast passen auf den Bildschirm
 await fresh({ setupDone: true, coins: 25, day: 3 });

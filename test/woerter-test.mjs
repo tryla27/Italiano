@@ -43,7 +43,7 @@ const missing = await page.evaluate(() => {
   Object.assign(S, JSON.parse(keep));
   // Alle festen Inhalte zusätzlich direkt durchsuchen
   const walk = (x, d = 0) => { if (d > 8 || x == null) return; if (typeof x === "string") add(x); else if (Array.isArray(x)) x.forEach(y => walk(y, d + 1)); else if (typeof x === "object") Object.entries(x).forEach(([k, v]) => { if (!/^(de|corDe|tip|hint|task|n|ing|c|col|color)$/.test(k)) walk(v, d + 1); }); };
-  [GREET, TALK, DRINK, MARKET, ISPEZIONE, BAR, typeof STORIES !== "undefined" ? STORIES : [], typeof PERS !== "undefined" ? PERS : {}].forEach(x => walk(x));
+  [GREET, TALK, DRINK, MARKET, ISPEZIONE, BAR, typeof STORIES !== "undefined" ? STORIES : [], typeof PERS !== "undefined" ? PERS : {}, typeof FR_SHOUT !== "undefined" ? [FR_SHOUT, FR_SAY] : []].forEach(x => walk(x));
   (typeof LIBRI !== "undefined" ? LIBRI : []).forEach(b => walk(b.pagine || b.pages || b.testo || []));
   // Nur Sätze, die überwiegend aus bekannten italienischen Wörtern bestehen (keine deutschen Hinweise)
   const names = new Set([...NAMES, ...(typeof SURNAMES !== "undefined" ? SURNAMES : [])].join(" ").toLowerCase().split(/[^a-zà-ù]+/));

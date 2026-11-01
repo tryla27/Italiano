@@ -1,6 +1,6 @@
 // Sammelt alle Sätze, die das Spiel vorlesen kann, und wer sie spricht (Frau "f" / Mann "m").
 // Lädt dafür das echte Spiel im Browser, damit alle Inhalte und Hilfsfunktionen da sind.
-// Ergebnis: tools/stimmen/saetze.json  ({f:[...], m:[...], bausteine:{f,m}})
+// Ergebnis: tools/stimmen/saetze.json  ({f:[...], m:[...], fr:[...], bausteine:{f,m}})
 // Bausteine: Satzteile, aus denen das Spiel Bestellungen, Anrufe und Reservierungen zusammensetzt.
 import { createServer } from "node:http";
 import { readFile, writeFile } from "node:fs/promises";
@@ -78,7 +78,10 @@ const out = await page.evaluate(() => {
   LIBRI.forEach(b => b.capitoli.forEach(c => { c.pagine.forEach(p => add(NARR, p[0])); (c.domande || []).forEach(([q, ok, wr]) => [ok, ...wr].forEach(o => add(NARR, o))); }));
   POESIE.forEach(p => p.versi.forEach(v => add(NARR, v[0])));
   add(NARR, "Ciao! Benvenuto in pizzeria.");
-  return { f: [...F], m: [...M], bausteine: { f: [...BF], m: [...BM] } };
+  // Franco mit seiner Ape (franco.js) hat eine eigene Stimme "fr"
+  const FR = new Set();
+  [...FR_SHOUT, ...Object.values(FR_SAY).flat()].forEach(it => FR.add(it[0].trim().replace(/\s+/g, " ")));
+  return { f: [...F], m: [...M], fr: [...FR], bausteine: { f: [...BF], m: [...BM] } };
 });
 await writeFile(join(HERE, "saetze.json"), JSON.stringify(out, null, 1));
 console.log("Frauenstimme:", out.f.length, "Männerstimme:", out.m.length);

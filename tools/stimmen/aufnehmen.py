@@ -2,6 +2,8 @@
 
     www/stimmen/f/<kennung>.mp3   Frauenstimme (Kokoro "if_sara")
     www/stimmen/m/<kennung>.mp3   Männerstimme (Kokoro "im_nicola")
+    www/stimmen/fr/<kennung>.mp3  Franco, der Gemüsehändler mit der Ape: eigene Stimme, gemischt aus
+                                  "im_nicola" und dem tiefen, kräftigen "em_santa", schneller (er ruft ja)
     www/js/inhalt/stimmen.js      Liste der vorhandenen Aufnahmen (liest audio.js)
 
 Schon vorhandene Aufnahmen werden übersprungen, nicht mehr gebrauchte gelöscht.
@@ -13,8 +15,17 @@ import numpy as np
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 WWW = os.path.join(HERE, "..", "..", "www")
-VOICES = {"f": "if_sara", "m": "im_nicola"}
+VOICES = {"f": "if_sara", "m": "im_nicola", "fr": [("im_nicola", .62), ("em_santa", .38)]}
 SPEED = 0.9  # etwas langsamer als normal, für Lernende
+SPEEDS = {"fr": 1.0}  # Franco ruft laut und schnell
+
+
+def stimme(kokoro, v):
+    """Name einer Kokoro-Stimme oder Mischung [(name, anteil), ...] als Stil-Vektor."""
+    s = VOICES[v]
+    if isinstance(s, str):
+        return s
+    return sum(kokoro.get_voice_style(n) * w for n, w in s)
 
 
 def norm(t):
@@ -66,7 +77,7 @@ def main():
             if kokoro is None:
                 from kokoro_onnx import Kokoro
                 kokoro = Kokoro(os.path.join(model_dir, "kokoro-v1.0.onnx"), os.path.join(model_dir, "voices-v1.0.bin"))
-            x, sr = kokoro.create(norm(t), voice=VOICES[v], speed=SPEED, lang="it")
+            x, sr = kokoro.create(norm(t), voice=stimme(kokoro, v), speed=SPEEDS.get(v, SPEED), lang="it")
             x = trim(np.asarray(x, dtype=np.float32), sr)
             subprocess.run(["ffmpeg", "-loglevel", "error", "-y", "-f", "f32le", "-ar", str(sr), "-ac", "1", "-i", "-",
                             "-codec:a", "libmp3lame", "-b:a", "32k", "-ar", "24000", os.path.join(out, k + ".mp3")],

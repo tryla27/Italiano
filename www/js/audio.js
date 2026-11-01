@@ -69,7 +69,7 @@ async function recPlay(v,parts,rate,tok){
 }
 function speak(t,who){
   if(vol("voice")<=0)return;
-  const sex=sexOf(who), v=sex||"f", parts=initAudio()?recParts(v,t):null;
+  const sex=sexOf(who), v=who==="Franco"&&REC.fr?"fr":sex||"f", parts=initAudio()?recParts(v,t):null; // Franco hat eine eigene Stimme
   stopVoice();
   if(parts){
     const tok={src:[]}; recNow=tok;
