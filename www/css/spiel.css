@@ -538,6 +538,7 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .loc-b{padding:4px 8px;font-size:1.15rem;line-height:1.1;background:rgba(27,34,31,.92)}
 .loc-b small{font-size:.66rem}
 .loc-store{display:flex;flex-direction:column;gap:3px}
+.loc-open{flex:none}
 .loc-store b{font-family:var(--hand);font-size:1.25rem;color:var(--gold);line-height:1}
 .loc-store>small{color:var(--chalk-dim);font-size:.74rem}
 .loc-store .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}

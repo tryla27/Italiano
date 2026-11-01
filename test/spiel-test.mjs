@@ -422,7 +422,9 @@ check(await page.evaluate(() => screen === "mercato" && document.querySelectorAl
 await shot("mercato");
 await page.evaluate(() => { screen = "home"; render(); });
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
-check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
+check(await page.evaluate(() => screen === "locale" && !G), "Pizzeria auf der Karte führt nicht ins eigene Restaurant");
+await page.locator('[data-act="lopen"]').click();
+check(await page.evaluate(() => screen === "play" && !G.trip), "„Apriamo!“ im Restaurant startet keinen Spieltag");
 // Während des Spieltags ist der Markt zu
 check(await page.evaluate(() => { goPlace("mercato"); const ok = screen !== "mercato" && /läuft noch/.test(mapMsg); mapMsg = ""; return ok; }), "Markt öffnet mitten im Spieltag");
 
