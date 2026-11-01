@@ -676,3 +676,25 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .kiste-wrap.ok .ing-ic{visibility:hidden}
 .stall .kiste-wrap{max-width:84px}
 .hag-item .kiste-wrap{width:64px;max-width:64px;margin:-8px 0}
+/* Franco mit seiner Ape (franco.js): Schild über der fahrenden Ape und Verkaufsfenster */
+.city-pin.fr-pin{border-color:#8cc0d4;max-width:62vw}
+.city-pin.fr-pin::after{border-top-color:#8cc0d4}
+.city-pin.fr-pin small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;color:#f6e3a6}
+.fr-panel{position:absolute;z-index:3;left:calc(var(--wl,0px) + 8px);right:calc(var(--wr,0px) + 8px);bottom:calc(var(--wb,0px) + 8px);max-width:560px;margin:0 auto;
+  background:rgba(27,34,31,.92);border:2px solid #8cc0d4;border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px;color:var(--chalk);
+  box-shadow:0 6px 18px rgba(0,0,0,.4);max-height:calc(100% - var(--wt,0px) - var(--wb,0px) - 16px);overflow-y:auto}
+.fr-top{display:grid;grid-template-columns:52px 1fr auto;gap:8px;align-items:start}
+.fr-face svg{width:52px;height:52px;display:block}
+.fr-x{border:0;background:var(--slate2);color:var(--chalk);border-radius:999px;width:32px;height:32px;font-size:1rem}
+.fr-goods{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.fr-good{display:flex;flex-direction:column;align-items:center;gap:1px;background:var(--slate2);border:2px solid var(--line);border-radius:12px;padding:6px 4px;color:var(--chalk);font:inherit;line-height:1.15}
+.fr-good.only{border-color:#f4c64f}
+.fr-good b{font-size:.92rem}
+.fr-good small{font-size:.7rem;color:var(--chalk-dim)}
+.fr-good .kiste-wrap{width:58px;margin:-2px auto -4px}
+.fr-good .fr-price{margin-top:3px;background:#3a9a4a;color:#fff;border-radius:999px;padding:2px 8px;font-weight:800;font-size:.8rem}
+.fr-good:disabled{opacity:.5}
+.fr-good:disabled .fr-price{background:#5a625d}
+.fr-info{margin:0;font-size:.78rem;color:var(--chalk-dim);text-align:center}
+.fr-info b{color:var(--chalk)}
+.fr-bye small{display:block;font-size:.72rem;opacity:.75}

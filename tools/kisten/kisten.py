@@ -426,6 +426,27 @@ def p_provola():
     return o, s
 
 
+def p_patate():
+    """Kartoffel: unregelmäßige gelbbraune Knolle mit Erde und ein paar Augen."""
+    mt = mm("kartoffel", "#d8b070", "#b08350", "noise", 3, .35, .65, rough=.8, bump=.05)
+    b = add(deform(sphere(.1, scale=(1.35, 1, .8), seg=24), .01, 11), mt)
+    eyes = [add(sphere(.007, loc=(random.uniform(-.1, .1), random.uniform(-.06, .06), .076), scale=(1, 1, .4)), m("auge", "#8a6a4a", .9)) for _ in range(3)]
+    return join([b] + eyes, "patate"), .24
+
+
+def p_melone():
+    """Melone (Cantalupo): rund, orange-grünlich mit hellem Netz und Längsrippen, kleiner Stiel."""
+    mt = mm("melone", "#8a8a3a", "#d9b46a", "voronoi", 22, .2, .5, rough=.7, bump=.15)
+    b = add(deform(sphere(.19, scale=(1.08, 1, .95), seg=32), .012, 13), mt)
+    ribs = []
+    for i in range(10):
+        a = i / 10 * math.tau
+        r = add(sphere(.19, scale=(.07, 1.07, .97), seg=16), m("rippe", "#8a9a4a", .7))
+        r.rotation_euler = (0, 0, a); ribs.append(r)
+    st = add(cyl(.015, .05, loc=(.205, 0, 0), rot=(0, math.pi / 2, 0), v=8), STEM())
+    return join([b] + ribs + [st], "melone"), .4
+
+
 PROTO = {
     "pomodoro": (p_pomodoro, "pile"), "mozzarella": (lambda: p_mozzarella(), "pile"), "basilico": (p_basilico, "pile"),
     "aglio": (p_aglio, "pile"), "origano": (p_origano, "bunch"), "olio": (p_olio, "upright"),
@@ -442,6 +463,7 @@ PROTO = {
     "bufala": (lambda: p_mozzarella(.17, "#fdfbf4", True, "bufala"), "pile"),
     "scamorza": (lambda: p_scamorza(), "pile"), "pecorino": (lambda: p_formaggio_keil("pecorino", "#f1e6c2", "#8a6a3a", r=.24, h=.14, ang=1.0), "wedges"),
     "provola": (p_provola, "pile"),
+    "patate": (p_patate, "pile"), "melone": (p_melone, "pile"),
 }
 
 # ---------- Kiste ----------
