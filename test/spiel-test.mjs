@@ -53,7 +53,7 @@ async function shot(name) {
   console.log("  Screenshot:", file);
 }
 // Knöpfe, die auf der Startseite jetzt Häuser im 3D-Viertel sind
-const PIN = { vocab: "scuola", memo: "bar", menu: "forno" };
+const PIN = { vocab: "scuola", memo: "bar" };
 async function act(a, extra = "") {
   let el = page.locator(`[data-act="${a}"]${extra}`).first();
   if (!(await el.count()) && !extra && PIN[a]) el = page.locator(`.city-pin[data-p="${PIN[a]}"]`).first();
@@ -407,9 +407,24 @@ check(await page.evaluate(() => POESIE.every(P => P.versi.every(([it]) => poWord
 check(await page.evaluate(() => { const solve = () => { startPoesia("giro"); startPoesiaQuiz(); while (POESIA.quiz) { const g = POESIA.quiz.gaps[POESIA.quiz.gi]; poesiaAnswer(g.opts.indexOf(g.word)); } };
   const c0 = S.coins; solve(); solve(); const l1 = S.poesie.giro.lvl; S.day++; solve(); S.day++; solve(); return l1 === 1 && S.poesie.giro.lvl === POESIA_MAX && S.coins === c0 + POESIA_PREMIO; }), "Gedicht-Stufen oder Belohnung stimmen nicht");
 await page.evaluate(() => { screen = "home"; render(); });
+// Il vecchio forno: leerstehend, betretbar in 3D, für Geld zu kaufen
 await page.locator('.city-pin[data-p="forno"]').click();
-check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");
+await page.waitForTimeout(800);
+check(await page.evaluate(() => screen === "forno" && !!document.querySelector("#forno3d canvas") && !fornoMine()), "Alter Forno lässt sich nicht betreten");
+check(await page.evaluate(() => F3.walls.some(w => !w.g.visible) && F3.walls.some(w => w.g.visible)), "Wände zur Kamera werden nicht ausgeblendet");
+await shot("forno-leer");
+check(await page.evaluate(() => { S.coins = 50; render(); fornoBuy(); return !fornoMine() && S.coins === 50; }), "Forno lässt sich ohne Geld kaufen");
+check(await page.evaluate(() => { S.coins = FORNO_PREIS + 20; render(); document.querySelector('[data-act="fbuy"]').click(); return fornoMine() && S.coins === 20 && S.forno.day === S.day; }), "Forno lässt sich nicht kaufen");
+await shot("forno-gekauft");
+await act("home");
+check(await page.evaluate(() => C3.fornoSold.visible && !C3.fornoSale.visible && /gehört dir/.test(document.querySelector('.city-pin[data-p="forno"]').textContent)), "Stadt zeigt nicht, dass der Forno dir gehört");
+// Rezeptbuch steckt jetzt im Spielermenü (Zahnrad)
+await page.evaluate(() => { volOpen = true; render(); });
+await page.locator('[data-act="recipes"]').click();
+check(await page.evaluate(() => menuOpen && !volOpen && /Il ricettario/.test($("#overlay").textContent)), "Rezeptbuch fehlt im Spielermenü");
 await page.evaluate(() => { menuOpen = false; render(); });
+// Rezepte schalten sich mit den Zutaten frei, ohne Stufe
+check(await page.evaluate(() => { const lv0 = S.level; S.level = 0; const P = PIZZE.find(p => p.lv >= 3); const keep = [...S.ing]; S.ing = [...new Set([...S.ing, ...P.ing])]; const ok = availPizze().includes(P); S.ing = keep; S.level = lv0; return ok; }), "Rezept bleibt trotz Zutaten an die Stufe gebunden");
 
 // Karte: Markt ist außerhalb des Spieltags offen, die Pizzeria startet den Tag
 await fresh({ setupDone: true, coins: 10, day: 2 });

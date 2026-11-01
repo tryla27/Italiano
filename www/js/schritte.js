@@ -34,7 +34,8 @@ function pickFresh(pool){const fresh=pool.filter(p=>!G.used.has(p[0]));const p=p
 // Eigene Zutaten und was man damit backen kann. S.ing = schon einmal gekauft (kennt die Küche),
 // S.lager = Portionen im Vorrat. Beim Planen eines Spieltags zählt G.left mit, was noch übrig ist.
 const hasIng=k=>S.ing.includes(k);
-const availPizze=()=>PIZZE.filter(p=>p.lv<=S.level&&p.ing.every(hasIng));
+// Rezepte schalten sich von selbst frei, sobald alle Zutaten in der Küche sind (keine Stufe, kein Geld)
+const availPizze=()=>PIZZE.filter(p=>p.ing.every(hasIng));
 const myExtras=()=>EXTRAS.filter(hasIng);
 const stockOf=k=>S.lager[k]||0;
 const leftOf=k=>G&&G.left?G.left[k]||0:stockOf(k);
@@ -90,7 +91,7 @@ const ESPO_KISTE=2*KISTE;
 const espoPrice=k=>2*ING[k][3];
 function stallStep(){
   const neu=Object.keys(ING).filter(k=>!hasIng(k)&&ING[k][2]<=S.level).sort((a,b)=>ING[a][2]-ING[b][2]||ING[a][3]-ING[b][3]);
-  const low=S.ing.filter(k=>ING[k]&&PIZZE.some(p=>p.lv<=S.level&&p.ing.includes(k)&&p.ing.every(hasIng))).sort((a,b)=>stockOf(a)-stockOf(b));
+  const low=S.ing.filter(k=>ING[k]&&PIZZE.some(p=>p.ing.includes(k)&&p.ing.every(hasIng))).sort((a,b)=>stockOf(a)-stockOf(b));
   const offer=[...neu,...low].slice(0,3);
   if(!offer.length)return null;
   return {kind:"stall",it:"Oggi ho prodotti freschissimi! Cosa prende?",de:"Heute habe ich ganz frische Ware! Was nehmen Sie?",task:`Große Kisten (${ESPO_KISTE} Portionen): Tippe auf den Preis und feilsche!`,offer,bought:[],neu:[],wrong:0,bad:[],done:true,fb:["good","Fertig mit Einkaufen?"]};

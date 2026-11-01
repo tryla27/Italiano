@@ -216,7 +216,7 @@ function buildPort(){
   const s=signMesh("PORTO",2.6,.8,"#2f78c4","#f3eee2"); s.position.set(-15,1.6,PROM_Z[1]+.9); g.add(s);
   c3box(.1,1.2,.1,c3mat(0x2b2f2c),-15,.6,PROM_Z[1]+.85,g);
 }
-// Lernorte: Scuola (Vokabeln), Bar (Memory), Biblioteca (Notizbuch), Forno (Rezepte)
+// Lernorte: Scuola (Vokabeln), Bar (Memory), Biblioteca (Notizbuch); dazu der leere alte Forno zum Kaufen
 function civic(id,x,z,w,d,h,col,sign,bg,fg){
   const g=placeGroup(id);
   const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:facadeTex(col)})); wall.position.set(x,h/2,z); g.add(wall);
@@ -225,6 +225,33 @@ function civic(id,x,z,w,d,h,col,sign,bg,fg){
   const s=signMesh(sign,Math.min(w-1,sign.length*.55+1.2),.9,bg,fg); s.position.set(x,3,z+d/2+.05); g.add(s);
   return g;
 }
+// Verlassene Fassade: ausgeblichen, Putz blättert ab, Läden geschlossen und schief
+function oldFacadeTex(){
+  return c3tex(64,64,(g,w,h)=>{g.fillStyle="#d9b7a6";g.fillRect(0,0,w,h);
+    g.fillStyle="rgba(120,90,70,.18)";g.fillRect(0,40,w,24);
+    g.fillStyle="#b9715a";g.fillRect(4,6,10,6);g.fillRect(50,30,9,7);g.fillRect(30,54,12,6); // Ziegel unter dem Putz
+    g.fillStyle="#6f7a66";g.fillRect(16,14,15,34);g.fillRect(33,15,15,33);
+    g.strokeStyle="rgba(40,40,30,.5)";g.lineWidth=1;for(let i=0;i<6;i++){g.beginPath();g.moveTo(16,18+i*5);g.lineTo(31,18+i*5);g.moveTo(33,19+i*5);g.lineTo(48,19+i*5);g.stroke();}
+    g.fillStyle="#d6cfc0";g.fillRect(14,48,36,4);
+    g.fillStyle="rgba(70,55,45,.35)";g.fillRect(20,52,3,10);g.fillRect(40,52,2,8);});
+}
+function buildOldForno(x,z){
+  const g=placeGroup("forno"), w=5.5,d=5.5,h=6.4;
+  const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:oldFacadeTex()})); wall.position.set(x,h/2,z); g.add(wall);
+  c3box(w+.3,.4,d+.3,c3mat(0x9a6a52),x,h+.2,z,g);
+  c3box(.9,2.2,.9,c3mat(0x7a4a3a),x+1.4,7.3,z-1,g); c3box(.7,.6,.7,c3mat(0x7a4a3a),x+1.6,8.6,z-1,g); // Schornstein, oben abgebröckelt
+  c3box(1.6,2.4,.12,c3mat(0x4a3424),x,1.2,z+d/2+.03,g);
+  [[.5,-.35],[1.3,.3],[2,-.2]].forEach(([y,r])=>{const b=c3box(1.9,.22,.06,c3mat(0x9a7a52),x,y,z+d/2+.1,g);b.rotation.z=r;}); // Bretter vor der Tür
+  const old=signMesh("FORNO",3.4,.9,"#8f7a62","#e8dcc0"); old.position.set(x,3,z+d/2+.05); old.rotation.z=-.06; g.add(old);
+  const sale=signMesh("VENDESI",1.6,.6,"#f3eee2","#d8402f"); sale.position.set(x-1.6,1.9,z+d/2+.08); g.add(sale); C3.fornoSale=sale;
+  const sold=signMesh("TUO!",1.2,.5,"#2f4a3c","#f4c64f"); sold.position.set(x-1.6,1.9,z+d/2+.08); g.add(sold); C3.fornoSold=sold;
+  // Unkraut und eine alte Kiste vor dem Haus
+  [[-2.3,3.2],[2.4,3.1],[-1.4,3]].forEach(([dx,dz],i)=>c3box(.5+i*.15,.35,.4,c3mat(0x6f8a3a),x+dx,.17,z+dz,g));
+  const k=c3box(.9,.5,.7,c3mat(0x7a5a3a),x-1.9,.25,z+3.6,g); k.rotation.y=.4;
+  cityForno();
+}
+// Schild am alten Forno: „Vendesi“, bis er dir gehört
+function cityForno(){if(!C3.fornoSale)return;const m=fornoMine();C3.fornoSale.visible=!m;C3.fornoSold.visible=m;}
 function buildLearning(){
   // Scuola mit Glockenturm, Fahne und Tafel davor
   let x=7,z=-11.75; const sc=civic("scuola",x,z,8,6,7,"#f3e2bf","SCUOLA","#2f4a3c","#f3eee2");
@@ -233,11 +260,8 @@ function buildLearning(){
   c3box(.08,3,.08,c3mat(0x2b2f2c),x-3.6,8.5,z+2.6,sc);
   [0x3a9a4a,0xf3eee2,0xd8402f].forEach((c,i)=>c3box(.4,.8,.04,c3mat(c),x-3.36+i*.4,9.5,z+2.6,sc));
   cityModel("lavagna",x+2.6,0,z+4.4,0,sc);
-  // Forno mit Schornstein und Brotkisten
-  x=-14.2;z=-11; const fo=civic("forno",x,z,5.5,5.5,6.4,"#e8a38a","FORNO","#6b4126","#f6e3a6");
-  c3box(.9,2.6,.9,c3mat(0x9a4a32),x+1.4,7.5,z-1,fo);
-  const aw=new THREE.Mesh(new THREE.BoxGeometry(5.4,.1,1.3),c3mat(0xffffff,{map:awningTex("#6b4126","#f6e3a6")})); aw.position.set(x,2.55,z+3.3); aw.rotation.x=.3; fo.add(aw);
-  [-1.6,1.6].forEach(dx=>{c3box(1.1,.6,.8,c3mat(0x8a5a36),x+dx,.3,z+3.4,fo);c3box(.9,.2,.6,c3mat(0xd9a45a),x+dx,.7,z+3.4,fo);});
+  // Il vecchio forno: die alte Bäckerei steht leer (verblasste Fassade, Läden zu, Tür mit Brettern, Schild „Vendesi“), kaufbar (forno3d.js)
+  x=-14.2;z=-11; buildOldForno(x,z);
   // Bar am Hafen: Kiosk mit Tischen davor
   x=-6;z=12.2; const bar=placeGroup("bar");
   const k=new THREE.Mesh(wallBox(5,3,3),c3mat(0xffffff,{map:facadeTex("#bfe0d0")})); k.position.set(x,1.5,z); bar.add(k);
@@ -303,7 +327,7 @@ function cityLoop(now){
 }
 function cityMount(host){
   C3.host=host; if(!host||!cityInit())return false;
-  host.prepend(C3.r.domElement); cityResize(); cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
+  host.prepend(C3.r.domElement); cityForno(); cityResize(); cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
   if(!C3.raf){C3.last=0;C3.raf=requestAnimationFrame(cityLoop);}
   return true;
 }
