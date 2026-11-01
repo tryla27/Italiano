@@ -46,7 +46,7 @@ alte App drüber, der Spielstand bleibt erhalten. Dafür sorgen:
 ## Orte
 
 Die Startseite ist ein kleines Viertel von Neapel in 3D (ein Finger dreht, zwei Finger zoomen).
-Gelernt wird in den Häusern: **Scuola** (Vokabeln), **Bar** (Memory), **Biblioteca** (Bücher wie *Pinocchio* in einfachem Italienisch, dazu das Notizbuch) und **Forno** (Rezepte).
+Gelernt wird in den Häusern: **Scuola** (Vokabeln), **Bar** (Memory), **Biblioteca** (Bücher wie *Pinocchio* in einfachem Italienisch, dazu das Notizbuch). Die alte Bäckerei (**Il vecchio forno**) steht leer: man kann sie in 3D betreten und für 300 € kaufen. Das Rezeptbuch steckt im Spielermenü (Zahnrad); neue Pizzen schalten sich von selbst frei, sobald man ihre Zutaten gekauft hat.
 Für alle Orte gilt: Gebäude oder Schild antippen, die Ladentür klingelt,
 und du bist dort. In der Pizzeria laufen die Gäste mit ganzem Körper herein und stehen neben der Bar.
 Auf dem **Mercato** gibt es an fünf Ständen jede Zutat des Spiels. Verkauft wird nur, was vorher eingekauft wurde: jede Pizza braucht eine Portion von jeder Zutat, und Gäste bestellen nur, was im Vorrat ist. An Markttagen (mercoledì und sabato) ist alles 20 % günstiger, und nach Feierabend feilschst du mit Signor Esposito um große Kisten. Als Ausflüge gibt es den **Eisladen** und
