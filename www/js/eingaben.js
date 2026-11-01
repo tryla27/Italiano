@@ -47,6 +47,8 @@ function handleClick(e){
   if(a==="map"){mapMsg="";if(screen==="vocab"&&S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;screen="map";return render();}
   if(a==="place")return goPlace(t.dataset.p);
   if(a==="lplace")return landTap(t.dataset.p);
+  if(a==="lenter")return landEnter(t.dataset.p);
+  if(a==="lexit")return landExit();
   if(a==="trip"){if(G&&!G.summary){screen="play";render();autoSpeak();return;}return startTrip(t.dataset.t);}
   if(a==="setup"){screen="setup";return render();}
   if(a==="setupCheck"){if(ROOM_ITEMS.every(i=>S.room.some(r=>r.id===i.id)))startSetupQuiz();return;}
