@@ -1,16 +1,19 @@
 /* Neapel im 3D-Viertel: was die Stadt neapolitanisch macht (hängt an stadt3d.js, wie franco.js).
+   - Dächer: rote Ziegel-Satteldächer (Mönch und Nonne) mit First und Schornstein, auch auf Pizzeria, Scuola, Forno
+     und Biblioteca; Häuser mit Dachterrasse haben einen Boden aus hellen Steinplatten.
    - Häuser: Sockel aus grauem Piperno-Stein, Gesims über dem Erdgeschoss und oben (Cornicione), schmale Eisenbalkone
      vor jeder Fenstertür mit Blumentöpfen, Dachterrassen mit Brüstung und Pflanzen, Bogentüren der „bassi“ unten.
    - Wäscheleinen quer über die Gassen, mit bunter Wäsche.
    - Kirche mit Fassade aus Diamantquadern (wie Gesù Nuovo), gelb-grüner Majolika-Kuppel, Glockenturm,
-     davor eine kleine Piazza mit Guglia (Prunksäule) und Palmen.
+     davor ein großer Kirchplatz aus Travertin mit Guglia (Prunksäule), zwei Brunnen, Balustrade, Bänken und Palmen.
    - Castel dell'Ovo: Burg aus gelbem Tuffstein auf einer Insel vor der Promenade, mit Damm.
+   - Straßen aus Basaltpflaster aus der Stadt hinaus: zum Vesuv (La campagna), zum Wald und zum Strand, mit Wegweisern.
    - Il bosco: ein gemischter Wald westlich der Stadt (npForest).
    - Straßenschilder aus Marmor (Spaccanapoli, Via Toledo) und eine Edicola votiva (Heiligenbild an der Hauswand).
    buildCity() ruft napoliSite() (wo keine Häuser stehen), napoliHouse() für jedes Haus und am Ende napoliBuild().
    Gleiche Teile werden wie in stadt3d.js zu wenigen Meshes zusammengelegt. Eigener Zufall, damit sich sonst nichts verschiebt. */
 const NP={batch:{},houses:[],rnd:seeded(1647)};
-const NP_CHURCH=[-36,-24,-14,4];        // Kirche mit Piazzetta: x0, x1, z0, z1
+const NP_CHURCH=[-42,-21,-16.5,9.5];   // Kirche mit großem Kirchplatz: x0, x1, z0, z1 (bis an Straße, Spaccanapoli und Promenade)
 const NP_CLOTH=["#f6f3ec","#e5533f","#2f78c4","#f4c64f","#7ab8d9","#f2a0b5","#3a9a4a","#ffffff"];
 
 function np(key,geo,x,y,z,ry){
@@ -25,15 +28,56 @@ function npAt(key,geo,cx,cz,ry,u,y,v){np(key,geo,cx+Math.cos(ry)*u+Math.sin(ry)*
 // Auf diesen Grundstücken stehen keine Wohnhäuser
 function napoliSite(x0,x1,z0,z1){const s=NP_CHURCH;return x0<s[1]&&x1>s[0]&&z0<s[3]&&z1>s[2];}
 
+/* ---------- Dächer: rote Ziegel (Mönch und Nonne) als Satteldach, Terrassen mit Steinplatten ---------- */
+// Quader, dessen Textur sich alle "rep" Meter wiederholt (für Ziegel und Steinplatten)
+function npUVBox(w,h,d,rep,repV){
+  const g=new THREE.BoxGeometry(w,h,d), uv=g.attributes.uv;
+  const su=[d,d,w,w,w,w], sv=[h,h,d,d,h,h];
+  for(let f=0;f<6;f++)for(let k=0;k<4;k++){const i=f*4+k;uv.setXY(i,uv.getX(i)*su[f]/rep,uv.getY(i)*sv[f]/(repV||rep));}
+  return g;
+}
+// Satteldach in eigenen Koordinaten: First entlang x (Länge L), Spannweite D, Höhe ph; Unterkante bei y = 0
+function npRoofParts(L,D,ph){
+  const T=THREE, a=Math.atan2(ph,D/2), s=Math.hypot(D/2,ph)+.45, parts=[];
+  [1,-1].forEach(sd=>{const g=npUVBox(L+.5,.1,s,.62,.55); g.rotateX(sd*a);
+    g.translate(0,ph-Math.sin(a)*s/2+.06,sd*Math.cos(a)*s/2); parts.push(["tiles",g]);});
+  const r=new T.CylinderGeometry(.13,.13,L+.55,8); r.rotateZ(Math.PI/2); r.translate(0,ph+.1,0); parts.push(["ridge",r]);
+  // Giebeldreiecke an beiden Enden
+  const sh=new T.Shape(); sh.moveTo(-D/2,0); sh.lineTo(D/2,0); sh.lineTo(0,ph); sh.closePath();
+  [1,-1].forEach(sd=>{const g=new T.ShapeGeometry(sh); g.rotateY(sd*Math.PI/2); g.translate(sd*L/2,0,0); parts.push(["gable",g]);});
+  return parts;
+}
+// Ziegeldach eines Wohnhauses (Teile kommen in die gemeinsamen Meshes)
+function npHouseRoof(cx,cz,w,d,h,col,R){
+  const along=w>=d, L=along?w:d, D=along?d:w, ph=D*.3, ry=along?0:Math.PI/2;
+  np("stucco",npBox(w+.25,.2,d+.25),cx,h+.1,cz);
+  npRoofParts(L,D,ph).forEach(([k,g])=>np(k==="gable"?"g"+col:k,g,cx,h+.2,cz,ry));
+  // Schornstein (Comignolo) mit kleinem Dach
+  if(R()<.45){const u=(R()-.5)*(L-1.5), v=(R()<.5?-1:1)*D/5, x=cx+(along?u:v), z=cz+(along?v:u), y=h+.2+ph*.6;
+    np("stucco",npBox(.55,1.3,.55),x,y+.45,z); np("tiles",npUVBox(.8,.12,.8,.62),x,y+1.15,z);}
+}
+// Ziegeldach für die Orte (Pizzeria, Scuola, Forno, Biblioteca): eigene Meshes in der Gruppe, damit Antippen trifft
+function napoliTileRoof(x,z,w,d,h,group,col){
+  const M=npMats(), along=w>=d, L=along?w:d, D=along?d:w, ph=D*.3, ry=along?0:Math.PI/2;
+  const add=(g,m,y)=>{const o=new THREE.Mesh(g,m);o.position.set(x,y,z);o.rotation.y=ry;group.add(o);};
+  add(npBox(along?w+.3:d+.3,.2,along?d+.3:w+.3),M.stucco,h+.1);
+  npRoofParts(L,D,ph).forEach(([k,g])=>add(g,k==="gable"?c3mat(col):M[k],h+.2));
+}
+
 /* ---------- Häuser ---------- */
-function napoliHouse(cx,cz,w,d,h,n,balc){
+// Gibt true zurück: das Dach baut napoli.js (stadt3d.js legt dann keine flache Dachplatte mehr)
+function napoliHouse(cx,cz,w,d,h,n,balc,tank,col){
   const R=NP.rnd, T=THREE;
   NP.houses.push({cx,cz,w,d,h,n,x0:cx-w/2,x1:cx+w/2,z0:cz-d/2,z1:cz+d/2});
   np("piperno",npBox(w+.06,1,d+.06),cx,.5,cz);                  // Sockel
   np("stucco",npBox(w+.12,.14,d+.12),cx,3.25,cz);               // Gesims über dem Erdgeschoss
   np("stucco",npBox(w+.32,.28,d+.32),cx,h-.1,cz);               // Cornicione
-  // Dachterrasse mit Brüstung, Töpfen und manchmal einer Pergola
-  if(R()<.65){const y=h+.35+.4;
+  // Dachterrasse mit Boden aus Steinplatten, Brüstung, Töpfen und manchmal einer Pergola – sonst ein rotes Ziegeldach
+  const terrace=R()<.55;
+  if(!terrace){npHouseRoof(cx,cz,w,d,h,col,R);}
+  else{const y=h+.35+.4;
+    np("terrace",npUVBox(w+.25,.35,d+.25,1.1),cx,h+.17,cz);
+    if(tank)np("stucco",npBox(1.2,1,1.2),cx-1+tank[0]*2,h+.85,cz-1+tank[1]*2); // Wassertank
     np("stucco",npBox(w+.2,.8,.15),cx,y,cz-d/2-.02); np("stucco",npBox(w+.2,.8,.15),cx,y,cz+d/2+.02);
     np("stucco",npBox(.15,.8,d+.2),cx-w/2-.02,y,cz); np("stucco",npBox(.15,.8,d+.2),cx+w/2+.02,y,cz);
     for(let k=0,m=1+Math.floor(R()*3);k<m;k++){const px=cx-w/2+.6+R()*(w-1.2), pz=cz+d/2-.6;
@@ -63,6 +107,7 @@ function napoliHouse(cx,cz,w,d,h,n,balc){
       const a=new T.CylinderGeometry(.575,.575,.08,12,1,false,Math.PI/2,Math.PI); a.rotateX(Math.PI/2);
       npAt(key,a,cx,cz,ry,u,1.85,off+.05);}});
   });
+  return true;
 }
 
 /* ---------- Wäscheleinen über den Gassen ---------- */
@@ -92,7 +137,7 @@ function npLaundry(){
   return count;
 }
 
-/* ---------- Kirche mit Majolika-Kuppel, Piazzetta mit Guglia und Palmen ---------- */
+/* ---------- Kirche mit Majolika-Kuppel und großem Kirchplatz ---------- */
 function npTex(w,h,draw,rep){const t=canvasTex(w,h,draw);t.wrapS=t.wrapT=THREE.RepeatWrapping;if(rep)t.repeat.set(rep[0],rep[1]);return t;}
 // Halbkugel (three-mini hat keine SphereGeometry)
 function npDome(r,ws,hs){
@@ -106,7 +151,7 @@ function npDome(r,ws,hs){
   return g;
 }
 function npChurch(){
-  const T=THREE, [sx0,sx1,sz0,sz1]=NP_CHURCH, cx=(sx0+sx1)/2, fz=-5;   // Fassade bei z = -5, schaut nach Süden
+  const T=THREE, [sx0,sx1,sz0,sz1]=NP_CHURCH, cx=(sx0+sx1)/2, fz=-4;   // Fassade bei z = -5, schaut nach Süden
   const mesh=(geo,m,x,y,z,ry)=>{const o=new T.Mesh(geo,m);o.position.set(x,y,z);if(ry)o.rotation.y=ry;C3.scene.add(o);return o;};
   // Diamantquader aus Piperno (wie die Fassade von Gesù Nuovo)
   const diamond=npTex(64,64,(g,w)=>{g.fillStyle="#9c978c";g.fillRect(0,0,w,w);
@@ -147,25 +192,45 @@ function npChurch(){
   mesh(new T.CylinderGeometry(.55,.6,1.2,10),stuc,cx,15.8,kz); mesh(new T.CylinderGeometry(0,.7,.8,10),c3mat(0xf2c230),cx,16.8,kz);
   mesh(new T.BoxGeometry(.08,.9,.08),c3mat(0xd9a93a),cx,17.6,kz); mesh(new T.BoxGeometry(.5,.08,.08),c3mat(0xd9a93a),cx,17.75,kz);
   // Glockenturm rechts neben der Kirche
-  const tx=sx1-1.5, tz=fz-1.6;
+  const tx=cx+5.6, tz=fz-1.6;
   mesh(new T.BoxGeometry(2.4,15,2.4),c3mat(0xffffff,{map:npTex(64,64,(g,w)=>{g.fillStyle="#f1e6cc";g.fillRect(0,0,w,w);g.fillStyle="#e2d4b4";g.fillRect(0,0,w,3);},[1,5])}),tx,7.5,tz);
   mesh(new T.BoxGeometry(2.7,.3,2.7),stuc,tx,12.4,tz); mesh(new T.BoxGeometry(2.7,.3,2.7),stuc,tx,15.1,tz);
   [0,Math.PI/2,Math.PI,-Math.PI/2].forEach(a=>{mesh(new T.BoxGeometry(1,1.8,.1),dark,tx+Math.sin(a)*1.22,13.6,tz+Math.cos(a)*1.22,a);});
   const bell=new T.Mesh(new T.CylinderGeometry(.2,.45,.6,10),c3mat(0xd9a93a)); bell.position.set(tx,13.5,tz); C3.scene.add(bell);
   const pyr=new T.CylinderGeometry(0,1.7,2.4,4); pyr.rotateY(Math.PI/4); mesh(pyr,c3mat(0xc4673f),tx,16.45,tz);
   const clock=new T.CylinderGeometry(.45,.45,.06,16); clock.rotateX(Math.PI/2); mesh(clock,c3mat(0xfbf7ef),tx,11.2,tz+1.23);
-  // Piazzetta vor der Kirche
-  c3plane(sx1-sx0,sz1-fz-.2,c3mat(0xffffff,{map:PIAZZA_TEX()}),cx,.025,(fz+.2+sz1)/2,4);
-  // Guglia: Prunksäule aus Piperno und Marmor mit goldener Figur
-  const gx=cx, gz=(fz+sz1)/2+1.4;
-  [[2.4,.5,2.4,.25,"piperno"],[1.8,2,1.8,1.5,"marble"],[1.3,2.4,1.3,3.7,"piperno"],[.9,2.6,.9,6.2,"marble"],[.55,2.4,.55,8.7,"marble"]]
+  // Kirchplatz: heller Travertin mit Bändern aus grauem Basalt, in der Mitte ein Ring um die Guglia
+  const pz0=fz+.2, pz1=sz1-.1, pzc=(pz0+pz1)/2, pw=sx1-sx0-.4, pd=pz1-pz0;
+  const plaza=npTex(128,128,(g,w)=>{g.fillStyle="#ece4d2";g.fillRect(0,0,w,w);
+    for(let y=0;y<4;y++)for(let x=0;x<4;x++){g.fillStyle=["#efe8d8","#e6dcc7","#f2ecdf","#e9e0cc"][(x+y*3)%4];g.fillRect(x*32+2,y*32+2,28,28);}
+    g.fillStyle="#6f6c66";g.fillRect(0,0,w,5);g.fillRect(0,0,5,w);},[pw/4,pd/4]);
+  c3plane(pw,pd,c3mat(0xffffff,{map:plaza}),cx,.025,pzc);
+  const gx=cx, gz=pzc+.6;
+  [[3.7,4.4,"basalt"],[3,3.7,"marble"],[2.3,3,"basalt"]].forEach(([r0,r1,k])=>{const g=new T.RingGeometry(r0,r1,40);g.rotateX(-Math.PI/2);np(k,g,gx,.04,gz);});
+  // Rand: niedrige Balustrade aus Marmor mit Pfeilern, offen zur Straße, zur Promenade und vor dem Portal
+  const balu=(x0,z0,x1,z1)=>{const L=Math.hypot(x1-x0,z1-z0), ry=Math.atan2(-(z1-z0),x1-x0);
+    np("marble",npBox(L,.15,.45),(x0+x1)/2,.85,(z0+z1)/2,ry); np("marble",npBox(L,.2,.4),(x0+x1)/2,.1,(z0+z1)/2,ry);
+    for(let t=0;t<=L;t+=.45){const f=t/L;np("marble",new T.CylinderGeometry(.09,.12,.6,6),x0+(x1-x0)*f,.48,z0+(z1-z0)*f);}
+    [0,1].forEach(f=>np("marble",npBox(.6,1.3,.6),x0+(x1-x0)*f,.65,z0+(z1-z0)*f));};
+  balu(sx0+.3,pz0+1.5,sx0+.3,pz1-3); balu(sx1-.3,pz0+1.5,sx1-.3,pzc-2.5); balu(sx1-.3,pzc+2.5,sx1-.3,pz1-3);
+  // Guglia: Prunksäule aus Piperno und Marmor mit goldener Figur, auf Stufen
+  [[3.2,.3,3.2,.15,"marble"],[2.4,.5,2.4,.55,"piperno"],[1.8,2,1.8,1.8,"marble"],[1.3,2.4,1.3,4,"piperno"],[.9,2.6,.9,6.5,"marble"],[.55,2.4,.55,9,"marble"]]
     .forEach(([w,h,d,y,k])=>np(k,npBox(w,h,d),gx,y,gz));
-  np("gold",new T.CylinderGeometry(.18,.3,.9,8),gx,10.35,gz); np("gold",frSphere(.18,8,6),gx,10.95,gz);
-  np("shadow",flatPlane(4,4),gx,.03,gz);
-  // Palmen an der Piazzetta
-  [[sx0+1.4,sz1-1.4],[sx1-1.4,sz1-1.4],[sx0+1.4,fz+2.2]].forEach(([x,z],i)=>npPalm(x,z,i));
-  // Laternen
-  [[sx0+1.2,fz+1.2],[sx1-3.4,fz+1.2]].forEach(([x,z])=>{np("iron",new T.CylinderGeometry(.08,.12,3.2,6),x,1.6,z);np("lamp",npBox(.45,.45,.45),x,3.3,z);});
+  np("gold",new T.CylinderGeometry(.18,.3,.9,8),gx,10.65,gz); np("gold",frSphere(.18,8,6),gx,11.25,gz);
+  np("shadow",flatPlane(5,5),gx,.03,gz);
+  // Zwei Brunnen links und rechts der Guglia
+  [-6.6,6.6].forEach(dx=>{const x=cx+dx, z=gz;
+    np("marble",new T.CylinderGeometry(1.7,1.85,.55,18),x,.28,z); np("water",new T.CylinderGeometry(1.45,1.45,.08,18),x,.56,z);
+    np("marble",new T.CylinderGeometry(.22,.34,1.3,8),x,1.1,z); np("marble",new T.CylinderGeometry(.75,.2,.3,12),x,1.85,z);
+    np("water",new T.CylinderGeometry(.1,.45,.5,8),x,2.15,z);});
+  // Palmen in einer Reihe zur Promenade, Bänke, Laternen
+  [[sx0+2,pz1-1.6],[sx1-2,pz1-1.6],[cx-4.6,pz1-1.4],[cx+4.6,pz1-1.4]].forEach(([x,z],i)=>npPalm(x,z,i+7));
+  [[sx0+1.6,pz0+3],[sx0+1.6,pzc+3.2],[sx1-1.6,pz0+3]].forEach(([x,z],i)=>npPalm(x,z,i+3));
+  [-6.6,6.6].forEach(dx=>[gz-2.9,gz+2.9].forEach(z=>{np("marble",npBox(1.8,.12,.55),cx+dx,.48,z);
+    np("marble",npBox(.3,.42,.45),cx+dx-.7,.21,z); np("marble",npBox(.3,.42,.45),cx+dx+.7,.21,z);}));
+  [[cx-4.2,pz0+1.4],[cx+4.2,pz0+1.4],[sx0+1,pz1-.8],[sx1-1,pz1-.8],[sx0+1,pzc],[sx1-1,pzc-2.8]].forEach(([x,z])=>{
+    np("iron",new T.CylinderGeometry(.08,.12,3.4,6),x,1.7,z);np("iron",npBox(.8,.06,.06),x,3.3,z);
+    np("lamp",npBox(.38,.38,.38),x-.38,3.05,z);np("lamp",npBox(.38,.38,.38),x+.38,3.05,z);});
 }
 function npPalm(x,z,i){
   const T=THREE, h=5.5+(i%2)*1.2;
@@ -238,6 +303,51 @@ function npSigns(){
   });
 }
 
+/* ---------- Straßen aus der Stadt hinaus ---------- */
+// Basaltpflaster wie in Neapel. Sie verbinden die Stadt mit dem Weg zum Vesuv (La campagna), mit dem Wald
+// und mit dem Strand. Punkte x, z; die Straßen beginnen am Rand des Pflasters der Stadt.
+const NP_ROADS=[
+  {name:"VESUVIO",sign:[3.2,-38.6],w:4.2,pts:[[.5,-38],[1.5,-48],[-2,-58],[-9,-68],[-16,-77],[-22,-86]]},
+  {name:"BOSCO",sign:[-42.6,-15.4],w:3.6,pts:[[-42,-18.2],[-46,-21],[-49,-25.5],[-50.5,-31]]},
+  {name:"SPIAGGIA",sign:[42.6,-15.4],w:3.6,pts:[[42,-18.2],[48,-15],[53,-8],[56,0],[57,8.5]]}
+];
+// Abstand eines Punkts zur nächsten Straße (für Bäume, die nicht auf der Straße stehen sollen)
+function npRoadDist(x,z){let m=1e9;
+  NP_ROADS.forEach(r=>{for(let i=1;i<r.pts.length;i++){const [ax,az]=r.pts[i-1],[bx,bz]=r.pts[i], dx=bx-ax, dz=bz-az;
+    const t=Math.max(0,Math.min(1,((x-ax)*dx+(z-az)*dz)/(dx*dx+dz*dz))); m=Math.min(m,Math.hypot(x-ax-dx*t,z-az-dz*t)-r.w/2);}});
+  return m;}
+// Glatte Linie durch die Punkte (Catmull-Rom), daraus ein Band mit Rinnsteinen an beiden Seiten
+function npRoads(){
+  const T=THREE;
+  NP_ROADS.forEach(r=>{
+    const P=r.pts, line=[];
+    for(let i=0;i<P.length-1;i++){const p0=P[Math.max(0,i-1)],p1=P[i],p2=P[i+1],p3=P[Math.min(P.length-1,i+2)];
+      for(let k=0;k<6;k++){const t=k/6,t2=t*t,t3=t2*t, f=(a,b,c,d)=>.5*(2*b+(-a+c)*t+(2*a-5*b+4*c-d)*t2+(-a+3*b-3*c+d)*t3);
+        line.push([f(p0[0],p1[0],p2[0],p3[0]),f(p0[1],p1[1],p2[1],p3[1])]);}}
+    line.push(P[P.length-1]);
+    const band=(half,y,key,off)=>{const pos=[],nor=[],uv=[]; let len=0;
+      const side=line.map((p,i)=>{const a=line[Math.max(0,i-1)], b=line[Math.min(line.length-1,i+1)], dx=b[0]-a[0], dz=b[1]-a[1], l=Math.hypot(dx,dz)||1;return [-dz/l,dx/l];});
+      for(let i=0;i<line.length-1;i++){const p=line[i],q=line[i+1],sp=side[i],sq=side[i+1], seg=Math.hypot(q[0]-p[0],q[1]-p[1]);
+        const pt=(c,s_,o)=>[c[0]+s_[0]*o,y,c[1]+s_[1]*o];
+        const A=pt(p,sp,off-half),B=pt(p,sp,off+half),C=pt(q,sq,off-half),D=pt(q,sq,off+half), v0=len/2, v1=(len+seg)/2;
+        pos.push(...A,...B,...C, ...B,...D,...C); for(let k=0;k<6;k++)nor.push(0,1,0);   // gegen den Uhrzeigersinn von oben
+        uv.push(0,v0, half,v0, 0,v1, half,v0, half,v1, 0,v1); len+=seg;}
+      const g=new T.BufferGeometry(); g.setAttribute("position",new T.Float32BufferAttribute(pos,3));
+      g.setAttribute("normal",new T.Float32BufferAttribute(nor,3)); g.setAttribute("uv",new T.Float32BufferAttribute(uv,2));
+      np(key,g,0,0,0);};
+    band(r.w/2,.035,"road",0); band(.25,.05,"curb",r.w/2+.2); band(.25,.05,"curb",-r.w/2-.2);
+    // Wegweiser aus Holz am Anfang der Straße
+    const [sx,sz]=r.sign, sg=signMesh(r.name,2.1,.5,"#f3eee2","#6b4126"); sg.position.set(sx,2.3,sz+.09); C3.scene.add(sg);
+    const back=sg.clone(); back.rotation.y=Math.PI; back.position.z=sz-.09; C3.scene.add(back);
+    np("wood",npBox(.14,2.8,.14),sx,1.4,sz);
+  });
+  // Bäume aus stadt3d.js, die auf einer Straße stehen würden, weglassen (sie sind schon an ihren Platz gerückt)
+  ["trunk","leaf","leaf2","shadow"].forEach(k=>{const L=C3.batch[k]; if(!L)return;
+    C3.batch[k]=L.filter(g=>{g.computeBoundingBox(); const b=g.boundingBox, sx=b.max.x-b.min.x, sz=b.max.z-b.min.z;
+      if(sx>5.5||sz>5.5)return true;                       // Häuser-Schatten und Größeres bleiben
+      const x=(b.min.x+b.max.x)/2, z=(b.min.z+b.max.z)/2; return npRoadDist(x,z)>1.2;});});
+}
+
 /* ---------- Il bosco: gemischter Wald westlich der Stadt ---------- */
 // Pinien, Zypressen, Steineichen, Kastanien, Olivenbäume, Tannen, Birken und Ahorn in Herbstfarben,
 // dazwischen Büsche, Felsen und ein Waldweg. Eigener Zufall, die übrigen Bäume bleiben, wo sie sind.
@@ -266,7 +376,7 @@ function npForest(){
   const pick=()=>{let r=R()*sum;for(let i=0;i<names.length;i++){r-=w[i];if(r<0)return names[i];}return names[0];};
   let n=0;
   for(let i=0;i<400&&n<130;i++){
-    const x=F.x+(R()*2-1)*F.rx, z=F.z+(R()*2-1)*F.rz; if(!inForest(x,z)||onPath(x,z))continue;
+    const x=F.x+(R()*2-1)*F.rx, z=F.z+(R()*2-1)*F.rz; if(!inForest(x,z)||onPath(x,z)||npRoadDist(x,z)<2)continue;
     // Olivenbäume lieber am Waldrand, Tannen lieber hinten (nach Norden)
     let k=pick(); const edge=((x-F.x)/F.rx)**2+((z-F.z)/F.rz)**2;
     if(k==="ulivo"&&edge<.5)k="castagno"; if(k==="abete"&&z>F.z+8)k="quercia";
@@ -285,15 +395,15 @@ function npForest(){
   return n;
 }
 
-/* ---------- Alles bauen und zu Meshes zusammenlegen ---------- */
-function napoliBuild(){
+// Materialien (einmal angelegt, von allen Teilen geteilt)
+function npMats(){
+  if(NP.M)return NP.M;
   const T=THREE;
-  npLaundry(); npChurch(); npCastle(); npSigns(); npForest();
   const rail=canvasTex(64,32,(g,w,h)=>{g.clearRect(0,0,w,h);g.fillStyle="#26292a";g.fillRect(0,0,w,3);g.fillRect(0,h-3,w,3);
     for(let x=2;x<w;x+=6)g.fillRect(x,0,2,h);g.strokeStyle="#26292a";g.lineWidth=1.5;
     for(let x=5;x<w;x+=12){g.beginPath();g.arc(x+3,8,3,0,Math.PI*2);g.stroke();}});
   rail.wrapS=T.RepeatWrapping; rail.repeat.set(2,1);
-  const M={piperno:c3mat(0x77736b),stucco:c3mat(0xf6f1e6),slab:c3mat(0xe2dccf),
+  NP.M={piperno:c3mat(0x77736b),stucco:c3mat(0xf6f1e6),slab:c3mat(0xe2dccf),
     rail:new T.MeshLambertMaterial({map:rail,transparent:true,alphaTest:.5,side:T.DoubleSide}),
     pot:c3mat(0xb5583a),plant:c3mat(0x4f8a3c),plant2:c3mat(0x6fa64b),flower:c3mat(0xe0457b),wood:c3mat(0x7a5a3a),vine:c3mat(0x5f9147),
     door:c3mat(0x3d5a44),door2:c3mat(0x6b3f26),line:c3mat(0xe8e4dc),
@@ -302,9 +412,30 @@ function napoliBuild(){
     olive:c3mat(0x8fa27a),fir:c3mat(0x2f5a3a),autumn:c3mat(0xd9792f),autumn2:c3mat(0xc8452f),rock:c3mat(0x9a958a),flowerY:c3mat(0xf2d043),
     mush:c3mat(0xd8402f),path:c3mat(0xb59a6e),
     palmtrunk:c3mat(0x8a6a48),palm:new T.MeshLambertMaterial({color:0x4f8f3c,side:T.DoubleSide}),
-    tuffcap:c3mat(0xc9a25c),iron:c3mat(0x2b2f2c),lamp:c3mat(0xffe3a6,{emissive:0x8a6a2a}),
-    shadow:new T.MeshBasicMaterial({map:tex("blob"),transparent:true,depthWrite:false})};
+    tuffcap:c3mat(0xc9a25c),basalt:c3mat(0x6a6761),water:c3mat(0x5cb7d6),iron:c3mat(0x2b2f2c),lamp:c3mat(0xffe3a6,{emissive:0x8a6a2a}),
+    shadow:new T.MeshBasicMaterial({map:tex("blob"),transparent:true,depthWrite:false}),
+    tiles:c3mat(0xffffff,{map:npTileTex()}),ridge:c3mat(0xa8442c),terrace:c3mat(0xffffff,{map:npTerraceTex()}),
+    road:c3mat(0xffffff,{map:npRoadTex()}),curb:c3mat(0xc9bfae)};
+  const M=NP.M;
   NP_CLOTH.forEach((c,i)=>M["c"+i]=new T.MeshLambertMaterial({color:c,side:T.DoubleSide}));
+  WALL_COLS.forEach((c,i)=>M["g"+i]=c3mat(c));
+  return M;
+}
+// Texturen: Mönch-und-Nonne-Ziegel (Rinnen entlang des Gefälles), Steinplatten, Basaltpflaster
+function npTileTex(){return npTex(64,64,(g,w)=>{g.fillStyle="#8f3a24";g.fillRect(0,0,w,w);
+  for(let x=0;x<4;x++){const X=x*16;const gr=g.createLinearGradient(X,0,X+16,0);
+    gr.addColorStop(0,"#9c3f26");gr.addColorStop(.45,"#d0694a");gr.addColorStop(1,"#8a3620");g.fillStyle=gr;g.fillRect(X+1,0,14,w);}
+  for(let y=0;y<4;y++){g.fillStyle="rgba(40,10,0,.35)";g.fillRect(0,y*16+13,w,3);g.fillStyle="rgba(255,220,190,.18)";g.fillRect(0,y*16,w,2);}});}
+function npTerraceTex(){return npTex(64,64,(g,w)=>{g.fillStyle="#b9ae98";g.fillRect(0,0,w,w);
+  for(let y=0;y<2;y++)for(let x=0;x<2;x++){g.fillStyle=["#ddd2bb","#d5c9b0","#e2d8c3","#d0c4aa"][(x+y*2)%4];g.fillRect(x*32+1,y*32+1,30,30);}});}
+function npRoadTex(){return npTex(64,64,(g,w)=>{g.fillStyle="#5d5b57";g.fillRect(0,0,w,w);
+  for(let y=0;y<4;y++)for(let x=0;x<3;x++){g.fillStyle=["#77746d","#6d6a64","#7f7b73","#716e67"][(x*3+y)%4];g.fillRect(x*22+(y%2)*11-6,y*16+1,20,14);}});}
+
+/* ---------- Alles bauen und zu Meshes zusammenlegen ---------- */
+function napoliBuild(){
+  const T=THREE;
+  npLaundry(); npChurch(); npCastle(); npSigns(); npRoads(); npForest();
+  const M=npMats();
   Object.entries(NP.batch).forEach(([k,geos])=>{if(!geos.length)return;const o=new T.Mesh(c3merge(geos),M[k]);if(k==="shadow")o.renderOrder=-1;C3.scene.add(o);});
   NP.batch={};
 }

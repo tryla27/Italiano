@@ -116,10 +116,11 @@ function buildCity(){
     if(typeof napoliSite==="function"&&napoliSite(x0,x1,z0,z1))continue; // hier stehen Kirche und Piazzetta (napoli.js)
     const n=fl+(Math.hypot(gx+3,gz+3)>15?1:0), h=n*3.2+.4; // ein Stockwerk mehr: Neapel ist eng und hoch
     c3add("w"+col,wallBox(w,h,d),gx+3,h/2,gz+3);
-    c3add(rk,new T.BoxGeometry(w+.25,.35,d+.25),gx+3,h+.17,gz+3);
-    if(tank)c3add("white",new T.BoxGeometry(1.2,1,1.2),gx+2+tank[0]*2,h+.85,gz+2+tank[1]*2); // Wassertank
-    if(typeof napoliHouse==="function")napoliHouse(gx+3,gz+3,w,d,h,n,balc); // Balkone, Gesimse, Dachterrasse
-    else if(balc)c3add("balcony",new T.BoxGeometry(w*.7,.15,.7),gx+3,4.6,gz+6.3);
+    // napoli.js baut Dach (Ziegel-Satteldach oder Dachterrasse mit Steinboden), Balkone und Gesimse
+    if(!(typeof napoliHouse==="function"&&napoliHouse(gx+3,gz+3,w,d,h,n,balc,tank,col))){
+      c3add(rk,new T.BoxGeometry(w+.25,.35,d+.25),gx+3,h+.17,gz+3);
+      if(tank)c3add("white",new T.BoxGeometry(1.2,1,1.2),gx+2+tank[0]*2,h+.85,gz+2+tank[1]*2); // Wassertank
+      if(balc)c3add("balcony",new T.BoxGeometry(w*.7,.15,.7),gx+3,4.6,gz+6.3);}
     c3add("shadow",flatPlane(w+3,d+3),gx+3,.03,gz+3);
   }
   // Bäume: Pinien am Rand, Zypressen und Bäume an der Promenade
@@ -181,7 +182,7 @@ function cityModel(name,x,y,z,r,parent,s){
 function buildPizzeria(){
   const g=placeGroup("pizzeria"), x=-5, z=-11.5;
   const wall=new THREE.Mesh(wallBox(9,7,6.5),c3mat(0xffffff,{map:facadeTex("#f4cf7a")})); wall.position.set(x,3.5,z); g.add(wall);
-  c3box(9.3,.4,6.8,c3mat(0xc4673f),x,7.2,z,g);
+  if(typeof napoliTileRoof==="function")napoliTileRoof(x,z,9,6.5,7,g,"#f4cf7a"); else c3box(9.3,.4,6.8,c3mat(0xc4673f),x,7.2,z,g);
   // Laden unten: dunkle Tür und Fenster, rot-weiß-grüne Markise, Schild
   c3box(8.6,2.6,.1,c3mat(0x3b2a20),x,1.3,z+3.27,g);
   c3box(1.6,2.3,.12,c3mat(0x6b4126),x,1.15,z+3.32,g);
@@ -294,7 +295,7 @@ function buildPort(){
 function civic(id,x,z,w,d,h,col,sign,bg,fg){
   const g=placeGroup(id);
   const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:facadeTex(col)})); wall.position.set(x,h/2,z); g.add(wall);
-  c3box(w+.3,.4,d+.3,c3mat(0xc4673f),x,h+.2,z,g);
+  if(typeof napoliTileRoof==="function")napoliTileRoof(x,z,w,d,h,g,col); else c3box(w+.3,.4,d+.3,c3mat(0xc4673f),x,h+.2,z,g); // Ziegeldach
   c3box(1.6,2.4,.12,c3mat(0x6b4126),x,1.2,z+d/2+.03,g);
   const s=signMesh(sign,Math.min(w-1,sign.length*.55+1.2),.9,bg,fg); s.position.set(x,3,z+d/2+.05); g.add(s);
   return g;
@@ -303,7 +304,7 @@ function buildLearning(){
   // Scuola mit Glockenturm, Fahne und Tafel davor
   let x=7,z=-11.75; const sc=civic("scuola",x,z,8,6,7,"#f3e2bf","SCUOLA","#2f4a3c","#f3eee2");
   c3box(1.8,2.2,1.8,c3mat(0xf3eee2),x,8.5,z-1,sc); c3box(2.1,.3,2.1,c3mat(0xc4673f),x,9.75,z-1,sc);
-  const bell=new THREE.Mesh(new THREE.CylinderGeometry(.25,.5,.7,10),c3mat(0xd9a93a)); bell.position.set(x,8.8,z-.05); sc.add(bell);
+  const bell=new THREE.Mesh(new THREE.CylinderGeometry(.25,.5,.7,10),c3mat(0xd9a93a)); bell.position.set(x,9.05,z-.05); sc.add(bell);
   c3box(.08,3,.08,c3mat(0x2b2f2c),x-3.6,8.5,z+2.6,sc);
   [0x3a9a4a,0xf3eee2,0xd8402f].forEach((c,i)=>c3box(.4,.8,.04,c3mat(c),x-3.36+i*.4,9.5,z+2.6,sc));
   cityModel("lavagna",x+2.6,0,z+4.4,0,sc);
