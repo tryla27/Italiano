@@ -15,7 +15,7 @@ const CITY_GO={
   bar:()=>startMemo(),
   biblioteca:()=>{screen="biblio";render();},
   forno:()=>{menuOpen=true;render();},
-  campagna:()=>{K3.msg=null;screen="campagna";render();}
+  campagna:()=>{K3.msg=null;if(K3.inside){K3.inside=null;K3.fly=null;K3.fitted=false;landRoofs();}screen="campagna";render();}
 };
 function placeOpen(p){
   if(p.locked)return false;

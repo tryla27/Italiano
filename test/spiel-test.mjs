@@ -380,6 +380,12 @@ await page.evaluate(() => landTap("vincenzo"));
 check(await page.locator(".land-msg").count() === 1, "Don Vincenzo sagt nichts");
 check(await page.evaluate(() => document.querySelector('#land3d .city-pin[data-p="vigna"]').classList.contains("shut")), "Weinberg ist nicht verschlossen");
 await shot("campagna-vincenzo");
+await page.locator('[data-act="lenter"]').click();
+await page.waitForTimeout(1600);
+check(await page.evaluate(() => K3.inside === "vincenzo" && K3.roofs.vincenzo.every(m => !m.visible)), "Haus von Don Vincenzo lässt sich nicht betreten");
+await shot("campagna-vincenzo-drinnen");
+await page.locator('[data-act="lexit"]').click();
+check(await page.evaluate(() => !K3.inside && K3.roofs.vincenzo.every(m => m.visible)), "Hinausgehen bringt das Dach nicht zurück");
 await act("home");
 await shot("startseite-stadt");
 for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "biblio"]]) {
