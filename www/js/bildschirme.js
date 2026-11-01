@@ -185,7 +185,7 @@ function rPlay(){
       <div class="ctrl">${st.wrong>0&&!st.showTip?`<button class="tipbtn" data-act="tip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
       <button class="idk" data-act="idk" aria-label="Keine Ahnung, Lösung zeigen">✕<small>K. Ahnung</small></button></div>`;
   $("#screen").innerHTML=`
-    <div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}`}</span>${G.combo>=2?`<span class="combo">×${G.combo}</span>`:starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span>${tools()}</div>
+    <div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}${stepDots()}`}</span>${G.combo>=2?`<span class="combo">×${G.combo}</span>`:starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span>${tools()}</div>
     <div class="stage">${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}${stageHTML()}</div>
     <div class="scene solo"><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
     <div class="task">${H?(H.over?"Sein letztes Wort: annehmen oder gehen?":"Biete weniger, aber nicht zu frech!"):esc(st.task)}</div>
@@ -253,4 +253,10 @@ function fullBg(){
   const src=img&&img.getAttribute("href");
   b.classList.toggle("hasbg",!!src);
   if(src)b.style.setProperty("--scene-bg",`url("${src}")`); else b.style.removeProperty("--scene-bg");
+}
+
+// Kleine Punkte unter „Gast 1/3“: ein Punkt pro Satz dieses Gastes (Begrüßung, Bestellung, Rechnung …), damit man sieht, dass ein Gast mehrere Fragen hat.
+function stepDots(){
+  const g=G.guests[G.gi]; if(!g||g.steps.length<2)return "";
+  return `<span class="steps" aria-label="Satz ${G.si+1} von ${g.steps.length}">${g.steps.map((x,i)=>`<i class="${i<G.si?"done":i===G.si?"now":""}"></i>`).join("")}</span>`;
 }

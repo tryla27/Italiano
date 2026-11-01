@@ -98,7 +98,11 @@ input,textarea{-webkit-user-select:text;user-select:text}
 
 /* HUD */
 .hud{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums}
-.hud .where{font-size:.85rem;color:var(--chalk-dim);font-weight:600}
+.hud .where{font-size:.85rem;color:var(--chalk-dim);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.hud .where .steps{display:flex;gap:3px}
+.hud .where .steps i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.3}
+.hud .where .steps i.done{opacity:.8}
+.hud .where .steps i.now{opacity:1;background:var(--gold,#f2c14e)}
 .stars{color:var(--gold);letter-spacing:1px;font-size:1rem;white-space:nowrap}
 .stars .off{color:var(--slate3)}
 .stars .half{background:linear-gradient(90deg,var(--gold) 50%,var(--slate3) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
