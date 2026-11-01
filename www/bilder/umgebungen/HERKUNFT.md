@@ -8,5 +8,6 @@ passend zu den Gesichtern in `grafik.js`). Keine Personen, kein Text im Bild.
 |---|---|---|
 | `pizzeria.webp` | Pizzeria mit Tresen und Holzofen | 499220971 |
 | `markt.webp` | Markt mit Ständen und Markisen | 1568842700 |
-| `eisladen.webp` | Eisdiele mit Theke | 895274952 |
 | `hafen.webp` | Hafen von Neapel mit Vesuv | 1524695220 |
+
+Die Eisdiele hat kein Bild mehr: sie ist ein 3D-Laden im Viertel (`stadt3d.js`, `gelStage()`).
