@@ -334,7 +334,8 @@ await page.evaluate(() => { G = null; screen = "home"; render(); });
 
 // Antwort antippen: die Stimme liest sie vor
 await fresh({ coins: 10, level: 0, day: 1, setupDone: true });
-await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); render(); });
+// Nicht jeder Gast begrüßt: für den Test sicher mit einer Frage mit Antworten anfangen
+await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); if (curStep().kind !== "mc") G.guests[0].steps.unshift(mcStep(GREET[0], "Was antwortest du?", { greet: true })); render(); });
 await page.locator('#screen .opt').first().click();
 check(await page.evaluate(() => __said.includes(curStep().opts[0].t)), "Angetippte Antwort wird nicht vorgelesen");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
