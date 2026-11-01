@@ -352,7 +352,7 @@ for (const trip of ["gelateria", "porto"]) {
   await act("map");
   if (trip === "gelateria") {
     await page.waitForTimeout(1500);
-    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 9, "Karte zeigt kein 3D-Viertel mit allen Orten");
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin").count() === 10, "Karte zeigt kein 3D-Viertel mit allen Orten");
     await shot("karte");
   }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
@@ -369,7 +369,17 @@ for (const trip of ["gelateria", "porto"]) {
 
 // Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
 await fresh({ setupDone: true, coins: 10, day: 2 });
-check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin").length === 9), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin").length === 10), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+// La campagna: Wegweiser in der Stadt führt aufs Land mit Bauernhof, Don Vincenzo und Weinberg (noch zu)
+await page.evaluate(() => goPlace("campagna"));
+await page.waitForTimeout(1500);
+check(await page.evaluate(() => screen === "campagna" && !!document.querySelector("#land3d canvas") && document.querySelectorAll("#land3d .city-pin").length === 3), "La campagna zeigt keine 3D-Landschaft mit drei Orten");
+await shot("campagna");
+await page.evaluate(() => landTap("vincenzo"));
+check(await page.locator(".land-msg").count() === 1, "Don Vincenzo sagt nichts");
+check(await page.evaluate(() => document.querySelector('#land3d .city-pin[data-p="vigna"]').classList.contains("shut")), "Weinberg ist nicht verschlossen");
+await shot("campagna-vincenzo");
+await act("home");
 await shot("startseite-stadt");
 for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "biblio"]]) {
   await page.evaluate(() => { screen = "home"; render(); });
