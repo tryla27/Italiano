@@ -2,7 +2,7 @@
 const PLACES=[
   {id:"pizzeria",it:"La Pizzeria",de:"Spieltag",x:112,y:250,img:"bilder/umgebungen/pizzeria.webp",vb:"60 400 280 280"},
   {id:"mercato",it:"Il Mercato",de:"Zutaten kaufen",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
-  {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:"bilder/umgebungen/eisladen.webp",vb:"60 380 280 280"},
+  {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:null},
   {id:"porto",it:"Il Porto",de:"Ausflug",x:150,y:402,img:"bilder/umgebungen/hafen.webp",vb:"60 300 280 280"},
   {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true},
   // Lernorte gibt es nur im 3D-Viertel; auf der flachen Karte sind es die Knöpfe der Startseite
