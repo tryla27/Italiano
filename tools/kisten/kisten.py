@@ -226,14 +226,6 @@ def p_olio():
     return join([body, neck, cap, lab], "olio"), .15
 
 
-def p_salame():
-    skin = mm("pelle", "#b8786a", "#efe4d6", "noise", 18, .45, .6, rough=.75, bump=.25)
-    b = add(cyl(.06, .42, rot=(0, math.pi / 2, 0), v=24), skin); smooth(b, 1)
-    cut = add(cyl(.059, .01, loc=(.212, 0, 0), rot=(0, math.pi / 2, 0), v=24), M.get("salamifleisch") or mm("salamifleisch", "#a01c24", "#f4ddd0", "voronoi", 45, .03, .07, rough=.45))
-    knot = add(sphere(.02, loc=(-.22, 0, 0)), m("faden", "#efe6d0", .8))
-    return join([b, cut, knot], "salame"), .14
-
-
 def p_prosciutto(raw=False):
     """Schinken: Keule mit Schwarte, oben angeschnitten (rot mit weißem Fettrand bzw. rosa Kochschinken)."""
     rind = m("schwarte%d" % raw, "#c98a4a" if raw else "#d9a070", .45, bump=.2, coat=.2)
@@ -246,12 +238,6 @@ def p_prosciutto(raw=False):
     if raw:
         parts.append(add(cyl(.03, .1, loc=(.58, 0, -.02), rot=(0, math.pi / 2, 0)), m("knochen", "#efe6d0", .6)))
     return join(parts, "crudo" if raw else "prosciutto"), .45
-
-
-def p_funghi():
-    cap_ = add(deform(sphere(.09, scale=(1, 1, .6), seg=24), .01, 8), m("pilzhut", "#a87a52", .6, bump=.1))
-    stem = add(cyl(.035, .1, loc=(0, 0, -.06), v=16), m("pilzstiel", "#efe3cf", .6)); smooth(stem, 1)
-    return join([cap_, stem], "funghi"), .2
 
 
 def p_carciofi():
@@ -310,12 +296,6 @@ def p_peperoni(col):
     return join(parts, "peperoni"), .22
 
 
-def p_zucchine():
-    b = add(sphere(.045, scale=(4.2, 1, 1), seg=20), mm("zucchini", "#3f7a2a", "#7fb04f", "noise", 12, .45, .6, rough=.3))
-    end = add(cyl(.015, .04, loc=(.2, 0, 0), rot=(0, math.pi / 2, 0), v=8), STEM())
-    return join([b, end], "zucchine"), .12
-
-
 def p_melanzane():
     b = add(deform(sphere(.08, scale=(2.4, 1, 1), seg=24), .01, 11), m("aubergine", "#3a1a40", .1, coat=.8))
     capg = add(cone(.06, .02, .05, loc=(.2, 0, 0), rot=(0, math.pi / 2, 0), v=6), STEM())
@@ -358,16 +338,6 @@ def p_formaggio_keil(name, col, rind, r=.22, h=.12, ang=1.1, kind=None):
     rd = node_mat(name + "r", rind, .6, bump=.2, bscale=12)
     o = wedge(r, h, ang, body, rd, name)
     return o, r * 1.3
-
-
-def p_salsiccia():
-    parts = []
-    mt = mm("wurst", "#a8583a", "#d89a7a", "noise", 30, .45, .65, rough=.3)
-    for i in range(3):
-        s = sphere(.045, loc=(i * .13, 0, 0), scale=(1.5, 1, 1), seg=18); parts.append(add(s, mt))
-        if i < 2:
-            parts.append(add(cyl(.008, .04, loc=(i * .13 + .065, 0, 0), rot=(0, math.pi / 2, 0), v=6), m("faden", "#efe6d0", .8)))
-    return join(parts, "salsiccia"), .12
 
 
 def p_friarielli(col="#2a5f25", name="friarielli", n=6, ln=.26):
@@ -447,6 +417,166 @@ def p_melone():
     return join([b] + ribs + [st], "melone"), .4
 
 
+# ---------- Gedrehte und gezogene Formen (für Wurst, Zucchini, Pilze) ----------
+def _mesh(bm, name):
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(name); bm.to_mesh(me); bm.free()
+    o = bpy.data.objects.new(name, me); bpy.context.collection.objects.link(o)
+    return smooth(o)
+
+
+def _bridge(bm, rings, v):
+    for a, b in zip(rings, rings[1:]):
+        if len(a) == 1:
+            for j in range(v):
+                bm.faces.new((a[0], b[(j + 1) % v], b[j]))
+        elif len(b) == 1:
+            for j in range(v):
+                bm.faces.new((a[j], a[(j + 1) % v], b[0]))
+        else:
+            for j in range(v):
+                bm.faces.new((a[j], a[(j + 1) % v], b[(j + 1) % v], b[j]))
+
+
+def lathe(pts, v=32, name="dreh"):
+    """Rotationskörper um die z-Achse aus Punkten (Radius, Höhe), von oben nach unten."""
+    bm = bmesh.new(); rings = []
+    for r, z in pts:
+        if r < 1e-5:
+            rings.append([bm.verts.new((0, 0, z))])
+        else:
+            rings.append([bm.verts.new((r * math.cos(j / v * math.tau), r * math.sin(j / v * math.tau), z)) for j in range(v)])
+    _bridge(bm, rings, v)
+    return _mesh(bm, name)
+
+
+def tube(prof, L, n=40, v=20, bend=0.0, ridge=0.0, ridges=5, wob=0.0, seed=1, name="rohr"):
+    """Länglicher Körper entlang x: prof(t) gibt den Radius, bend biegt ihn, ridge macht flache Längsrippen."""
+    rnd = random.Random(seed); ph = [rnd.uniform(0, math.tau) for _ in range(3)]
+    bm = bmesh.new(); rings = []
+    for i in range(n + 1):
+        t = i / n; r = prof(t); x = (t - .5) * L; zc = bend * (1 - (2 * t - 1) ** 2)
+        if r < 1e-5:
+            rings.append([bm.verts.new((x, 0, zc))]); continue
+        ring = []
+        for j in range(v):
+            a = j / v * math.tau
+            rr = r * (1 + ridge * math.cos(ridges * a) + wob * math.sin(t * 9 + ph[0]) * math.sin(a * 2 + ph[1]))
+            ring.append(bm.verts.new((x, rr * math.cos(a), zc + rr * math.sin(a))))
+        rings.append(ring)
+    _bridge(bm, rings, v)
+    return _mesh(bm, name)
+
+
+def obj_mat(name, cols, scale=(1, 1, 1), kind="noise", nscale=6.0, rough=.5, sss=0.0, bump=0.0, bscale=20.0, coat=0.0, detail=8):
+    """Farbverlauf (Liste aus (Position, Farbe)) über ein Muster in Objekt-Koordinaten, das sich strecken lässt
+    (Längsstreifen der Zucchini, Fettaugen in der Wurst, Rillen unter dem Pilzhut)."""
+    mt = node_mat(name, cols[0][1], rough=rough, sss=sss, bump=bump, bscale=bscale, coat=coat)
+    nt = mt.node_tree; bs = nt.nodes["Principled BSDF"]
+    tc = nt.nodes.new("ShaderNodeTexCoord"); mp = nt.nodes.new("ShaderNodeMapping")
+    mp.inputs["Scale"].default_value = scale
+    nt.links.new(tc.outputs["Object"], mp.inputs["Vector"])
+    if kind == "voronoi":
+        t = nt.nodes.new("ShaderNodeTexVoronoi"); t.inputs["Scale"].default_value = nscale; fac = t.outputs["Distance"]
+    elif kind == "radial":  # feine Linien rund um die z-Achse (Lamellen)
+        g = nt.nodes.new("ShaderNodeTexGradient"); g.gradient_type = "RADIAL"
+        nt.links.new(mp.outputs["Vector"], g.inputs["Vector"])
+        mul = nt.nodes.new("ShaderNodeMath"); mul.operation = "MULTIPLY"; mul.inputs[1].default_value = nscale * math.tau
+        sn = nt.nodes.new("ShaderNodeMath"); sn.operation = "SINE"
+        nt.links.new(g.outputs["Fac"], mul.inputs[0]); nt.links.new(mul.outputs[0], sn.inputs[0])
+        t = None; fac = sn.outputs[0]
+    else:
+        t = nt.nodes.new("ShaderNodeTexNoise"); t.inputs["Scale"].default_value = nscale; t.inputs["Detail"].default_value = detail; fac = t.outputs["Fac"]
+    if t is not None:
+        nt.links.new(mp.outputs["Vector"], t.inputs["Vector"])
+    r = nt.nodes.new("ShaderNodeValToRGB"); cr = r.color_ramp
+    cr.elements[0].position, cr.elements[0].color = cols[0][0], lin(cols[0][1])
+    cr.elements[1].position, cr.elements[1].color = cols[-1][0], lin(cols[-1][1])
+    for p, c in cols[1:-1]:
+        e = cr.elements.new(p); e.color = lin(c)
+    nt.links.new(fac, r.inputs["Fac"]); nt.links.new(r.outputs["Color"], bs.inputs["Base Color"])
+    return mt
+
+
+def om(key, *a, **k):
+    if key not in M:
+        M[key] = obj_mat(key, *a, **k)
+    return M[key]
+
+
+def ring(r, tr, loc, name="faden"):
+    bpy.ops.mesh.primitive_torus_add(major_radius=r, minor_radius=tr, location=loc, rotation=(0, math.pi / 2, 0), major_segments=24, minor_segments=6)
+    return smooth(bpy.context.object)
+
+
+# Salami: dunkelrote, faltige Haut mit weißem Edelschimmel, mit Bindfaden geschnürt; eine Hälfte angeschnitten
+SALAMI_HAUT = lambda: om("salamihaut", [(.3, "#4a2220"), (.5, "#6e342c"), (.62, "#9a7468"), (.75, "#d6ccc0")], scale=(.5, 1, 1), nscale=26, rough=.85, bump=.4, bscale=70)
+SALAMI_FLEISCH = lambda: om("salamifleisch", [(.07, "#f3e2d6"), (.1, "#9a1e26"), (.3, "#8a1a22"), (.6, "#6e1219")], kind="voronoi", nscale=55, rough=.4, sss=.1)
+
+
+def p_salame(cut=False, seed=1):
+    L, R = .42, .058
+    prof = lambda t: R * (min(1, t * 9) ** .45 if not cut else 1) * min(1, (1 - t) * 9) ** .45
+    b = add(tube(prof, L, n=48, v=24, bend=.006, wob=.04, seed=seed, name="wurst"), SALAMI_HAUT())
+    parts = [b]
+    for i in range(6):  # Bindfaden quer
+        x = -L / 2 + .05 + i * (L - .1) / 5
+        parts.append(add(ring(prof((x + L / 2) / L) * 1.0, .0024, (x, 0, 0)), m("faden", "#cdbb96", .9)))
+    parts.append(add(cyl(.0024, L * .96, loc=(0, 0, R * .99), rot=(0, math.pi / 2, 0), v=6), M["faden"]))
+    parts.append(add(sphere(.008, loc=(L / 2 + .004, 0, 0)), M["faden"]))
+    if cut:
+        parts.append(add(cyl(R * .97, .004, loc=(-L / 2 + .001, 0, 0), rot=(0, math.pi / 2, 0), v=32), SALAMI_FLEISCH()))
+    return join(parts, "salame"), .14
+
+
+def p_salame_scheibe():
+    a = add(cyl(.06, .007, v=32), SALAMI_HAUT())
+    b = add(cyl(.057, .009, v=32), SALAMI_FLEISCH())
+    return join([a, b], "scheibe"), .12
+
+
+# Salsiccia: grobe, rosarote Bratwurst im glänzenden Naturdarm, als Kette mit gedrehten Enden
+def p_salsiccia(links=3, seed=1):
+    def prof(t):
+        u = (t * links) % 1
+        return .038 * (.18 + .82 * math.sin(math.pi * u) ** .22) * (1 + .04 * math.sin(t * 23))
+    mt = om("wurst", [(.4, "#8e3c38"), (.52, "#b45a50"), (.6, "#d08c7c"), (.66, "#ecd2c2")], nscale=55, detail=12,
+            rough=.3, sss=.25, coat=.35, bump=.2, bscale=60)
+    o = add(tube(prof, .155 * links, n=36 * links, v=20, bend=.04 * random.Random(seed).uniform(-1, 1), wob=.05, seed=seed, name="salsiccia"), mt)
+    o.rotation_euler = (0, 0, 0)
+    return o, .1
+
+
+# Zucchini: dunkelgrün mit hellen Längsstreifen und Sprenkeln, leicht keulenförmig und gebogen, kantiger Stiel
+def p_zucchine(seed=1):
+    rnd = random.Random(seed)
+    L, R = .44, .047
+    prof = lambda t: R * (.78 + .3 * t) * min(1, t * 7) ** .5 * min(1, (1 - t) * 5) ** .55
+    mt = om("zucchini", [(.42, "#17361a"), (.52, "#2e5a24"), (.6, "#6f9446"), (.7, "#a8bf74")], scale=(1.2, 14, 14), nscale=3.5, rough=.45, coat=.1, bump=.08, bscale=90)
+    b = add(tube(prof, L, n=44, v=30, bend=rnd.uniform(.01, .03), ridge=.035, ridges=5, wob=.03, seed=seed, name="zucchine"), mt)
+    st = add(cone(.022, .012, .05, loc=(-L / 2 - .015, 0, 0), rot=(0, -math.pi / 2, 0), v=5), m("zstiel", "#9aa868", .75, bump=.3, bscale=40))
+    fl = add(sphere(.012, loc=(L / 2 - .004, 0, .002), scale=(.5, 1, 1), seg=10), m("bluete", "#8a7a3a", .9))
+    return join([b, st, fl], "zucchine"), .12
+
+
+# Funghi: Champignons mit gewölbtem, am Rand eingerolltem Hut, Lamellen darunter, kurzem dickem Stiel
+def p_funghi(braun=True, seed=1):
+    rnd = random.Random(seed)
+    R, h = .085 * rnd.uniform(.9, 1.1), .062
+    top = [(0, h)] + [(R * math.sin(a), h * math.cos(a) ** .8 if a < math.pi / 2 else -.012 * math.sin((a - math.pi / 2) * 3))
+                      for a in [i / 14 * math.radians(112) for i in range(1, 15)]]
+    if braun:
+        hut = om("pilzbraun", [(.3, "#6a4630"), (.55, "#8e6444"), (.8, "#b08a64")], scale=(1, 1, .3), nscale=7, rough=.55, bump=.12, bscale=25)
+    else:
+        hut = om("pilzweiss", [(.35, "#c9b89c"), (.55, "#e2d6c2"), (.8, "#f2ebde")], scale=(1, 1, .3), nscale=9, rough=.6, sss=.15, bump=.15, bscale=30)
+    cap_ = add(deform(lathe(top + [(R * .9, -.016)], v=40, name="hut"), .004, seed), hut)
+    gill = add(lathe([(R * .9, -.016), (R * .62, -.006), (.03, .006)], v=40, name="lamellen"),
+               om("lamellen", [(.0, "#3e2a20"), (.5, "#6e5240"), (1, "#a8907a")], kind="radial", nscale=70, rough=.8))
+    stem = add(lathe([(.032, .006), (.035, -.03), (.036, -.05), (.03, -.056), (0, -.056)], v=24, name="stiel"),
+               om("pilzstiel", [(.4, "#e2d6c0"), (.7, "#f2ebde")], scale=(1, 1, 4), nscale=10, rough=.6, sss=.1))
+    return join([cap_, gill, stem], "funghi"), .2
+
+
 PROTO = {
     "pomodoro": (p_pomodoro, "pile"), "mozzarella": (lambda: p_mozzarella(), "pile"), "basilico": (p_basilico, "pile"),
     "aglio": (p_aglio, "pile"), "origano": (p_origano, "bunch"), "olio": (p_olio, "upright"),
@@ -464,6 +594,14 @@ PROTO = {
     "scamorza": (lambda: p_scamorza(), "pile"), "pecorino": (lambda: p_formaggio_keil("pecorino", "#f1e6c2", "#8a6a3a", r=.24, h=.14, ang=1.0), "wedges"),
     "provola": (p_provola, "pile"),
     "patate": (p_patate, "pile"), "melone": (p_melone, "pile"),
+}
+
+# Mehrere Spielarten derselben Ware, damit die Kiste nicht wie kopiert aussieht
+VARIANTEN = {
+    "salame": [lambda: p_salame(False, 1), lambda: p_salame(True, 2), lambda: p_salame(False, 3)],
+    "salsiccia": [lambda: p_salsiccia(3, 1), lambda: p_salsiccia(3, 2), lambda: p_salsiccia(2, 3)],
+    "zucchine": [lambda: p_zucchine(1), lambda: p_zucchine(2), lambda: p_zucchine(3)],
+    "funghi": [lambda: p_funghi(True, 1), lambda: p_funghi(True, 2), lambda: p_funghi(False, 3)],
 }
 
 # ---------- Kiste ----------
@@ -504,6 +642,10 @@ def fill(key):
     if key == "peperoni":
         for c in ("#d8281a", "#f2b52a", "#2f8a2a"):
             protos.append(p_peperoni(c))
+    elif key in VARIANTEN:
+        for i, f in enumerate(VARIANTEN[key]):
+            random.seed(hash(key) % 1000 + i)
+            protos.append(f())
     else:
         for i in range(2 if mode in ("pile",) else 1):
             random.seed(hash(key) % 1000 + i)
@@ -538,6 +680,8 @@ def fill(key):
                         continue
                     z = top - d * .3 + layer * d * .5 + mound + d * .25
                     rot = (random.uniform(-.5, .5), random.uniform(-.5, .5), random.uniform(0, math.tau)) if mode == "pile" else (0, 0, random.uniform(-.4, .4) + math.pi / 2)
+                    if key == "funghi" and random.random() < .3:  # ein paar liegen umgekippt und zeigen die Lamellen
+                        rot = (random.uniform(1.9, 2.6), random.uniform(-.4, .4), random.uniform(0, math.tau))
                     put((x, y, z), rot, random.uniform(.92, 1.08))
     elif mode == "logs":
         d = size * 1.0
@@ -548,9 +692,15 @@ def fill(key):
                 if abs(y) > CD - d * .4:
                     continue
                 L = .5 if key in ("salame",) else .45
-                for x in ([-.36, .36] if key not in ("acciughe", "salsiccia") else [-.5, -.12, .26, .55]):
+                for x in ([-.36, .36] if key != "acciughe" else [-.5, -.12, .26, .55]):
                     put((x + random.uniform(-.05, .05), y, top - .05 + d * .4 + layer * d * .7 + .03 * (1 - (y / CD) ** 2)),
                         (random.uniform(-.1, .1), 0, random.uniform(-.15, .15) + (math.pi if random.random() < .5 else 0)))
+        if key == "salame":  # ein paar Scheiben obendrauf
+            sch = p_salame_scheibe()[0]; sch.location = (0, 0, -50)
+            for x, y in ((-.2, -.12), (-.05, -.18), (.1, -.1), (.22, -.2), (.02, .02)):
+                o = sch.copy(); bpy.context.collection.objects.link(o)
+                o.location = (x, y, top + size * 1.25); o.rotation_euler = (random.uniform(-.25, .25), random.uniform(-.25, .25), 0)
+                o.scale = (k_sc,) * 3; placed.append(o)
     elif mode == "upright":
         d = size * 1.05
         nx, ny = int(2 * CW / d), int(2 * CD / d)
