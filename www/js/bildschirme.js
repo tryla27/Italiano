@@ -38,7 +38,7 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,campagna:rCampagna})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
   fullBg();
   armBack();
@@ -114,12 +114,12 @@ function ricettarioHTML(){
   const have=availPizze(), rest=PIZZE.filter(p=>!have.includes(p)).sort((a,b)=>a.lv-b.lv);
   const st=n=>{const k=pzStars(n);return `<span class="pzst" aria-label="${k} von 3 Sternen">${"★".repeat(k)}<span class="off">${"★".repeat(3-k)}</span></span>`;};
   return `<div class="sheet" role="dialog" aria-label="Rezeptbuch"><h2>Il ricettario<small>Rezeptbuch · Zutaten ${S.ing.length}/${Object.keys(ING).length}</small></h2>
-    <div class="recipes">${have.map(p=>`<div class="mi"><b>${cap(p.n)} ${st(p.n)} <span class="price">${p.p} €</span></b><div>${p.ing.map(k=>`<span title="${esc(ING[k][0])}">${ingIcon(k)}${k}</span>`).join(" ")}</div></div>`).join("")}
-    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}${p.lv>S.level?` · Markt ab ${esc(LEVELS[p.lv].it)}`:""}</div></div>`).join("")}</div>
+    <div class="recipes">${have.map(p=>{const n=Math.min(...p.ing.map(stockOf));return `<div class="mi"><b>${cap(p.n)} ${st(p.n)} <span class="price">${p.p} €</span></b><div>${p.ing.map(k=>`<span title="${esc(ING[k][0])}">${ingIcon(k)}${k}</span>`).join(" ")}</div><small class="${n?"":"out"}">${n?`Vorrat reicht für ${n}`:"Vorrat leer: im Mercato nachkaufen"}</small></div>`;}).join("")}
+    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>${[p.ing.some(k=>!hasIng(k))?`Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}`:"",p.lv>S.level?`Gäste bestellen sie ab ${esc(LEVELS[p.lv].it)}`:""].filter(Boolean).join(" · ")}</div></div>`).join("")}</div>
     ${tierOf("caffe")?`<h3 class="hand gold">Al bar</h3><div class="recipes">${CAFFE.map(c=>c.t<=tierOf("caffe")
       ?`<div class="mi"><b>${esc(c.n)} ${st(c.n)} <span class="price">${c.p} €</span></b><div>${c.ing.join(" → ")} · ${c.cup}</div></div>`
       :`<div class="mi locked"><b>🔒 ${esc(c.n)}</b><div>braucht ${esc(FURN.find(f=>f.grp==="caffe"&&f.tier===c.t).it)}</div></div>`).join("")}</div>`:""}
-    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Neue Zutaten kaufst du am Markttag bei Signor Esposito.</p>
+    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Zutaten kaufst du im Mercato: jede Pizza braucht eine Portion von jeder Zutat.</p>
     <button class="next" data-act="menu">Zurück</button></div>`;
 }
 // Spielregeln und Stufen: früher unten auf der Startseite, jetzt im Fenster „So geht's“
@@ -147,16 +147,16 @@ function rPlay(){
   else if(st.react)bubble+=`<div class="react"><span class="it">${wordsHTML(st.react[0],true)}</span><small>${esc(st.react[1])}</small></div>`;
   let action="";
   if(H){const bud=stallBudget();
-    action=`<div class="hag"><div class="hag-item">${ingIcon(H.k)}<span><b>${H.k}</b><small>${esc(ING[H.k][0])}</small></span><span class="pat" aria-label="Geduld ${H.pat} von 2">Geduld ${"●".repeat(H.pat)}<span class="off">${"●".repeat(2-H.pat)}</span></span></div>
+    action=`<div class="hag"><div class="hag-item">${kisteImg(H.k)}<span><b>${H.k}</b><small>${esc(ING[H.k][0])}</small></span><span class="pat" aria-label="Geduld ${H.pat} von 2">Geduld ${"●".repeat(H.pat)}<span class="off">${"●".repeat(2-H.pat)}</span></span></div>
       ${H.offers.length?`<div class="opts">${H.offers.map(o=>`<button class="opt" data-act="hoffer" data-n="${o.n}" ${bud<o.n?'aria-disabled="true"':""}>${wordsHTML(o.t,false)}${H.peek?`<small>${esc(o.de)}</small>`:""}</button>`).join("")}</div>`:""}
       ${H.peek?`<div class="tipbox"><b>Er sagt:</b> ${esc(H.sayDe)}</div>`:""}
       <div class="hag-row"><button class="buy" data-act="hdeal" ${bud<H.ask?"disabled":""}>D'accordo!${H.peek?` ${H.ask} €`:""}</button>${H.peek?"":`<button class="tipbtn" data-act="hpeek">Übersetzen</button>`}<button class="sec" data-act="hleave">Lascio stare</button></div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p></div>`;
   }
   else if(st.kind==="stall"){const bud=stallBudget(), asks=st.asks||{};
-    action=`<div class="stall">${st.offer.map(k=>{const own=hasIng(k),pz=pizzeWith(k);
-      return `<div class="card${own?" got":""}">${ingIcon(k)}<b>${k}</b><small>${esc(ING[k][0])}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
-      ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<Math.min(asks[k]||ING[k][3],Math.ceil(ING[k][3]*.7))?"disabled":""}>${asks[k]||ING[k][3]} €</button>`}</div>`;}).join("")}</div>
+    action=`<div class="stall">${st.offer.map(k=>{const own=st.bought.includes(k),pz=pizzeWith(k).filter(p=>p.lv<=S.level),P=espoPrice(k);
+      return `<div class="card${own?" got":""}">${kisteImg(k)}<b>${k}</b><small>${esc(ING[k][0])}${hasIng(k)?` · Vorrat ${stockOf(k)}`:" · neu"}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
+      ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<Math.min(asks[k]||P,Math.ceil(P*.7))?"disabled":""}>${asks[k]||P} €</button>`}</div>`;}).join("")}</div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
   }
   else if(st.kind==="coffee"){
@@ -206,12 +206,14 @@ function rSummary(){
     <div class="panel">
       <div class="line"><span>Rechnungen der Gäste</span><span>+${G.revenue||0} €</span></div>
       <div class="line"><span>Trinkgeld</span><span>+${G.earned} €</span></div>
-      <div class="line"><span>Zutaten vom Markt</span><span>−${sm.ing||0} €</span></div>
+      ${sm.used!==undefined?`<div class="line dim"><span>Aus dem Vorrat: ${sm.used} Portionen (schon bezahlt, ca. ${sm.usedEur} €)</span><span></span></div>
+      <div class="line"><span>Einkauf Getränke und Kaffee</span><span>−${sm.ing||0} €</span></div>`:`<div class="line"><span>Zutaten vom Markt</span><span>−${sm.ing||0} €</span></div>`}
       <div class="line"><span>Miete</span><span>−${sm.rent||0} €</span></div>
       ${G.insp?`<div class="line"><span>Gesundheitsamt: ${G.insp.res==="pass"?"promossa ✓":G.insp.res==="cond"?"con riserva":"bocciata ✗"}</span><span>${G.inspMoney>0?"+":G.inspMoney<0?"−":""}${Math.abs(G.inspMoney)} €</span></div>`:""}
-      ${sm.buy?`<div class="line"><span>Neue Zutaten${G.haggled?` (${G.haggled} € gefeilscht)`:""}</span><span>−${sm.buy} €</span></div>`:""}
+      ${sm.buy?`<div class="line"><span>Kisten von Signor Esposito${G.haggled?` (${G.haggled} € gefeilscht)`:""}</span><span>−${sm.buy} €</span></div>`:""}
       ${G.saved?`<div class="line"><span>Beim Handeln gespart</span><span>+${G.saved} €</span></div>`:""}
       <div class="line total"><span>Gewinn heute</span><span>${sm.net>=0?"+":""}${sm.net} €</span></div>
+      ${sm.away?`<small class="note">${sm.away} ${sm.away===1?"Gast ist":"Gäste sind"} gegangen, weil Zutaten fehlten. Im Mercato auffüllen!</small>`:""}
     </div>
     ${sm.letter?`<div class="panel letter"><b>📩 Una lettera dall'ASL</b><span>${wordsHTML("Domani arriva l'ispettrice sanitaria, la dottoressa Severini.",true)}</span><small>Morgen kommt die Gesundheitsinspektorin, Dottoressa Severini. Sie fragt nach Kühlung, Sauberkeit, Haltbarkeit, Kleidung, Allergenen und Papieren.</small></div>`:""}
     <div class="stats"><div class="stat"><b>${G.firstTry}/${G.steps}</b><span>Gleich richtig</span></div><div class="stat"><b>×${G.maxCombo}</b><span>Combo</span></div><div class="stat"><b>${S.streak}</b><span>Serie</span></div><div class="stat"><b>${(S.vocab.days[sm.day]||[]).length}</b><span>Vokabeln</span></div></div>

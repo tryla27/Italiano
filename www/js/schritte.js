@@ -31,10 +31,17 @@ function mcStep(item,task,extra){
 }
 function pickFresh(pool){const fresh=pool.filter(p=>!G.used.has(p[0]));const p=pick(fresh.length?fresh:pool);G.used.add(p[0]);return p;}
 
-// Eigene Zutaten und was man damit backen kann
+// Eigene Zutaten und was man damit backen kann. S.ing = schon einmal gekauft (kennt die Küche),
+// S.lager = Portionen im Vorrat. Beim Planen eines Spieltags zählt G.left mit, was noch übrig ist.
 const hasIng=k=>S.ing.includes(k);
-const availPizze=()=>PIZZE.filter(p=>p.ing.every(hasIng));
+const availPizze=()=>PIZZE.filter(p=>p.lv<=S.level&&p.ing.every(hasIng));
 const myExtras=()=>EXTRAS.filter(hasIng);
+const stockOf=k=>S.lager[k]||0;
+const leftOf=k=>G&&G.left?G.left[k]||0:stockOf(k);
+const canCook=(ings,q)=>[...ings].every(k=>leftOf(k)>=(q||1));
+const cookPizze=q=>availPizze().filter(p=>canCook(p.ing,q));
+// Portionen für eine Bestellung zurücklegen; verbraucht werden sie am Abend (endDay)
+function useStock(ings,q){if(!G||!G.left)return;[...ings].forEach(k=>{G.left[k]-=q;G.use[k]=(G.use[k]||0)+q;});}
 // Sterne einer Pizza: einer je drei fehlerfreie Bestellungen, höchstens drei
 const pzStars=n=>Math.min(3,Math.floor(((S.pz[n]||{}).ok||0)/3));
 const recipe=p=>p.ing.map(k=>`${k} (${ING[k][0]})`).join(", ");
@@ -43,10 +50,17 @@ function orderStep(L,force,daily){
   const ops=[["Vorrei","Ich hätte gern"],["Per me","Für mich"],["Allora, prendo","Also, ich nehme"],["Mi porta","Bringen Sie mir"]];
   const [op,opDe]=pick(ops);
   let qty=L===0?1:rnd(1,L===1?2:3), want, it, de, words=[], named=null, senza=null, con=null;
-  const r=Math.random(), menu=availPizze(), extras=myExtras();
-  const explicit=!force&&(!menu.length||(L===0&&r>.5)||(L===1&&r>.75)||(L===2&&r>.85));
+  // Nur was der Vorrat hergibt: zur Not weniger Pizzen, ohne Vorrat gar keine Bestellung (null)
+  if(force&&!canCook(force.ing,qty))qty=1;
+  if(force&&!canCook(force.ing,qty))force=null;
+  while(qty>1&&!cookPizze(qty).length&&!canCook(["pomodoro","mozzarella"],qty))qty--;
+  const r=Math.random(), menu=cookPizze(qty), extras=myExtras().filter(k=>leftOf(k)>=qty);
+  let base=Math.random()<.2||!canCook(["pomodoro"],qty)?["mozzarella"]:["pomodoro","mozzarella"];
+  const canExplicit=extras.filter(k=>!base.includes(k)).length>0&&canCook(base,qty);
+  if(!menu.length&&!canExplicit&&!force)return null;
+  const explicit=!force&&canExplicit&&(!menu.length||(L===0&&r>.5)||(L===1&&r>.75)||(L===2&&r>.85));
   if(explicit){
-    const ex=sample(extras,rnd(1,Math.min(extras.length,L===0?2:3))); const base=Math.random()<.2?["mozzarella"]:["pomodoro","mozzarella"];
+    const ok=extras.filter(k=>!base.includes(k)), ex=sample(ok,rnd(1,Math.min(ok.length,L===0?2:3)));
     const all=[...base,...ex]; want=new Set(all); words=all;
     it=`${op} ${QIT[qty]} ${qty>1?"pizze":"pizza"} con ${listIt(all)}, per favore.`;
     de=`${opDe} ${QDE[qty]} ${qty>1?"Pizzen":"Pizza"} mit ${listDe(all.map(k=>ING[k][0]))}, bitte.`;
@@ -67,13 +81,19 @@ function orderStep(L,force,daily){
   // Bis zum zweiten Stern steht das Rezept noch dabei, danach nur der Name
   const task=named&&(daily||pzStars(named.n)<2)?`Belege: ${named.ing.join(", ")}`:"Belege die Pizza und servier sie!";
   const each=named?named.p+(con?1:0):5+want.size;
+  useStock(want,qty);
   return {kind:"pizza",it,de,task:daily?`Piatto del giorno! ${task}`:task,tip,want,qty,price:each*qty,cur:new Set(),curQty:1,wrong:0,done:false,named:named&&named.n};
 }
-// Markt-Stand von Signor Esposito: drei neue Zutaten zum Kaufen, die günstigsten Stufen zuerst
+// Markt-Stand von Signor Esposito am Markttag nach Feierabend: drei große Kisten (20 Portionen) zum Feilschen.
+// Zuerst Zutaten, die man noch nie hatte (bis zur eigenen Stufe), dann was im Vorrat am knappsten ist.
+const ESPO_KISTE=2*KISTE;
+const espoPrice=k=>2*ING[k][3];
 function stallStep(){
-  const offer=Object.keys(ING).filter(k=>!hasIng(k)&&ING[k][2]>=0&&ING[k][2]<=S.level).sort((a,b)=>ING[a][2]-ING[b][2]||ING[a][3]-ING[b][3]).slice(0,3);
+  const neu=Object.keys(ING).filter(k=>!hasIng(k)&&ING[k][2]<=S.level).sort((a,b)=>ING[a][2]-ING[b][2]||ING[a][3]-ING[b][3]);
+  const low=S.ing.filter(k=>ING[k]&&PIZZE.some(p=>p.lv<=S.level&&p.ing.includes(k)&&p.ing.every(hasIng))).sort((a,b)=>stockOf(a)-stockOf(b));
+  const offer=[...neu,...low].slice(0,3);
   if(!offer.length)return null;
-  return {kind:"stall",it:"Oggi ho prodotti freschissimi! Cosa prende?",de:"Heute habe ich ganz frische Ware! Was nehmen Sie?",task:"Neue Zutaten? Tippe auf den Preis und feilsche!",offer,bought:[],wrong:0,bad:[],done:true,fb:["good","Fertig mit Einkaufen?"]};
+  return {kind:"stall",it:"Oggi ho prodotti freschissimi! Cosa prende?",de:"Heute habe ich ganz frische Ware! Was nehmen Sie?",task:`Große Kisten (${ESPO_KISTE} Portionen): Tippe auf den Preis und feilsche!`,offer,bought:[],neu:[],wrong:0,bad:[],done:true,fb:["good","Fertig mit Einkaufen?"]};
 }
 const pizzeWith=k=>PIZZE.filter(p=>p.ing.includes(k)&&p.ing.every(x=>x===k||hasIng(x)));
 // Kaffee bestellen: Zutaten in der richtigen Reihenfolge und die passende Tasse
@@ -86,7 +106,9 @@ function coffeeStep(){
   return {kind:"coffee",it,de,task:pzStars(c.n)<2?`Bereite zu: ${rec}`:"Bereite den Kaffee zu und servier ihn!",tip,want:c.ing,cup:c.cup,cur:[],curCup:null,wrong:0,done:false,named:c.n,price:c.p};
 }
 function phoneStep(){
-  const q=rnd(1,4), p=pick(availPizze()), t=pick(TIMES), st=pick(STREETS), n=pick(NUMS);
+  let q=rnd(1,4); while(q>1&&!cookPizze(q).length)q--;
+  const can=cookPizze(q); if(!can.length)return null;
+  const p=pick(can), t=pick(TIMES), st=pick(STREETS), n=pick(NUMS); useStock(p.ing,q);
   const pz=q===1?`una ${p.n}`:`${QIT[q]} ${p.pl}`;
   const it=`Pronto, pizzeria? Vorrei ordinare ${pz} per le ${t[0]}. L'indirizzo è ${st}, numero ${n[0]}.`;
   const de=`Hallo, Pizzeria? Ich möchte ${QDE[q]} ${cap(p.n)} für ${t[1]} Uhr bestellen. Die Adresse ist ${st} Nummer ${n[1]}.`;
