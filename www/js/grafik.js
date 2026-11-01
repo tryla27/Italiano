@@ -19,7 +19,8 @@ const CHARS={
  "Signora Lucia":{f:1,skin:"#f1c7a5",hair:"#6b2f1a",style:"bun",shirt:"#f39bb3",lips:"#c94a5a",ear:1},
  "Dottoressa Severini":{f:1,skin:"#efc4a2",hair:"#2b2420",style:"bun",shirt:"#f4f4f0",lips:"#a8323e",glasses:"square",tie:"#2f6b8f"},
  "Signor Marino":{skin:"#c68657",hair:"#e8e8e8",style:"short",shirt:"#2f5f9a",beard:1},
- "Signor Esposito":{skin:"#e0a87e",hair:"#3a2416",style:"cap",cap:"#2f6b3a",shirt:"#2f6b3a",bigmus:1}
+ "Signor Esposito":{skin:"#e0a87e",hair:"#3a2416",style:"cap",cap:"#2f6b3a",shirt:"#2f6b3a",bigmus:1},
+ "Don Vincenzo":{skin:"#d9a07a",hair:"#eeeeee",style:"cap",cap:"#4a4a48",shirt:"#6b5a40",bigmus:1}
 };
 // Kleidung für die ganzen Körper (szenen.js bodyFigure)
 const OUTFIT={

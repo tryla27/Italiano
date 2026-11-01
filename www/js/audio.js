@@ -23,7 +23,7 @@ if(NativeTTS&&NativeTTS.getSupportedVoices)NativeTTS.getSupportedVoices().then(r
    Ohne Sprecher (Vokabeln, Bücher, eigene Antworten, Anrufer) spricht Sara.
    Sätze mit Zahlen oder Pizzen werden aus aufgenommenen Bausteinen zusammengesetzt.
    Gibt es keine Aufnahme (neuer Satz, ohne Internet), spricht wie früher die Stimme des Geräts. */
-const VOICE_RATE={"Nonna Pina":.92,"Zio Gennaro":.93,"Signor Bianchi":.95,"Signor Marino":.95,"Signor Esposito":.96,"Dottor Ferri":.97,
+const VOICE_RATE={"Nonna Pina":.92,"Don Vincenzo":.88,"Zio Gennaro":.93,"Signor Bianchi":.95,"Signor Marino":.95,"Signor Esposito":.96,"Dottor Ferri":.97,
   "Signor Moretti":.97,"Dottoressa Severini":.97,"Professoressa Conte":.98,"Signora Rossi":1,"Marco":1,"Signora Lucia":1.01,
   "Turista Klaus":1.02,"Chiara":1.03,"Matteo":1.04,"Giulia":1.05,"Sofia":1.06};
 const REC=(()=>{const o={};try{for(const v in STIMMEN)o[v]=new Set(STIMMEN[v].split(" "));}catch(e){}return o;})();

@@ -38,7 +38,7 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
   fullBg();
   armBack();
