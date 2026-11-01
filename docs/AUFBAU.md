@@ -57,6 +57,7 @@ oder erst beim Spielen aufgerufen wird.
 | `schritte.js` | Bausteine eines Spieltags: Frage, Pizza, Telefon, Reservierung, Rechnung |
 | `spieltag.js` | Ablauf eines Tages, Trinkgeld, Fehler, Markt mit Feilschen (`hagStart`, `hagOffer`), Abrechnung, Vorrat verbrauchen |
 | `mercato.js` | Il Mercato in der 3D-Stadt: fünf Stände (`BANCHE` in `inhalt/dialoge.js`) mit allen Zutaten, Kisten kaufen (`mkBuy`), „Vorrat auffüllen“ (`mkFill`), Markttag −20 % |
+| `markt3d.js` | Il Mercato als begehbarer Ort in 3D (eigene Szene wie `campagna3d.js`): Piazza mit Häusern, Brunnen, Wimpelketten, Passanten und Tauben, fünf Stände (`MK_STANDS`: Lage, Farben, Händlerfigur). Jede Zutat liegt in einer eigenen Holzkiste (Inhalt je Zutat in `MK_LOOK`) mit italienischem Preisschild. Boden antippen: hingehen (um den Brunnen herum), Stand oder Kiste antippen: zum Stand, Händler winkt und grüßt, unten erscheinen seine Kisten (`mkCard3`, gekauft wird mit `mkBuy`). Am PC auch Pfeiltasten/WASD. Ohne WebGL der flache Markt (`rMercato2D`) |
 | `laden.js` | Laden einrichten per Drag-and-drop und Namens-Abfrage |
 | `vokabeln.js` | Vokabeltrainer nach Tagen und fürs Notizbuch (abwechselnd beide Richtungen, Klammer-Hinweise erst nach der Antwort) |
 | `truhe.js` | Belohnungs-Truhe nach bestandenem Vokabeltag: Belohnungen würfeln (4 % selten), Sprite-Animation, Karten |

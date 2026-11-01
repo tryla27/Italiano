@@ -706,3 +706,21 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .fr-info{margin:0;font-size:.78rem;color:var(--chalk-dim);text-align:center}
 .fr-info b{color:var(--chalk)}
 .fr-bye small{display:block;font-size:.72rem;opacity:.75}
+
+/* ---------- Il Mercato in 3D (markt3d.js): Platz hinter allem, unten Stände und Kisten ---------- */
+.mk3{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.mk3 .mk-list{display:flex;overflow-x:auto;gap:6px;padding:2px 2px 4px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.mk3 .mk-card{flex:0 0 112px;scroll-snap-align:center}
+.mk3 .mk-card.sel{outline:3px solid var(--gold);outline-offset:-3px}
+.mk3 .mk-card .kiste-wrap{max-width:64px}
+.mk3 .mk-say{padding:5px 10px}
+.mk3 .mk-say .it{font-size:.95rem}
+.mk3 .mk-fill{padding:8px 10px}
+.s-mercato .win3d{min-height:150px}
+.mk3 .mk-card{flex:0 0 98px;padding:5px 3px}
+.mk3 .mk-card small{font-size:.68rem;line-height:1.1}
+.mk3 .mk-card .buy{padding:5px 6px;font-size:.85rem}
+.mk3 .mk-say .who{display:flex;justify-content:space-between;align-items:baseline}
+.mk3 .mk-kasse{font-family:var(--body,system-ui);font-size:.78rem;color:#55605a}
+.mk3 .mk-msg{display:block;color:#a8382a;font-size:.8rem;margin-top:2px}
+.mk3 .mk-tabs .chip{padding:5px 10px;font-size:.85rem}
