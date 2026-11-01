@@ -8,7 +8,7 @@ const PLACES=[
   // Lernorte gibt es nur im 3D-Viertel; auf der flachen Karte sind es die Knöpfe der Startseite
   {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Memory",city:1},
   {id:"biblioteca",it:"La Biblioteca",de:"Bücher · Notizbuch",city:1},{id:"forno",it:"Il Forno",de:"Rezepte",city:1},
-  {id:"campagna",it:"La campagna",de:"Bauernhof · Weinberg",city:1}
+  {id:"campagna",it:"🛵 La campagna",de:"Don Vincenzo · Bauernhof",city:1}
 ];
 const CITY_GO={
   scuola:()=>{screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;render();},
