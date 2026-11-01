@@ -23,10 +23,17 @@ function startDay(){
       let total=ord.price+fx("bill"); pz=ord.price;
       // Stammgäste mit eigener Persönlichkeit: meist ihre eigenen Sätze (inhalt/gaeste.js)
       const P=PERS[names[i%names.length]], own=pool=>P&&Math.random()<.65?pickFresh(P[pool]):null;
-      steps=[mcStep(own("greet")||pickFresh(GREET),"Was antwortest du?",{greet:true}),ord];
-      if(LV.drinks){const di=pickFresh(DRINK);total+=DRINK_PRICE[DRINK.indexOf(di)]||0;steps.push(mcStep(di,"Was antwortest du?",{drink:true}));}
-      if(!LV.talkChance||Math.random()<LV.talkChance)steps.push(mcStep(own("talk")||pickFresh(tierOf("caffe")>=2&&Math.random()<.35?BAR:pick(LV.talk)),"Was antwortest du?",{talk:true}));
-      if(tierOf("caffe")&&Math.random()<.5){const cf=coffeeStep();total+=cf.price;steps.push(cf);}
+      // Kurze Spieltage: jeder Gast hat genau drei Sätze. Bestellung und Rechnung immer,
+      // dazu eins davon: Begrüßung, Getränk, Plauderei oder Kaffee.
+      const extra=["greet"];
+      if(LV.drinks)extra.push("drink");
+      if(!LV.talkChance||Math.random()<LV.talkChance)extra.push("talk");
+      if(tierOf("caffe"))extra.push("coffee");
+      const ex=pick(extra);
+      steps=ex==="greet"?[mcStep(own("greet")||pickFresh(GREET),"Was antwortest du?",{greet:true}),ord]:[ord];
+      if(ex==="drink"){const di=pickFresh(DRINK);total+=DRINK_PRICE[DRINK.indexOf(di)]||0;steps.push(mcStep(di,"Was antwortest du?",{drink:true}));}
+      if(ex==="talk")steps.push(mcStep(own("talk")||pickFresh(tierOf("caffe")>=2&&Math.random()<.35?BAR:pick(LV.talk)),"Was antwortest du?",{talk:true}));
+      if(ex==="coffee"){const cf=coffeeStep();total+=cf.price;steps.push(cf);}
       steps.push(billStep(total));
     }
     const bill=steps.reduce((a,x)=>a+(x.bill||0),0)||(phoneSlots.has(i)&&steps[0].price?steps[0].price+fx("delivery"):0);
