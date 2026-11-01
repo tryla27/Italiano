@@ -724,3 +724,7 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .mk3 .mk-kasse{font-family:var(--body,system-ui);font-size:.78rem;color:#55605a}
 .mk3 .mk-msg{display:block;color:#a8382a;font-size:.8rem;margin-top:2px}
 .mk3 .mk-tabs .chip{padding:5px 10px;font-size:.85rem}
+/* Il vecchio forno (forno3d.js): Makler-Sprechblase ist ein Knopf, Rezeptbuch im Spielermenü */
+.fo-msg{display:block;text-align:left;color:var(--chalk);font:inherit;font-size:.85rem;cursor:pointer;width:auto}
+.recbtn{width:100%;margin:6px 0}
+.recbtn small{display:block;font-size:.75rem;opacity:.75}
