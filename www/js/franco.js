@@ -115,12 +115,16 @@ function frPlace(dt){
 }
 
 /* ---------- Ton: Motor, Hupe, Megafon im Raum ---------- */
-// Zweitakter im Leerlauf: kurze Knall-Pulse (Rauschen + tiefer Schlag), als Schleife; schneller abspielen = Gas geben
+// Ape 50: kleiner Zweitakter. Im Leerlauf ein unregelmäßiges, blechernes „ploppplopp“ (manche Zündungen fallen fast aus),
+// beim Fahren ein hohes, nasales Kreischen „rrriiing-ding-ding“ (bis ~100 Zündungen pro Sekunde).
+// Der Puffer enthält nur die Zündknalle (50 pro Sekunde); die Klangfarbe von Auspuff und Blech machen feste Filter danach,
+// damit sie bei mehr Gas nicht mitwandert. Schneller abspielen = mehr Drehzahl.
 function frEngineBuf(){
-  const sr=AC.sampleRate, n=Math.round(sr*2), b=AC.createBuffer(1,n,sr), d=b.getChannelData(0), F=38, rnd=seeded(7);
-  for(let p=0;p<F*2;p++){const t0=Math.round(p*sr/F), a=.65+rnd()*.35, ph=rnd()*6;
-    for(let i=0;i<sr*.024&&t0+i<n;i++){const t=i/sr;
-      d[t0+i]+=a*((rnd()*2-1)*Math.exp(-t/.004)*.7+Math.sin(2*Math.PI*85*t+ph)*Math.exp(-t/.011)+Math.sin(2*Math.PI*410*t)*Math.exp(-t/.006)*.35);}}
+  const sr=AC.sampleRate, n=Math.round(sr*2), b=AC.createBuffer(1,n,sr), d=b.getChannelData(0), F=50, rnd=seeded(7);
+  for(let p=0;p<F*2;p++){
+    const t0=Math.round(p*sr/F+(rnd()-.5)*sr*.0025), miss=rnd()<.18, a=miss?.25+rnd()*.15:.7+rnd()*.3, ph=rnd()*6;
+    for(let i=0;i<sr*.014&&t0+i<n;i++){const t=i/sr;
+      d[t0+i]+=a*((rnd()*2-1)*Math.exp(-t/.0018)+Math.sin(2*Math.PI*140*t+ph)*Math.exp(-t/.005)*.6);}}
   return b;
 }
 function frPanner(out){
@@ -133,15 +137,20 @@ function frSound(){
   const eng=frPanner(sfxGain), voice=AC.createGain(); voice.gain.value=1; voice.connect(AC.destination);
   const vp=frPanner(voice);
   const src=AC.createBufferSource(); src.buffer=frEngineBuf(); src.loop=true;
-  const lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1400; lp.Q.value=2;
+  // Auspuff-Resonanz (nasal), Blech-Klirren, etwas Rauheit durch Übersteuern
+  const hp=AC.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=110;
+  const pipe=AC.createBiquadFilter(); pipe.type="peaking"; pipe.frequency.value=720; pipe.Q.value=3.5; pipe.gain.value=14;
+  const tin=AC.createBiquadFilter(); tin.type="peaking"; tin.frequency.value=1650; tin.Q.value=4; tin.gain.value=8;
+  const ws=AC.createWaveShaper(), c=new Float32Array(512); for(let i=0;i<512;i++){const x=i/255.5-1;c[i]=Math.tanh(x*2.4);} ws.curve=c;
+  const lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=4200;
   const g=AC.createGain(); g.gain.value=0;
-  src.connect(lp); lp.connect(g); g.connect(eng); src.start();
+  src.connect(hp); hp.connect(pipe); pipe.connect(tin); tin.connect(ws); ws.connect(lp); lp.connect(g); g.connect(eng); src.start();
   FR.snd={eng,vp,voice,src,g}; return FR.snd;
 }
 // Lautstärke des Motors: 0, wenn die Stadt nicht zu sehen ist (anderer Bildschirm, Franco nicht unterwegs)
 function frEngine(on,rate){
   const s=FR.snd; if(!s)return;
-  s.g.gain.setTargetAtTime(on&&vol("sfx")>0?.55:0,AC.currentTime,on?.15:.08);
+  s.g.gain.setTargetAtTime(on&&vol("sfx")>0?.32+.18*Math.min(1,((rate||1)-.55)/1.45):0,AC.currentTime,on?.15:.08);
   s.src.playbackRate.setTargetAtTime(rate||1,AC.currentTime,.25);
 }
 setInterval(()=>{if(FR.snd&&performance.now()-FR.lastTick>300){frEngine(false);frStopShout();}},250);
@@ -211,7 +220,7 @@ function francoTick(dt){
   // Ton
   if(AC){const s=frSound(); frListener(); const p=FR.g.position;
     frPanPos(s.eng,p.x,.6,p.z); frPanPos(s.vp,p.x,2.3,p.z);
-    frEngine(true,.72+.5*FR.v/FR_SPEED);
+    frEngine(true,.55+1.45*Math.pow(FR.v/FR_SPEED,.8)); // Leerlauf ~27, Fahrt ~100 Zündungen/s
     if(FR.state==="drive"){FR.shoutAt-=dt; if(FR.shoutAt<=0){FR.shoutAt=8+Math.random()*5;
       const sh=FR_SHOUT[FR.shoutI++%FR_SHOUT.length]; FR.msg=sh; frShout(sh[0]);}}}
   frPin(true); frPanelKeep();
