@@ -560,6 +560,8 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .row3.home3{grid-template-columns:repeat(3,1fr)}
 .city-pin.learn{border-color:#8fd0a8}
 .city-pin.learn::after{border-top-color:#8fd0a8}
+.land-msg small{display:block;color:var(--chalk-dim);font-size:.78rem;margin-top:2px}
+.land-msg em{display:block;font-style:normal;color:#f4c64f;font-size:.74rem;margin-top:3px}
 .s-home .city-pin{padding:3px 8px 4px}
 .s-home .city-pin b{font-size:.84rem}
 .s-home .city-pin small{font-size:.6rem}
