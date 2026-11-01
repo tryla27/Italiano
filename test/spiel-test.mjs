@@ -319,15 +319,17 @@ await page.locator('[data-act="cserve"]').click();
 check(await page.evaluate(() => curStep().done && curStep().wrong === 0), "Richtig zubereiteter Kaffee wird nicht angenommen");
 await page.evaluate(() => { G = null; screen = "home"; S.owned = []; render(); });
 
-// Gesundheitsamt: Brief am Abend davor, vier Fragen, Ergebnis in der Abrechnung
+// Gesundheitsamt: Brief am Abend davor, drei Fragen, Ergebnis in der Abrechnung
 await fresh({ coins: 100, level: 1, day: 6, setupDone: true });
 check(await page.evaluate(() => { S.inspDue = 7; G = null; startDay(); G.phase = "guest"; while (G && screen === "play") advance(); return G.summary.letter === true; }), "Brief vom Gesundheitsamt fehlt am Abend davor");
 await shot("brief-asl");
-check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 4; }), "Dottoressa Severini kommt nicht");
+check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 3; }), "Dottoressa Severini kommt nicht");
 await page.evaluate(() => render());
 await shot("ispettrice");
-check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspDue > S.day; }), "Bestandene Prüfung gibt kein Zertifikat");
-check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspDue === S.day; }), "Durchgefallen: keine Strafe oder kein Wiederbesuch am nächsten Tag");
+check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspN === 1 && S.inspDue === 0; }), "Bestandene Prüfung gibt kein Zertifikat");
+check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspN === 2 && !S.inspDue; }), "Durchgefallen: keine Strafe");
+// Höchstens zweimal im Spiel: danach plant das Spiel keine Kontrolle mehr, auch nicht auf hoher Stufe
+check(await page.evaluate(() => { S.level = 5; for (let k = 0; k < 30; k++) { G = null; startDay(); if (G.guests.some(g => g.insp)) return false; while (G && screen === "play") advance(); } return !S.inspDue && S.inspN === 2; }), "Gesundheitsamt kommt öfter als zweimal");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
 
 // Antwort antippen: die Stimme liest sie vor

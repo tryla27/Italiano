@@ -43,8 +43,8 @@ function startDay(){
   if(!G.guests.length){G=null;mkMsg="Deine Küche ist leer! Kauf hier Zutaten, dann kannst du öffnen.";screen="mercato";return render();}
   if(G.away)G.banner=`Vorrat zu knapp: ${G.away} ${G.away===1?"Gast geht":"Gäste gehen"} heute gleich wieder. Morgen vorher auf den Markt!`;
   storyGuest();
-  if(inspToday())G.guests.unshift({name:"Dottoressa Severini",mood:2,steps:sample(ISPEZIONE,4).map(m=>mcStep(m,"Was antwortest du?",{insp:true})),tip:0,bill:0,insp:true});
-  G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
+  if(inspToday())G.guests.unshift({name:"Dottoressa Severini",mood:2,steps:sample(ISPEZIONE,3).map(m=>mcStep(m,"Was antwortest du?",{insp:true})),tip:0,bill:0,insp:true});
+  G.market=sample(MARKET,1).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
   const stall=stallStep(); if(stall)G.market.push(stall);
   screen="play"; render(); autoSpeak();
 }
@@ -70,15 +70,22 @@ function storyAdvance(){
   if(S.story.part+1>=s.parts.length){S.storiesDone=[...S.storiesDone,s.id];S.story=null;S.storyNext=S.day+4;}
   else S.story={id:s.id,part:S.story.part+1,day:S.day+2};
 }
-// Gesundheitsamt: ab La Pizzeria etwa jeden fünften Tag, nie zwei Tage hintereinander (außer nach „bocciato“).
-// Am Abend davor kommt ein Brief.
+// Gesundheitsamt: ein seltenes Ereignis, höchstens zweimal im ganzen Spiel. Das erste Mal ein paar Tage nach
+// dem Aufstieg zur Pizzeria, das zweite Mal ab dem Ristorante. Kein Wiederbesuch. Am Abend davor kommt ein Brief.
+const INSP_MAX=2, INSP_LEVEL=[1,3];
 const inspToday=()=>S.level>=1&&S.inspDue===S.day;
+function inspPlan(){
+  if(G.insp){S.inspN=(S.inspN||0)+1;S.inspDue=0;}
+  const n=S.inspN||0;
+  if(S.inspDue&&S.inspDue<S.day)S.inspDue=0; // verpasst (z. B. alter Spielstand): neu planen
+  if(!S.inspDue&&n<INSP_MAX&&S.level>=INSP_LEVEL[n])S.inspDue=S.day+rnd(4,8);
+}
 function inspResult(g){
-  const err=g.steps.filter(x=>x.wrong||x.gaveUp).length, res=err===0?"pass":err<=2?"cond":"fail";
+  const err=g.steps.filter(x=>x.wrong||x.gaveUp).length, res=err===0?"pass":err<=1?"cond":"fail";
   G.insp={res,err}; G.inspMoney=res==="pass"?15:res==="fail"?-20:0;
   return res==="pass"?"Promossa! Die Dottoressa gibt dir das Zertifikat: +15 € und drei Tage lang einen Stern mehr in der Bewertung."
-    :res==="cond"?`Con riserva: ${err} ${err===1?"Fehler":"Fehler"}. Sie kommt in drei Tagen wieder.`
-    :`Bocciata! ${err} Fehler, 20 € Strafe. Sie kommt morgen wieder.`;
+    :res==="cond"?`Con riserva: ${err} Fehler. Diesmal gibt es keine Strafe, aber auch kein Zertifikat.`
+    :`Bocciata! ${err} Fehler, 20 € Strafe.`;
 }
 const wday=d=>(d-1)%7, giorno=d=>GIORNI[wday(d)], isMarketDay=d=>MARKT_TAGE.includes(wday(d));
 function nextMarketDay(d){for(let i=0;i<7;i++)if(isMarketDay(d+i))return d+i;return d;}
@@ -270,8 +277,7 @@ function endDay(){
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
   if(S.boost&&--S.boost.days<=0)S.boost=null; // Truhen-Bonus gilt für einen Spieltag
   S.coins=Math.max(0,S.coins+net); S.day++;
-  if(S.level>=1){const r=G.insp&&G.insp.res;
-    if(r==="fail")S.inspDue=S.day; else if(r==="cond")S.inspDue=S.day+2; else if(r||!S.inspDue||S.inspDue<S.day)S.inspDue=S.day+rnd(3,5);}
+  inspPlan();
   G.summary.letter=inspToday(); save();
   screen="summary"; render(); if(net>0)kasse(net,"Gewinn heute"); else sfx("coins");
 }

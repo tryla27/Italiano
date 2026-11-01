@@ -207,11 +207,11 @@ const SURNAMES=["Rossi","Russo","Ricci","Romano","Rinaldi"];
 
 // Stufen: was neu dazukommt, steht in "neu"
 const LEVELS=[
- {it:"La Piccola Pizzeria",rent:8,de:"Kleine Pizzeria",guests:3,base:2,cost:12,phones:0,talk:[TALK],talkChance:.5,neu:"Begrüßen, einfache Pizzen, abkassieren"},
- {it:"La Pizzeria",rent:15,de:"Pizzeria",guests:4,base:3,cost:25,phones:1,talk:[TALK,PROB],neu:"Pizzen von der Karte, „senza“, Mengen, Probleme, Telefon"},
- {it:"La Trattoria",rent:25,de:"Trattoria",guests:4,base:4,cost:35,phones:1,talk:[TALK,PROB],drinks:true,neu:"Getränke und Nachtisch"},
- {it:"Il Ristorante",rent:35,de:"Ristorante",guests:5,base:5,cost:50,phones:2,talk:[PROB,TALK],drinks:true,reserv:true,neu:"„senza … ma con …“, Tischreservierungen am Telefon"},
- {it:"Sul Mare",rent:45,de:"Restaurant am Meer in Amalfi",guests:5,base:6,cost:65,phones:2,talk:[DIR,PROB],drinks:true,reserv:true,neu:"Touristen: Wegbeschreibungen, Wetter, Fähre"},
+ {it:"La Piccola Pizzeria",rent:5,de:"Kleine Pizzeria",guests:2,base:2,cost:12,phones:0,talk:[TALK],talkChance:.5,neu:"Begrüßen, einfache Pizzen, abkassieren"},
+ {it:"La Pizzeria",rent:10,de:"Pizzeria",guests:3,base:3,cost:25,phones:1,talk:[TALK,PROB],neu:"Pizzen von der Karte, „senza“, Mengen, Probleme, Telefon"},
+ {it:"La Trattoria",rent:15,de:"Trattoria",guests:3,base:4,cost:35,phones:1,talk:[TALK,PROB],drinks:true,neu:"Getränke und Nachtisch"},
+ {it:"Il Ristorante",rent:25,de:"Ristorante",guests:4,base:5,cost:50,phones:2,talk:[PROB,TALK],drinks:true,reserv:true,neu:"„senza … ma con …“, Tischreservierungen am Telefon"},
+ {it:"Sul Mare",rent:30,de:"Restaurant am Meer in Amalfi",guests:4,base:6,cost:65,phones:2,talk:[DIR,PROB],drinks:true,reserv:true,neu:"Touristen: Wegbeschreibungen, Wetter, Fähre"},
  {it:"Il Maestro",rent:60,de:"Meister-Pizzeria",guests:5,base:8,cost:80,phones:2,talk:[CRITIC,DIR],drinks:true,reserv:true,neu:"Restaurantkritiker und Zeitung, Vergangenheitsform"}
 ];
 // Wochentage: Tag 1 ist ein Montag. Markt ist nur mittwochs und samstags.
@@ -232,31 +232,31 @@ const SHOP=[
  {id:"lavagna",ic:"📋",it:"la lavagna",de:"Kreidetafel",cost:40,lv:0,fx:{daily:1},txt:"Ein Gast pro Tag nimmt den Piatto del giorno (Rezept steht dabei)"},
  {id:"moka",grp:"caffe",tier:1,ic:"☕",it:"la moka",de:"Moka-Kanne",cost:30,lv:0,fx:{coffee:1},txt:"Gäste bestellen Kaffee: caffè, caffè lungo"},
  {id:"mandolino",ic:"🎶",it:"il mandolino",de:"Musik vom Mandolinenspieler",cost:60,lv:0,fx:{tip:.05},txt:"+5 % Trinkgeld"},
- {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: größere Pizzeria, mehr Gäste, Pizzen von der Karte, Telefon",cost:200,lv:0,up:1},
+ {id:"pizzeria",ic:"🏠",it:"La Pizzeria",de:"Aufsteigen: größere Pizzeria, mehr Gäste, Pizzen von der Karte, Telefon",cost:140,lv:0,up:1},
  {id:"forno",grp:"forno",tier:2,ic:"🔥",it:"il forno a legna",de:"Holzofen aus Ziegeln",cost:120,lv:1,fx:{oven:1},txt:"Eine falsche Pizza pro Tag zählt nicht"},
  {id:"frigo2",grp:"frigo",tier:2,ic:"🧊",it:"il frigorifero",de:"Kühlschrank",cost:90,lv:1,fx:{cheap:.15},txt:"Zutaten 15 % günstiger"},
  {id:"tovaglie",ic:"🧺",it:"le tovaglie a quadri",de:"Karierte Tischdecken",cost:40,lv:1,fx:{tip:.05},txt:"+5 % Trinkgeld"},
  {id:"vespa",ic:"🛵",it:"la Vespa",de:"Vespa für Lieferungen",cost:150,lv:1,fx:{delivery:1},txt:"+1 € auf jede Lieferung"},
- {id:"trattoria",ic:"🍷",it:"La Trattoria",de:"Aufsteigen: Getränke und Nachtisch",cost:450,lv:1,up:2},
+ {id:"trattoria",ic:"🍷",it:"La Trattoria",de:"Aufsteigen: Getränke und Nachtisch",cost:320,lv:1,up:2},
  {id:"macchina",grp:"caffe",tier:2,ic:"☕",it:"la macchina del caffè",de:"Espressomaschine",cost:150,lv:2,fx:{coffee:2},txt:"Neu: americano, macchiato, cappuccino, caffè latte"},
  {id:"bancone2",grp:"bancone",tier:2,ic:"🪵",it:"il bancone con la vetrina",de:"Holztheke mit Glasvitrine",cost:100,lv:2,fx:{tip:.05},txt:"+5 % Trinkgeld"},
  {id:"botti",ic:"🛢️",it:"le botti di vino",de:"Weinfässer",cost:200,lv:2,fx:{wine:1},txt:"Getränke-Fragen zählen doppelt für die Combo"},
  {id:"foto",ic:"🖼️",it:"le foto di Napoli",de:"Fotos von Neapel",cost:120,lv:2,fx:{regular:1},txt:"Ein Stammgast pro Tag: +50 % Trinkgeld"},
  {id:"insegna",ic:"💡",it:"l'insegna luminosa",de:"Leuchtschild",cost:170,lv:2,fx:{tip:.05},txt:"+5 % Trinkgeld"},
- {id:"ristorante",ic:"⭐",it:"Il Ristorante",de:"Aufsteigen: Reservierungen, schwierigere Bestellungen",cost:800,lv:2,up:3},
+ {id:"ristorante",ic:"⭐",it:"Il Ristorante",de:"Aufsteigen: Reservierungen, schwierigere Bestellungen",cost:560,lv:2,up:3},
  {id:"agenda",ic:"📒",it:"l'agenda",de:"Reservierungsbuch",cost:180,lv:3,fx:{agenda:1},txt:"Telefon: den Namen schreibst du gleich mit"},
  {id:"lampadari",ic:"✨",it:"i lampadari",de:"Kronleuchter",cost:300,lv:3,fx:{tip:.1},txt:"+10 % Trinkgeld"},
  {id:"pianoforte",ic:"🎹",it:"il pianoforte",de:"Klavier mit Live-Musik",cost:380,lv:3,fx:{piano:1},txt:"Der erste Fehler pro Gast bricht die Combo nicht"},
  {id:"tavoli3",grp:"tavoli",tier:3,ic:"🕯️",it:"i tavoli con le candele",de:"Vier Tische mit Kerzen",cost:250,lv:3,fx:{guest:1},txt:"+1 Gast pro Tag"},
  {id:"forno3",grp:"forno",tier:3,ic:"🔥",it:"il forno a cupola",de:"Kuppelofen mit Mosaik",cost:400,lv:3,fx:{oven:1,tip:.1},txt:"+10 % Trinkgeld, eine falsche Pizza pro Tag zählt nicht"},
- {id:"mare",ic:"🌊",it:"Sul Mare",de:"Aufsteigen: Umzug an die Amalfiküste, viele Touristen",cost:1300,lv:3,up:4},
+ {id:"mare",ic:"🌊",it:"Sul Mare",de:"Aufsteigen: Umzug an die Amalfiküste, viele Touristen",cost:900,lv:3,up:4},
  {id:"terrazza",ic:"🏖️",it:"la terrazza sul mare",de:"Terrasse mit Meerblick",cost:500,lv:4,fx:{guest:1},txt:"+1 Gast pro Tag"},
  {id:"ombrellone",ic:"⛱️",it:"l'ombrellone",de:"Sonnenschirm",cost:250,lv:4,fx:{tourist:.2},txt:"Touristen geben +20 % Trinkgeld"},
  {id:"barca",ic:"⛵",it:"la barca",de:"Eigenes Boot für Ausflügler",cost:620,lv:4,fx:{tip:.1},txt:"+10 % Trinkgeld"},
  {id:"frigo3",grp:"frigo",tier:3,ic:"🧊",it:"la vetrina frigo",de:"Kühltheke mit Glastür",cost:300,lv:4,fx:{cheap:.25},txt:"Zutaten 25 % günstiger"},
  {id:"leva",grp:"caffe",tier:3,ic:"☕",it:"la macchina a leva",de:"Siebträger aus Messing mit Milchdüse",cost:350,lv:4,fx:{coffee:3},txt:"Neu: latte macchiato, marocchino, corretto, shakerato, affogato"},
  {id:"bancone3",grp:"bancone",tier:3,ic:"🏛️",it:"il bancone di marmo",de:"Marmortheke",cost:350,lv:4,fx:{tip:.05},txt:"+5 % Trinkgeld"},
- {id:"maestro",ic:"👑",it:"Il Maestro",de:"Aufsteigen: Die berühmteste Pizzeria Italiens",cost:2000,lv:4,up:5},
+ {id:"maestro",ic:"👑",it:"Il Maestro",de:"Aufsteigen: Die berühmteste Pizzeria Italiens",cost:1400,lv:4,up:5},
  {id:"forno_oro",ic:"🏆",it:"il forno d'oro",de:"Goldener Ofen",cost:1000,lv:5,fx:{critic:.5},txt:"Die Bewertung am Abend fällt einen halben Stern besser aus"},
  {id:"stella",ic:"🌟",it:"la stella sulla porta",de:"Stern an der Tür",cost:800,lv:5,fx:{bill:1},txt:"+1 € auf jede Rechnung"}
 ];
@@ -293,13 +293,13 @@ const PORTO=[
  ["Vuole sedersi dentro o fuori sul ponte?","Möchten Sie drinnen sitzen oder draußen an Deck?","Fuori, sul ponte, grazie.","Draußen an Deck, danke.",["Fuori, sul pane, grazie.","Fuori, sul monte, grazie.","Fuori, sul conto, grazie."],"dentro = drinnen, fuori = draußen, ponte = Deck."]
 ];
 const TRIPS={
-  gelateria:{it:"Gelateria",de:"Eisladen",ic:"🍨",who:"Signora Lucia",pool:GELATERIA,steps:4},
-  porto:{it:"Il Porto",de:"Hafen",ic:"⛴️",who:"Signor Marino",pool:PORTO,steps:4}
+  gelateria:{it:"Gelateria",de:"Eisladen",ic:"🍨",who:"Signora Lucia",pool:GELATERIA,steps:3},
+  porto:{it:"Il Porto",de:"Hafen",ic:"⛴️",who:"Signor Marino",pool:PORTO,steps:3}
 };
 
 // Übersetzungen der falschen Antworten: werden nach dem Antworten unter jeder Auswahl gezeigt
 // und kommen mit ihren Wörtern in die Vokabeln. {W} steht für eine Zahl.
-// Gesundheitsamt: Dottoressa Severini stellt vier dieser Fragen (Kühlung, Sauberkeit, Haltbarkeit, Kleidung, Allergene, Papiere)
+// Gesundheitsamt: Dottoressa Severini stellt drei dieser Fragen (Kühlung, Sauberkeit, Haltbarkeit, Kleidung, Allergene, Papiere)
 const ISPEZIONE=[
   ["A che temperatura tenete il frigorifero?","Bei welcher Temperatur haltet ihr den Kühlschrank?","Tra zero e quattro gradi.","Zwischen null und vier Grad.",["A venti gradi, come la stanza.","Lo teniamo spento la notte.","Fa caldo, ma va bene."],"gradi = Grad. tra … e … = zwischen … und …"],
   ["Dove tenete la mozzarella?","Wo bewahrt ihr den Mozzarella auf?","In frigorifero, ben chiusa.","Im Kühlschrank, gut verschlossen.",["Sul bancone, al sole.","Nel forno, così è calda.","In tasca, dottoressa."],"in frigorifero = im Kühlschrank, ben chiusa = gut verschlossen."],
