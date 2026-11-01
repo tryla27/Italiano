@@ -36,7 +36,7 @@ function handleClick(e){
   if(a==="file-save"){saveFile().then(m=>{codeBox={mode:"file",msg:m};render();}).catch(()=>{codeBox={mode:"file",msg:"Speichern ging nicht. Nimm stattdessen „Code kopieren“."};render();});return;}
   if(a==="file-load"){const f=$("#savefile");if(f){f.value="";f.click();}return;}
   if(a==="update"&&UPDATE){flushSave();location.href=UPDATE.url;return;}
-  if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}G=null;return startDay();}
+  if(a==="start"){if(!S.setupDone){screen="setup";return render();}if(G&&!G.summary){screen="play";render();autoSpeak();return;}return openDay();}
   if(a==="home"||a==="quit"){pauseOpen=false;volOpen=false;codeBox=null;if(screen==="summary")G=null;screen="home";return render();}
   if(a==="pause"){volOpen=!volOpen;pauseOpen=false;codeBox=null;return render();} // Pause und Einstellungen sind ein Menü
   if(a==="help"){helpOpen=!helpOpen;return render();}
@@ -93,6 +93,9 @@ function handleClick(e){
   if(a==="ldone"){L3.sel=null;L3.msg="";req3d();L3.dirty=true;return render();}
   if(a==="lput"){locPut(t.dataset.k);return render();}
   if(a==="menu"){menuOpen=!menuOpen;return render();}
+  if(a==="mkbank"){mkTab=t.dataset.b;mkMsg="";render();const B=BANCHE.find(b=>b.id===mkTab);if(B&&S.sound)speak(B.say[0],B.who);return;}
+  if(a==="mkbuy"){mkBuy(t.dataset.k);return render();}
+  if(a==="mkfill"){mkFill();return render();}
   if(!G)return;
   const st=curStep();
   if(a==="speak")return speak(st.hag?st.hag.say:st.it,speaker());

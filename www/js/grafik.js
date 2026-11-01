@@ -67,6 +67,9 @@ function ingIcon(k){
     gorgonzola:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><g fill="#5f8fa8"><circle cx="11" cy="12" r="1.2"/><circle cx="14" cy="14" r="1"/><circle cx="9" cy="15" r="1"/><path d="M12 9 l1 2" stroke="#5f8fa8"/></g>`,
     parmigiano:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><path d="M3 17 L21 17 L21 19 L3 19Z" fill="#c99a3a" ${o}/><g fill="#e3c060"><circle cx="11" cy="13" r=".8"/><circle cx="14" cy="15" r=".8"/></g>`,
     fontina:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><g fill="#d9bb6a"><circle cx="11" cy="12" r="1.6"/><circle cx="15" cy="15" r="1.3"/><circle cx="8" cy="15.5" r="1.1"/></g>`,
+    scamorza:`<path d="M12 3 Q14 3 14 6 Q19 9 19 15 Q19 21 12 21 Q5 21 5 15 Q5 9 10 6 Q10 3 12 3Z" fill="${c}" ${o}/><path d="M9.5 6.5 Q12 8 14.5 6.5" stroke="#8a5a2a" stroke-width="1.4" fill="none"/><ellipse cx="9" cy="13" rx="1.5" ry="3" fill="#fff" opacity=".35"/>`,
+    pecorino:`<path d="M3 17 L12 5 L21 17Z" fill="${c}" ${o}/><path d="M12 5 L21 17 L19 17 L11 6.3Z" fill="#8a6a3a"/><g fill="#d8cca0"><circle cx="10" cy="14" r=".7"/><circle cx="13" cy="12" r=".7"/></g>`,
+    provola:`<circle cx="12" cy="13" r="8" fill="${c}" ${o}/><path d="M12 5 q-1 -2 1 -3 q2 1 1 3z" fill="#8a5a2a" ${o}/><path d="M6 15 q6 4 12 0" stroke="#b07a3a" stroke-width="1.4" fill="none"/><circle cx="9" cy="10" r="1.6" fill="#f6dfb0"/>`,
     crudo:`<path d="M3 15 Q5 6 12 7 Q19 4 21 11 Q19 19 11 18 Q5 20 3 15Z" fill="${c}" ${o}/><path d="M4 14 Q8 9 12 10 Q17 8 20 11" stroke="#fbeaea" stroke-width="2.4" fill="none"/>`,
     salsiccia:`<g fill="${c}" ${o}><circle cx="8" cy="9" r="4.5"/><circle cx="16" cy="11" r="4"/><circle cx="10" cy="17" r="4"/></g><g fill="#c98a6a"><circle cx="7" cy="8" r="1"/><circle cx="16" cy="10" r="1"/><circle cx="10" cy="16" r="1"/></g>`,
     friarielli:`<path d="M12 22 V9" stroke="#2a4a1a" stroke-width="1.6"/><path d="M12 12 C4 10 4 3 9 3 C11 3 12 6 12 9 C12 6 13 3 15 3 C20 3 20 10 12 12Z" fill="${c}" ${o}/><path d="M12 17 C7 17 5 13 7 12 C9 11 11 14 12 16" fill="${c}" ${o}/>`,
@@ -78,6 +81,8 @@ function ingIcon(k){
   }[k]||`<circle cx="12" cy="12" r="7" fill="${c}"/>`;
   return `<svg class="ing-ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 }
+// Gerenderte Holzkiste voller Ware (tools/kisten/kisten.py); fehlt das Bild, das gezeichnete Symbol
+const kisteImg=k=>`<span class="kiste-wrap">${ingIcon(k)}<img class="kiste" src="bilder/kisten/${k}.webp" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
 function face(name,mood){
   const c=CHARS[name]||CHARS.Marco, hc=c.hair;
   let h="";
@@ -129,7 +134,7 @@ function pizzaSVG(set){
       if(k==="olio"){if(j<3)s+=`<path d="M${x-14} ${y} q7 -6 14 0 t14 0" fill="none" stroke="${c}" stroke-width="2.4" opacity=".75" stroke-linecap="round"/>`;}
       else if(k==="origano"||k==="capperi"){for(let q=0;q<3;q++)s+=`<circle cx="${x+q*5-5}" cy="${y+(q%2)*4}" r="${k==="capperi"?3:1.6}" fill="${c}"/>`;}
       else if(k==="aglio")s+=`<ellipse cx="${x}" cy="${y}" rx="3.5" ry="2.5" transform="rotate(${rot} ${x} ${y})" fill="${c}" stroke="#cbbfa6"/>`;
-      else if(k==="gorgonzola"||k==="parmigiano"||k==="fontina"||k==="ricotta"||k==="bufala")s+=`<ellipse cx="${x}" cy="${y}" rx="${k==="bufala"?12:8}" ry="${k==="bufala"?10:6}" fill="${c}"/>${k==="gorgonzola"?`<circle cx="${x}" cy="${y}" r="1.6" fill="#5f8fa8"/>`:""}`;
+      else if(k==="gorgonzola"||k==="parmigiano"||k==="fontina"||k==="ricotta"||k==="bufala"||k==="scamorza"||k==="pecorino"||k==="provola")s+=`<ellipse cx="${x}" cy="${y}" rx="${k==="bufala"?12:8}" ry="${k==="bufala"?10:6}" fill="${c}"/>${k==="gorgonzola"?`<circle cx="${x}" cy="${y}" r="1.6" fill="#5f8fa8"/>`:""}`;
       else if(k==="zucchine")s+=`<circle cx="${x}" cy="${y}" r="7" fill="${c}"/><circle cx="${x}" cy="${y}" r="5" fill="#e8efc0"/>`;
       else if(k==="gamberi")s+=`<path d="M${x-7} ${y-3} q10 -5 12 3 q0 6 -7 6" fill="none" stroke="${c}" stroke-width="5" stroke-linecap="round" transform="rotate(${rot} ${x} ${y})"/>`;
       else if(k==="cozze")s+=`<ellipse cx="${x}" cy="${y}" rx="8" ry="5" transform="rotate(${rot} ${x} ${y})" fill="${c}"/><ellipse cx="${x}" cy="${y}" rx="4" ry="2.5" transform="rotate(${rot} ${x} ${y})" fill="#f2a65a"/>`;

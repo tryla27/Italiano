@@ -1,7 +1,7 @@
 /* Karte: alle Orte auf einen Blick. Antippen = Tür-Geräusch und sofort dorthin. */
 const PLACES=[
   {id:"pizzeria",it:"La Pizzeria",de:"Spieltag",x:112,y:250,img:"bilder/umgebungen/pizzeria.webp",vb:"60 400 280 280"},
-  {id:"mercato",it:"Il Mercato",de:"mittwochs + samstags",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
+  {id:"mercato",it:"Il Mercato",de:"Zutaten kaufen",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
   {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:"bilder/umgebungen/eisladen.webp",vb:"60 380 280 280"},
   {id:"porto",it:"Il Porto",de:"Ausflug",x:150,y:402,img:"bilder/umgebungen/hafen.webp",vb:"60 300 280 280"},
   {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true},
@@ -17,7 +17,7 @@ const CITY_GO={
 };
 function placeOpen(p){
   if(p.locked)return false;
-  if(p.id==="mercato")return !!(G&&!G.summary&&G.phase==="market");
+  if(p.id==="mercato")return !(G&&!G.summary&&G.phase!=="market"); // offen, solange kein Spieltag läuft
   return true;
 }
 function mapSVG(){
@@ -40,7 +40,7 @@ function mapSVG(){
 }
 // Schilder über den Orten im 3D-Viertel
 function cityPinsHTML(){
-  return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="bar"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.de;
+  return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="bar"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.id==="mercato"?mkPinText():p.de;
     return `<button class="city-pin${open?"":" shut"}${p.city?" learn":""}" data-act="place" data-p="${p.id}" aria-label="${p.it}, ${de}${open?"":" (geschlossen)"}"><b>${open?"":"🔒 "}${p.it}</b><small>${de}</small></button>`;}).join("");
 }
 const cityBox=()=>`<div class="map city full3d" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
@@ -54,13 +54,23 @@ function rMap(){
   if(city&&!cityMount($("#city3d")))render(); // WebGL ging doch nicht: flache Karte
 }
 let mapMsg="";
+// Schild am Markt: Vorrat leer oder knapp ist wichtiger als der Markttag
+function mkPinText(){if(G&&!G.summary&&G.phase==="market")return "Signor Esposito wartet";if(kitchenEmpty())return "Vorrat leer!";if(stockLow())return "Vorrat knapp";return isMarketDay(S.day)?"Markttag −20 %":"Zutaten kaufen";}
 // Zum Ort gehen: Tür-Geräusch, dann sofort dort.
+// Neuen Spieltag beginnen, aber nur mit Zutaten im Vorrat: sonst erst auf den Markt
+function openDay(){
+  G=null; mapMsg="";
+  if(mkRescue()){sfx("coins");screen="mercato";return render();}
+  if(kitchenEmpty()){mkMsg="Deine Küche ist leer! Kauf hier Zutaten, dann kannst du öffnen.";sfx("wrong");screen="mercato";return render();}
+  return startDay();
+}
 function goPlace(id){
   if(CITY_GO[id]){mapMsg="";sfx("door");return CITY_GO[id]();}
   const p=PLACES.find(q=>q.id===id); if(!p)return;
-  if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":isMarketDay(S.day)?"Heute ist Markttag: der Markt öffnet nach dem letzten Gast.":`Markt ist nur mercoledì und sabato. Nächster Markttag: ${giorno(nextMarketDay(S.day))[0]}.`;sfx("wrong");return render();}
+  if(id==="mercato")return mkGo();
+  if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":"";sfx("wrong");return render();}
+  if(id==="pizzeria"){if(G&&!G.summary&&!G.trip){mapMsg="";sfx("door");screen="play";render();autoSpeak();return;}sfx("door");return openDay();}
   mapMsg=""; sfx("door");
-  if(id==="pizzeria"||id==="mercato"){if(G&&!G.summary&&!G.trip){screen="play";render();autoSpeak();return;}G=null;return startDay();}
   if(G&&!G.summary&&G.trip===id){screen="play";render();autoSpeak();return;}
   // Ein laufender Spieltag geht nicht einfach verloren, wenn man auf einen Ausflug tippt
   if(G&&!G.summary&&!G.trip){mapMsg="Dein Spieltag läuft noch: erst in der Pizzeria fertig spielen (oder im Pause-Menü abbrechen).";sfx("wrong");return render();}

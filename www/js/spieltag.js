@@ -3,20 +3,24 @@
 let screen="home", G=null, menuOpen=false, volOpen=false, codeBox=null, pauseOpen=false, helpOpen=false;
 function startDay(){
   const L=S.level, LV=LEVELS[L];
-  G={guests:[],gi:0,si:0,earned:0,revenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0};
+  G={guests:[],gi:0,si:0,earned:0,revenue:0,pzRevenue:0,saved:0,stars:5,combo:0,maxCombo:0,used:new Set(),phase:"guest",banner:"",market:[],mi:0,firstTry:0,steps:0,
+     left:Object.assign({},S.lager),use:{},away:0};
   const nG=LV.guests+fx("guest"); // Tische und Terrasse bringen mehr Gäste
   const phoneSlots=new Set(sample([...Array(nG).keys()].slice(1),LV.phones));
   const names=shuffle(NAMES);
   // Gestern neu freigeschaltete Pizza: heute bestellt sie garantiert jemand
-  let force=S.newPz&&availPizze().find(p=>p.n===S.newPz); S.newPz=null;
+  let force=S.newPz&&cookPizze(1).find(p=>p.n===S.newPz); if(force)S.newPz=null;
   // Kreidetafel: der erste Gast nimmt den Piatto del giorno; Fotos von Neapel: ein Stammgast
-  let daily=fx("daily")&&!force?pick(availPizze()):null;
+  let daily=fx("daily")&&!force?pick(cookPizze(1)):null;
   const regular=fx("regular")?pick([...Array(nG).keys()].filter(i=>!phoneSlots.has(i))):-1;
   for(let i=0;i<nG;i++){
-    let steps;
-    if(phoneSlots.has(i))steps=[LV.reserv&&Math.random()<.5?reservStep():phoneStep()];
+    let steps, pz=0;
+    if(phoneSlots.has(i)){const ph=LV.reserv&&Math.random()<.5?null:phoneStep();steps=[ph||(LV.reserv?reservStep():null)].filter(Boolean);if(!steps.length){G.away++;continue;}pz=ph?ph.price:0;}
     else{
-      const ord=orderStep(L===0?0:L<=2?1:2,force||daily,!!daily&&!force); force=null; daily=null; let total=ord.price+fx("bill");
+      // Ohne passende Zutaten im Vorrat geht der Gast gleich wieder
+      const ord=orderStep(L===0?0:L<=2?1:2,force||daily,!!daily&&!force); force=null; daily=null;
+      if(!ord){G.away++;continue;}
+      let total=ord.price+fx("bill"); pz=ord.price;
       // Stammgäste mit eigener Persönlichkeit: meist ihre eigenen Sätze (inhalt/gaeste.js)
       const P=PERS[names[i%names.length]], own=pool=>P&&Math.random()<.65?pickFresh(P[pool]):null;
       steps=[mcStep(own("greet")||pickFresh(GREET),"Was antwortest du?",{greet:true}),ord];
@@ -26,8 +30,11 @@ function startDay(){
       steps.push(billStep(total));
     }
     const bill=steps.reduce((a,x)=>a+(x.bill||0),0)||(phoneSlots.has(i)&&steps[0].price?steps[0].price+fx("delivery"):0);
-    G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],mood:2,steps,tip:0,bill,phone:phoneSlots.has(i),regular:i===regular});
+    G.guests.push({name:phoneSlots.has(i)?"Telefono":names[i%names.length],mood:2,steps,tip:0,bill,pz:Math.min(pz,bill),phone:phoneSlots.has(i),regular:i===regular});
   }
+  delete G.left;
+  if(!G.guests.length){G=null;mkMsg="Deine Küche ist leer! Kauf hier Zutaten, dann kannst du öffnen.";screen="mercato";return render();}
+  if(G.away)G.banner=`Vorrat zu knapp: ${G.away} ${G.away===1?"Gast geht":"Gäste gehen"} heute gleich wieder. Morgen vorher auf den Markt!`;
   storyGuest();
   if(inspToday())G.guests.unshift({name:"Dottoressa Severini",mood:2,steps:sample(ISPEZIONE,4).map(m=>mcStep(m,"Was antwortest du?",{insp:true})),tip:0,bill:0,insp:true});
   G.market=sample(MARKET,2).map(m=>mcStep(m,"Was antwortest du?",{market:true}));
@@ -134,7 +141,7 @@ function advance(){
   else{
     const g=G.guests[G.gi]; G.si++;
     if(G.si>=g.steps.length){
-      G.revenue=(G.revenue||0)+(g.bill||0); if(!G.trip)kasse(g.bill,g.phone?"Lieferung":"Rechnung");
+      G.revenue=(G.revenue||0)+(g.bill||0); G.pzRevenue=(G.pzRevenue||0)+(g.pz||0); if(!G.trip)kasse(g.bill,g.phone?"Lieferung":"Rechnung");
       G.banner=g.insp?inspResult(g):g.phone?(g.bill?`Lieferung notiert: ${g.bill} € + ${g.tip} € Trinkgeld`:`Reservierung notiert. +${g.tip} € Trinkgeld`):`${g.name} geht ${g.mood>=2?"glücklich":g.mood===1?"zufrieden":"etwas verwirrt"} und zahlt ${g.bill} € + ${g.tip} € Trinkgeld.`;
       G.gi++; G.si=0;
       if(G.gi>=G.guests.length&&G.trip){endTrip();return;}
@@ -157,17 +164,26 @@ function endTrip(){
   S.coins+=G.earned; if(!G.practice)S.tripDay[G.trip]=S.day; save();
   screen="summary"; render(); kasse(G.earned,"in die Kasse");
 }
+// Einkauf für Getränke und Kaffee (die Pizza-Zutaten kommen aus dem Vorrat und sind schon bezahlt)
+const drinkCost=()=>Math.round(Math.max(0,(G.revenue||0)-(G.pzRevenue||0))*.35*(1-fx("cheap")));
 // Was heute noch zum Einkaufen da ist: Kasse plus heutige Einnahmen, minus was heute schon fest weggeht
-function stallBudget(){return S.coins+(G.revenue||0)+G.earned+(G.saved||0)-Math.round((G.revenue||0)*.35*(1-fx("cheap")))-LEVELS[S.level].rent-(G.bought||0);}
+function stallBudget(){return S.coins+(G.revenue||0)+G.earned+(G.saved||0)-drinkCost()-LEVELS[S.level].rent-(G.bought||0);}
+// Neue Zutat im Vorrat: kommt in die Küche, schaltet vielleicht Pizzen frei. Gibt den Satz für die Meldung zurück.
+function addStock(k,n){
+  const before=new Set(availPizze().map(p=>p.n)), isNew=!hasIng(k);
+  S.lager[k]=stockOf(k)+n; if(isNew)S.ing.push(k); learn(k);
+  const neu=availPizze().filter(p=>!before.has(p.n));
+  if(neu.length){S.newPz=neu[0].n;return `Neu im Rezeptbuch: ${neu.map(p=>cap(p.n)).join(", ")}!`;}
+  return isNew?`${cap(k)} (${ING[k][0]}) gehört jetzt zu deiner Küche.`:`${cap(k)}: jetzt ${stockOf(k)} Portionen im Vorrat.`;
+}
 function stallBuy(k,price){
   const st=curStep();
-  if(!st||st.kind!=="stall"||hasIng(k)||!st.offer.includes(k)||stallBudget()<price)return;
-  const before=new Set(availPizze().map(p=>p.n)), saved=ING[k][3]-price;
-  S.ing.push(k); st.bought.push(k); G.bought=(G.bought||0)+price; learn(k); sfx("coins");
-  const neu=availPizze().filter(p=>!before.has(p.n));
-  if(neu.length){S.newPz=neu[0].n;G.banner=`Neu im Rezeptbuch: ${neu.map(p=>cap(p.n)).join(", ")}!`;}
-  else G.banner=`${cap(k)} (${ING[k][0]}) gehört jetzt zu deiner Küche.`;
-  if(saved>0)G.banner=`Für ${price} € statt ${ING[k][3]} € gekauft! `+G.banner;
+  if(!st||st.kind!=="stall"||st.bought.includes(k)||!st.offer.includes(k)||stallBudget()<price)return;
+  const full=espoPrice(k), saved=full-price;
+  if(!hasIng(k))st.neu.push(k);
+  st.bought.push(k); G.bought=(G.bought||0)+price; sfx("coins");
+  G.banner=addStock(k,ESPO_KISTE);
+  if(saved>0)G.banner=`Für ${price} € statt ${full} € gekauft! `+G.banner;
   save();
 }
 /* Feilschen mit Signor Esposito: Er nennt seinen Preis auf Italienisch, du bietest weniger.
@@ -181,12 +197,12 @@ function hagOffers(H){
   H.offers=shuffle([...new Set(cand)]).map(n=>{const [it,de]=pick(HAG_OFFER);return {n,t:fillN(it,n),de:fillN(de,n)};});
 }
 function hagStart(k){
-  const st=curStep(); if(!st||st.kind!=="stall"||hasIng(k)||!st.offer.includes(k))return;
+  const st=curStep(); if(!st||st.kind!=="stall"||st.bought.includes(k)||!st.offer.includes(k))return;
   st.asks=st.asks||{};
-  const P=ING[k][3], H={k,ask:st.asks[k]||P,min:Math.ceil(P*.7),pat:2,rounds:0,last:0,over:!!st.asks[k]&&st.asks[k]<P,peek:false};
+  const P=espoPrice(k), H={k,ask:st.asks[k]||P,min:Math.ceil(P*.7),pat:2,rounds:0,last:0,over:!!st.asks[k]&&st.asks[k]<P,peek:false};
   st.hag=H;
   if(H.over)hagSay(H,`Di nuovo qui? Il prezzo resta ${numIt(H.ask)} euro.`,`Schon wieder da? Der Preis bleibt ${H.ask} Euro.`);
-  else hagSay(H,`${cap(k)}? Per Lei, ${numIt(H.ask)} euro.`,`${ING[k][0]}? Für Sie ${H.ask} Euro.`);
+  else hagSay(H,`${cap(k)}? Una cassa grande, per Lei ${numIt(H.ask)} euro.`,`${ING[k][0]}? Eine große Kiste, für Sie ${H.ask} Euro.`);
   hagOffers(H); save();
 }
 function hagOffer(n){
@@ -207,7 +223,7 @@ function hagOffer(n){
 function hagDeal(){
   const st=curStep(), H=st&&st.hag; if(!H||stallBudget()<H.ask)return;
   stallBuy(H.k,H.ask);
-  if(H.ask<ING[H.k][3])G.haggled=(G.haggled||0)+ING[H.k][3]-H.ask;
+  if(H.ask<espoPrice(H.k))G.haggled=(G.haggled||0)+espoPrice(H.k)-H.ask;
   st.it=H.say.startsWith("Affare")?H.say:"Affare fatto! Grazie e buona giornata.";
   st.de=H.say.startsWith("Affare")?H.sayDe:"Abgemacht! Danke und schönen Tag noch.";
   if(!H.say.startsWith("Affare"))speak(st.it,"Signor Esposito");
@@ -218,12 +234,15 @@ function hagLeave(){
   st.asks[H.k]=H.ask; st.hag=null;
   st.it="Come vuole. Altro?"; st.de="Wie Sie wollen. Sonst noch etwas?"; speak(st.it,"Signor Esposito"); save();
 }
-// Laufenden Spieltag verwerfen (Abbrechen): Zutaten vom Markt werden erst am Abend bezahlt,
+// Laufenden Spieltag verwerfen (Abbrechen): Kisten von Signor Esposito werden erst am Abend bezahlt,
 // also gehen sie zurück an den Stand. Sonst gäbe es sie durch Abbrechen umsonst.
 function dropDay(){
   if(G&&!G.summary&&!G.trip){
-    const back=G.market.flatMap(st=>st.bought||[]);
-    if(back.length){S.ing=S.ing.filter(k=>!back.includes(k));if(S.newPz&&!availPizze().some(p=>p.n===S.newPz))S.newPz=null;}
+    G.market.forEach(st=>{
+      (st.bought||[]).forEach(k=>{S.lager[k]=Math.max(0,stockOf(k)-ESPO_KISTE);});
+      if(st.neu&&st.neu.length)S.ing=S.ing.filter(k=>!st.neu.includes(k));
+    });
+    if(S.newPz&&!availPizze().some(p=>p.n===S.newPz))S.newPz=null;
   }
   G=null;
 }
@@ -232,11 +251,13 @@ function endDay(){
   if(S.cert>0){G.stars=Math.min(5,G.stars+1);S.cert--;} // Zertifikat vom Gesundheitsamt
   if(G.insp&&G.insp.res==="pass")S.cert=3;
   if(fx("critic"))G.stars=Math.min(5,G.stars+fx("critic")); // Goldener Ofen: Bewertung milder
-  const rev=G.revenue||0, ing=Math.round(rev*.35*(1-fx("cheap"))), rent=LV.rent, buy=G.bought||0, net=rev+G.earned-ing-rent+G.saved-buy+(G.inspMoney||0);
+  const rev=G.revenue||0, ing=drinkCost(), rent=LV.rent, buy=G.bought||0, net=rev+G.earned-ing-rent+G.saved-buy+(G.inspMoney||0);
   const d=new Date(), today=d.toLocaleDateString("sv-SE"); d.setDate(d.getDate()-1); const yest=d.toLocaleDateString("sv-SE");
   if(S.last!==today)S.streak=S.last===yest?S.streak+1:1;
   S.last=today;
-  G.summary={ing,rent,net,buy,day:S.day};
+  // Verbrauchte Portionen aus dem Vorrat nehmen (zurückgelegt beim Planen des Tages)
+  let used=0, usedEur=0; Object.entries(G.use||{}).forEach(([k,n])=>{S.lager[k]=Math.max(0,stockOf(k)-n);used+=n;usedEur+=n*ING[k][3]/KISTE;});
+  G.summary={ing,rent,net,buy,day:S.day,used,usedEur:Math.round(usedEur),away:G.away||0};
   storyAdvance();
   S.vocab.days[S.day]=buildVocab(S.day);
   G.seen=null;G.ex=null;G.wt=null;G.tapped=null;
