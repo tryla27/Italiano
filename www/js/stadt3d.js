@@ -7,7 +7,7 @@ const C3={ok:null,r:null,scene:null,cam:null,host:null,tgt:null,th:-.12,ph:.92,r
   ptrs:new Map(),drag:null,pinch:null,raf:0,last:0,t:0,sea:null,boats:[],picks:[],batch:{}};
 // Wo die Orte stehen: x, z und Höhe des Schilds über dem Boden
 const CITY_SPOTS={pizzeria:[-5,-11,8.6],mercato:[8,-.5,5.2],gelateria:[14,12.2,5.4],porto:[-15,26,4.2],capri:[30,50,9],
-  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8],campagna:[.5,-30,4.2]};
+  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8],campagna:[.5,-30,8]};
 const PIAZZA=[-11,14,-7,9];              // x0, x1, z0, z1
 const PROM_Z=[10,18];                    // Uferpromenade, danach Kaimauer und Meer
 const WALL_COLS=["#f0c987","#e8a38a","#f3e2bf","#d98c5f","#f6d7a6","#e9b9a4","#d9c38f"];
