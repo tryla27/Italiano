@@ -81,6 +81,8 @@ function ingIcon(k){
   }[k]||`<circle cx="12" cy="12" r="7" fill="${c}"/>`;
   return `<svg class="ing-ic" viewBox="0 0 24 24" aria-hidden="true">${d}</svg>`;
 }
+// Gerenderte Holzkiste voller Ware (tools/kisten/kisten.py); fehlt das Bild, das gezeichnete Symbol
+const kisteImg=k=>`<span class="kiste-wrap">${ingIcon(k)}<img class="kiste" src="bilder/kisten/${k}.webp" alt="" loading="lazy" decoding="async" onload="this.parentNode.classList.add('ok')" onerror="this.remove()"></span>`;
 function face(name,mood){
   const c=CHARS[name]||CHARS.Marco, hc=c.hair;
   let h="";

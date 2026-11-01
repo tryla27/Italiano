@@ -147,7 +147,7 @@ function rPlay(){
   else if(st.react)bubble+=`<div class="react"><span class="it">${wordsHTML(st.react[0],true)}</span><small>${esc(st.react[1])}</small></div>`;
   let action="";
   if(H){const bud=stallBudget();
-    action=`<div class="hag"><div class="hag-item">${ingIcon(H.k)}<span><b>${H.k}</b><small>${esc(ING[H.k][0])}</small></span><span class="pat" aria-label="Geduld ${H.pat} von 2">Geduld ${"●".repeat(H.pat)}<span class="off">${"●".repeat(2-H.pat)}</span></span></div>
+    action=`<div class="hag"><div class="hag-item">${kisteImg(H.k)}<span><b>${H.k}</b><small>${esc(ING[H.k][0])}</small></span><span class="pat" aria-label="Geduld ${H.pat} von 2">Geduld ${"●".repeat(H.pat)}<span class="off">${"●".repeat(2-H.pat)}</span></span></div>
       ${H.offers.length?`<div class="opts">${H.offers.map(o=>`<button class="opt" data-act="hoffer" data-n="${o.n}" ${bud<o.n?'aria-disabled="true"':""}>${wordsHTML(o.t,false)}${H.peek?`<small>${esc(o.de)}</small>`:""}</button>`).join("")}</div>`:""}
       ${H.peek?`<div class="tipbox"><b>Er sagt:</b> ${esc(H.sayDe)}</div>`:""}
       <div class="hag-row"><button class="buy" data-act="hdeal" ${bud<H.ask?"disabled":""}>D'accordo!${H.peek?` ${H.ask} €`:""}</button>${H.peek?"":`<button class="tipbtn" data-act="hpeek">Übersetzen</button>`}<button class="sec" data-act="hleave">Lascio stare</button></div>
@@ -155,7 +155,7 @@ function rPlay(){
   }
   else if(st.kind==="stall"){const bud=stallBudget(), asks=st.asks||{};
     action=`<div class="stall">${st.offer.map(k=>{const own=st.bought.includes(k),pz=pizzeWith(k).filter(p=>p.lv<=S.level),P=espoPrice(k);
-      return `<div class="card${own?" got":""}">${ingIcon(k)}<b>${k}</b><small>${esc(ING[k][0])}${hasIng(k)?` · Vorrat ${stockOf(k)}`:" · neu"}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
+      return `<div class="card${own?" got":""}">${kisteImg(k)}<b>${k}</b><small>${esc(ING[k][0])}${hasIng(k)?` · Vorrat ${stockOf(k)}`:" · neu"}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
       ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<Math.min(asks[k]||P,Math.ceil(P*.7))?"disabled":""}>${asks[k]||P} €</button>`}</div>`;}).join("")}</div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
   }
