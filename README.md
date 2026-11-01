@@ -49,7 +49,7 @@ Die Startseite ist ein kleines Viertel von Neapel in 3D (ein Finger dreht, zwei 
 Gelernt wird in den Häusern: **Scuola** (Vokabeln), **Bar** (Memory), **Biblioteca** (Bücher wie *Pinocchio* in einfachem Italienisch, dazu das Notizbuch) und **Forno** (Rezepte).
 Für alle Orte gilt: Gebäude oder Schild antippen, die Ladentür klingelt,
 und du bist dort. In der Pizzeria laufen die Gäste mit ganzem Körper herein und stehen neben der Bar.
-Auf dem **Mercato** gibt es an fünf Ständen jede Zutat des Spiels. Verkauft wird nur, was vorher eingekauft wurde: jede Pizza braucht eine Portion von jeder Zutat, und Gäste bestellen nur, was im Vorrat ist. An Markttagen (mercoledì und sabato) ist alles 20 % günstiger, und nach Feierabend feilschst du mit Signor Esposito um große Kisten. Als Ausflüge gibt es den **Eisladen** und
+Der **Mercato** ist eine Piazza in 3D, über die man selbst läuft: an fünf Ständen liegt jede Zutat des Spiels in ihrer eigenen Kiste, mit Preisschild auf Italienisch. Verkauft wird nur, was vorher eingekauft wurde: jede Pizza braucht eine Portion von jeder Zutat, und Gäste bestellen nur, was im Vorrat ist. An Markttagen (mercoledì und sabato) ist alles 20 % günstiger, und nach Feierabend feilschst du mit Signor Esposito um große Kisten. Als Ausflüge gibt es den **Eisladen** und
 den **Hafen** mit eigenen Gesprächen. Capri ist auf der Karte schon zu sehen, aber noch zu.
 Auf der Startseite gibt es ein Zutaten-Memory.
 
