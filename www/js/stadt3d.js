@@ -154,6 +154,7 @@ function buildCity(){
   for(let i=0;i<ip.count;i++){const y=ip.getY(i);if(y>-3)ip.setXYZ(i,ip.getX(i)*(1+(ir()-.5)*.25),y+(ir()-.3)*1.2,ip.getZ(i)*(1+(ir()-.5)*.25));}
   isl.computeVertexNormals(); c3add("hill",isl,30,3.3,50);
   [[26,46],[33,45],[29,44]].forEach(([x,z])=>c3add("whitewall",new T.BoxGeometry(1.6,1.4,1.6),x,1.6,z));
+  if(typeof tavoloBuild==="function")tavoloBuild(); // Tisch mit Nonno Peppe zum Memory auf der Piazza (tavolo.js)
   // Orte
   buildPizzeria(); buildMarket(); buildGelateria(); buildPort(); buildLearning();
   if(typeof francoBuild==="function")francoBuild(); // Franco mit seiner Ape (franco.js)
