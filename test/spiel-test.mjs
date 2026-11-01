@@ -238,6 +238,18 @@ await shot("memory-halb");
 check(await page.evaluate(() => { const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 11 && S.coins === before + 11 && S.memDay === S.day; }), "Memory-Belohnung stimmt nicht");
 await shot("memory-fertig");
 check(await page.evaluate(() => { startMemo(); const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 0 && S.coins === before; }), "Memory belohnt mehrmals am selben Tag");
+// Memory am Tisch auf der Piazza gegen Nonno Peppe: abwechselnd, er spielt selbst, Sieg gibt einmal pro Tag Geld
+await page.evaluate(() => goPlace("tavolo"));
+check(await page.evaluate(() => screen === "memo" && MEMO.vs && MEMO.turn === "me" && !!document.querySelector(".tav-top")), "Memory am Tisch startet nicht");
+await page.evaluate(() => { const c = MEMO.cards, a = c.findIndex(x => x.pic), b = c.findIndex(x => !x.pic && x.k !== c[a].k); memoFlip(a); memoFlip(b); });
+await page.waitForTimeout(1400);
+check(await page.evaluate(() => MEMO.turn === "ai" && (memoFlip(MEMO.cards.findIndex((x, i) => !MEMO.open.includes(i))), MEMO.open.length === 0)), "Am Tisch ist Nonno Peppe nach einem Fehler nicht dran oder man darf in seinem Zug spielen");
+await page.waitForTimeout(2600);
+await shot("tavolo-nonno");
+check(await page.evaluate(() => MEMO.moves >= 2), "Nonno Peppe spielt nicht");
+await page.waitForFunction(() => MEMO.turn === "me" && !MEMO.lock && MEMO.open.length === 0 || MEMO.done, null, { timeout: 30000 });
+check(await page.evaluate(() => { if (MEMO.done) return true; const before = S.coins, M = MEMO; M.score.ai = 0; [...new Set(M.cards.map(x => x.k))].filter(k => !M.found.includes(k)).forEach(k => { memoFlip(M.cards.findIndex(x => x.k === k && x.pic)); memoFlip(M.cards.findIndex(x => x.k === k && !x.pic)); }); return M.done && M.result === "win" && M.reward === 10 && S.coins === before + 10 && S.tavDay === S.day; }), "Sieg am Tisch wird nicht belohnt");
+await shot("tavolo-sieg");
 await page.evaluate(() => { screen = "home"; render(); });
 // Stammgäste mit Persönlichkeit, Reaktionen auf falsche Antworten, Geschichten über mehrere Tage
 check(await page.evaluate(() => Object.keys(PERS).length === NAMES.length && NAMES.every(n => PERS[n].greet.length && PERS[n].talk.length && PERS[n].huh[0].length && PERS[n].huh[1].length)), "Nicht jeder Stammgast hat eigene Sätze");
@@ -353,7 +365,7 @@ for (const trip of ["gelateria", "porto"]) {
   await act("map");
   if (trip === "gelateria") {
     await page.waitForTimeout(1500);
-    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 10, "Karte zeigt kein 3D-Viertel mit allen Orten");
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 11, "Karte zeigt kein 3D-Viertel mit allen Orten");
     await shot("karte");
   }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
@@ -370,7 +382,7 @@ for (const trip of ["gelateria", "porto"]) {
 
 // Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
 await fresh({ setupDone: true, coins: 10, day: 2 });
-check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 10), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 11), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
 // La campagna: Wegweiser in der Stadt führt aufs Land mit Bauernhof, Don Vincenzo und Weinberg (noch zu)
 await page.evaluate(() => goPlace("campagna"));
 await page.waitForTimeout(1500);
