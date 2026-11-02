@@ -217,7 +217,7 @@ function buildPort(){
   const s=signMesh("PORTO",2.6,.8,"#2f78c4","#f3eee2"); s.position.set(-15,1.6,PROM_Z[1]+.9); g.add(s);
   c3box(.1,1.2,.1,c3mat(0x2b2f2c),-15,.6,PROM_Z[1]+.85,g);
 }
-// Lernorte: Scuola (Vokabeln), Bar (Memory), Biblioteca (Notizbuch), Forno (Rezepte)
+// Lernorte: Scuola (Vokabeln), Bar (Getränke, bar.js), Biblioteca (Notizbuch), Forno (Rezepte)
 function civic(id,x,z,w,d,h,col,sign,bg,fg){
   const g=placeGroup(id);
   const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:facadeTex(col)})); wall.position.set(x,h/2,z); g.add(wall);

@@ -719,3 +719,15 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .mcard.up{background:#f3eee2!important}
 .mcard.found.by-me{border-color:var(--gold)!important}
 .mcard.found.by-ai{border-color:#e8a38a!important}
+.tav-pick{display:flex;flex-direction:column;gap:12px;margin-top:auto;margin-bottom:auto}
+.tav-pick .big.solo{background:rgba(58,154,74,.85)}
+/* Il Bar (bar.js): Getränke bestellen */
+.bar-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start}
+.bar-d{background:var(--glass2);display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border:2px solid var(--line);border-radius:14px;color:var(--chalk)}
+.bar-d i{font-style:normal;font-size:1.7rem}
+.bar-d b{display:block;font-size:.95rem}
+.bar-d small{display:block;font-size:.72rem;opacity:.8}
+.bar-d em{margin-left:auto;white-space:nowrap;font-style:normal;font-family:var(--game);color:var(--gold)}
+.bar-d.poor{opacity:.5}
+.bar-got{text-align:center;font-size:3.2rem;margin:4px 0;animation:barpop .5s ease-out}
+@keyframes barpop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}

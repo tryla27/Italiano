@@ -69,7 +69,10 @@ function handleClick(e){
   if(a==="chest")return chestTap();
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
-  if(a==="memo")return startMemo();
+  if(a==="memo")return tavOpen();           // Memory gibt es am Tisch auf der Piazza (tavolo.js)
+  if(a==="memo1")return startMemo();
+  if(a==="memo2")return startMemo(true);
+  if(a==="bardrink")return barOrder(t.dataset.k);
   if(a==="biblio"){LETTURA=null;stopPoesia();POESIA=null;screen="biblio";return render();}
   if(a==="leggi")return startLettura(t.dataset.b,+t.dataset.c);
   if(a==="lpag")return letturaPage(+t.dataset.d);

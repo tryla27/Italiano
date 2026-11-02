@@ -1,4 +1,5 @@
-/* Zutaten-Memory: Bild der Zutat und italienisches Wort als Paar finden. Einmal pro Spieltag gibt es Geld dafür. */
+/* Zutaten-Memory: Bild der Zutat und italienisches Wort als Paar finden. Einmal pro Spieltag gibt es Geld dafür.
+   Gespielt wird am Tisch auf der Piazza (tavolo.js): allein oder gegen Nonno Peppe. */
 /* ---------- Memory ---------- */
 let MEMO=null;
 const MEMO_PAIRS=6;
@@ -54,12 +55,12 @@ function memoCard(c,i){
 }
 function rMemo(){
   const M=MEMO;
-  if(M.vs)return rTavolo();
+  if(M.choose||M.vs)return rTavolo();
   const card=memoCard;
-  $("#screen").innerHTML=`${head("Memory","Finde Bild und Wort")}
+  $("#screen").innerHTML=`${head("Il tavolo","Memory allein · finde Bild und Wort")}
     <p class="note memo-line">${M.done
       ?`Bravissimo! Alle Paare in ${M.moves} Zügen.${M.reward?` <b>+${M.reward} €</b>`:" Geld gibt es wieder am nächsten Spieltag."}`
       :`Paare ${M.found.length}/${MEMO_PAIRS} · Züge ${M.moves}${S.memDay===S.day?" · heute schon belohnt":""}`}</p>
     <div class="memo">${M.cards.map(card).join("")}</div>
-    ${M.done?`<button class="big" data-act="memo">Ancora una volta!<small>Nochmal mit neuen Zutaten</small></button>`:""}`;
+    ${M.done?`<button class="big" data-act="memo1">Ancora una volta!<small>Nochmal mit neuen Zutaten</small></button>`:""}`;
 }

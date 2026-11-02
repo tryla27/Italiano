@@ -2,6 +2,7 @@
    ein alter Herr aus dem Viertel, und spielt mit dir das Zutaten-Memory (memory.js) zu zweit:
    abwechselnd zwei Karten aufdecken, wer ein Paar findet, darf nochmal. Nonno Peppe merkt sich die Karten,
    die er sieht, aber nicht alle (TAV_MEM). Gewinnst du, gibt es einmal pro Spieltag Geld.
+   Allein spielen geht am selben Tisch (memory.js wie gehabt). Die Bar verkauft nur noch Getränke (bar.js).
    Hängt an stadt3d.js: buildCity() ruft tavoloBuild(); Antippen geht über goPlace("tavolo") aus karte.js. */
 const TAV={x:-5,z:-2.5,s:1.3}; // auf der Piazza zwischen Brunnen und Pizzeria; etwas größer, damit man es von oben sieht
 const TAV_WHO="Nonno Peppe";
@@ -11,6 +12,8 @@ const TAV_PRIZE=10;     // € für einen Sieg, einmal pro Spieltag
 CHARS[TAV_WHO]={skin:"#e3b48e",hair:"#f2f2f2",style:"cap",cap:"#6b5440",shirt:"#f3eee2",mus:1,glasses:"round",old:1};
 // Was er sagt (Italienisch, Deutsch)
 const TAV_SAY={
+  hello:[["Ciao! Giochi con me o da solo?","Hallo! Spielst du mit mir oder allein?"],
+    ["Buongiorno! Una partita a memory?","Guten Tag! Eine Partie Memory?"]],
   start:[["Siediti! Giochiamo a memory? Comincia tu.","Setz dich! Spielen wir Memory? Du fängst an."],
     ["Una partita? Prego, comincia tu!","Eine Partie? Bitte, du fängst an!"]],
   you:[["Tocca a te!","Du bist dran!"],["Vai, tocca a te.","Los, du bist dran."],["Uffa! Tocca a te.","Mist! Du bist dran."]],
@@ -22,9 +25,9 @@ const TAV_SAY={
   draw:[["Pareggio! Siamo bravi tutti e due.","Unentschieden! Wir sind beide gut."]]
 };
 // Ein Ort im 3D-Viertel (Schild, Antippen) wie die Lernorte
-PLACES.push({id:"tavolo",it:"Il Tavolo",de:"Memory zu zweit",city:1});
+PLACES.push({id:"tavolo",it:"Il Tavolo",de:"Memory",city:1});
 CITY_SPOTS.tavolo=[TAV.x,TAV.z,3];
-CITY_GO.tavolo=()=>startMemo(true);
+CITY_GO.tavolo=()=>tavOpen();
 
 /* ---------- Tisch, Stühle und Nonno Peppe ---------- */
 function tavoloBuild(){
@@ -65,6 +68,9 @@ function tavoloBuild(){
   B(2.2,2.2,2.8,new T.MeshBasicMaterial({visible:false}),x,1.1,z);
   c3add("shadow",flatPlane(3.6,3.6),TAV.x,.03,TAV.z);
 }
+
+/* ---------- Am Tisch: allein üben oder gegen Nonno Peppe ---------- */
+function tavOpen(){MEMO={choose:true,say:null,cards:[],found:[],open:[]};tavSay("hello",300);screen="memo";render();}
 
 /* ---------- Spiel zu zweit (Regeln in memory.js memoFlip) ---------- */
 function tavSay(key,delay){
@@ -108,7 +114,18 @@ function tavEnd(){
   tavSay(M.result,900); save();
 }
 function rTavolo(){
-  const M=MEMO, {me,ai}=M.score, s=M.say;
+  const M=MEMO, s=M.say;
+  const bubble=s?`<button class="tav-say" data-act="sayit" data-t="${esc(s[0])}">${esc(s[0])}<small>${esc(s[1])}</small></button>`:"";
+  if(M.choose){
+    $("#screen").innerHTML=`${head("Il tavolo","Memory auf der Piazza")}
+      <div class="tav-top"><div class="tav-npc"><div class="tav-face on">${face(TAV_WHO,2)}</div>${bubble}</div></div>
+      <div class="tav-pick">
+        <button class="big" data-act="memo2">Contro Nonno Peppe<small>Zu zweit · ${S.tavDay===S.day?"heute schon gewonnen":`Sieg: +${TAV_PRIZE} € (einmal pro Tag)`}</small></button>
+        <button class="big solo" data-act="memo1">Da solo<small>Allein üben · ${S.memDay===S.day?"heute schon belohnt":"Bonus bis 12 €"}</small></button>
+      </div>`;
+    return;
+  }
+  const {me,ai}=M.score;
   const mood=M.done?(M.result==="lose"?2:M.result==="win"?1:2):M.turn==="ai"?2:me>ai+1?1:2;
   const status=M.done
     ?`${M.result==="win"?"Du hast gewonnen":M.result==="lose"?"Nonno Peppe hat gewonnen":"Unentschieden"}: ${me} zu ${ai}.${M.reward?` <b>+${M.reward} €</b>`:M.result==="win"?" Geld gibt es wieder am nächsten Spieltag.":""}`
@@ -117,10 +134,10 @@ function rTavolo(){
     <div class="tav-top">
       <div class="tav-p${!M.done&&M.turn==="me"?" on":""}"><small>Tu</small><b>${me}</b></div>
       <div class="tav-npc"><div class="tav-face${!M.done&&M.turn==="ai"?" on":""}">${face(TAV_WHO,mood)}</div>
-        ${s?`<button class="tav-say" data-act="sayit" data-t="${esc(s[0])}">${esc(s[0])}<small>${esc(s[1])}</small></button>`:""}</div>
+        ${bubble}</div>
       <div class="tav-p ai${!M.done&&M.turn==="ai"?" on":""}"><small>Nonno</small><b>${ai}</b></div>
     </div>
     <p class="note memo-line">${status}</p>
     <div class="memo tav${M.turn==="ai"&&!M.done?" wait":""}">${M.cards.map(memoCard).join("")}</div>
-    ${M.done?`<button class="big" data-act="place" data-p="tavolo">La rivincita!<small>Noch eine Partie mit neuen Zutaten</small></button>`:""}`;
+    ${M.done?`<button class="big" data-act="memo2">La rivincita!<small>Noch eine Partie mit neuen Zutaten</small></button>`:""}`;
 }
