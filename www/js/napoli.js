@@ -7,6 +7,8 @@
    - Kirche mit Fassade aus Diamantquadern (wie Gesù Nuovo), gelb-grüner Majolika-Kuppel, Glockenturm,
      davor ein großer Kirchplatz aus Travertin mit Guglia (Prunksäule), zwei Brunnen, Balustrade, Bänken und Palmen.
    - Castel dell'Ovo: Burg aus gelbem Tuffstein auf einer Insel vor der Promenade, mit Damm.
+   - Fahrbahnen aus Basalt zwischen den Häuserblocks, mit Bordsteinen und Leitlinien, und eine Ampelkreuzung nach StVO
+     (Spaccanapoli / Via Toledo: Rot, Rot-Gelb, Grün, Gelb; Haltlinien, Fußgängerfurten und -ampeln; Franco hält bei Rot).
    - Straßen aus Basaltpflaster aus der Stadt hinaus: zum Vesuv (La campagna), zum Wald und zum Strand, mit Wegweisern.
    - Il bosco: ein gemischter Wald westlich der Stadt (npForest).
    - Straßenschilder aus Marmor (Spaccanapoli, Via Toledo) und eine Edicola votiva (Heiligenbild an der Hauswand).
@@ -303,11 +305,116 @@ function npSigns(){
   });
 }
 
+/* ---------- Straßen in der Stadt und Ampel an der Kreuzung ---------- */
+// Fahrbahnen aus Basalt zwischen den Häuserblocks: [x0, x1, z0, z1]. Die Spaccanapoli quer, die anderen von Nord nach Süd.
+const NP_STREETS=[
+  {id:"spacca",r:[-42,42,-19.75,-15.25],ew:true},
+  {id:"toledo",r:[-.4,2.6,-38,-7]},          // schmal: unten zwischen Pizzeria und Scuola
+  {id:"ovest",r:[-21,-17,-38,9.5]},
+  {id:"est",r:[18.5,22.5,-38,9.5]}
+];
+// Kreuzung mit Ampel: Spaccanapoli / Via Toledo
+const NP_X={x0:-.4,x1:2.6,z0:-19.75,z1:-15.25};
+// Ampelphasen nach StVO §37: Grün, Gelb (3 s), Rot, Rot-Gelb (1 s), wieder Grün. Zwei Richtungen im Wechsel:
+// "ns" = Via Toledo (Nord-Süd), "ew" = Spaccanapoli (Ost-West). Fußgänger haben Grün, wenn der Verkehr neben ihnen fährt.
+const NP_CYCLE=30;
+function npPhase(t){t%=NP_CYCLE;
+  const car=(a)=>{const u=(t-a+NP_CYCLE)%NP_CYCLE; return u<9?"g":u<12?"y":u<29?"r":"ry";};
+  const ped=(a)=>((t-a+NP_CYCLE)%NP_CYCLE)<7?"g":"r";
+  return {ns:car(0),ew:car(15),pns:ped(0),pew:ped(15)};
+}
+const NP_TL={t:0,heads:[],mats:null};
+function npCity(){
+  const T=THREE, M=npMats(), Y=.036;
+  const inX=(S,a,b)=>NP_STREETS.filter(o=>o!==S&&(S.ew?(o.r[0]<b&&o.r[1]>a&&S.r[2]<o.r[3]&&S.r[3]>o.r[2]):(o.r[2]<b&&o.r[3]>a&&S.r[0]<o.r[1]&&S.r[1]>o.r[0])));
+  // Stücke einer Strecke [a, b], die nicht in Querstraßen liegen
+  const parts=(S,a,b,pad)=>{let segs=[[a,b]];
+    NP_STREETS.forEach(o=>{if(o===S||!!o.ew===!!S.ew)return; const lo=(S.ew?o.r[0]:o.r[2])-pad, hi=(S.ew?o.r[1]:o.r[3])+pad;
+      const cross=S.ew?(o.r[2]<S.r[3]&&o.r[3]>S.r[2]):(o.r[0]<S.r[1]&&o.r[1]>S.r[0]); if(!cross)return;
+      segs=segs.flatMap(([p,q])=>q<=lo||p>=hi?[[p,q]]:[[p,Math.min(q,lo)],[Math.max(p,hi),q]].filter(([u,v])=>v-u>.3));});
+    return segs;};
+  NP_STREETS.forEach((S,i)=>{const [x0,x1,z0,z1]=S.r, w=x1-x0, d=z1-z0;
+    np("road",npUVBox(w,.02,d,2.2),(x0+x1)/2,Y+i*.002,(z0+z1)/2);
+    // Bordsteine an beiden Rändern, an den Einmündungen offen
+    const [a,b]=S.ew?[x0,x1]:[z0,z1];
+    parts(S,a,b,.2).forEach(([p,q])=>{const L=q-p, m=(p+q)/2;
+      if(S.ew){np("curb",npBox(L,.14,.22),m,.07,z0-.11);np("curb",npBox(L,.14,.22),m,.07,z1+.11);}
+      else{np("curb",npBox(.22,.14,L),x0-.11,.07,m);np("curb",npBox(.22,.14,L),x1+.11,.07,m);}});
+    // Leitlinie in der Mitte (gestrichelt), nicht in den Kreuzungen und nicht vor der Ampel (dort Haltlinien und Furten)
+    parts(S,a,b,S.id==="spacca"||S.id==="toledo"?6.4:1).forEach(([p,q])=>{for(let u=p+1;u+1.5<q;u+=4.5){
+      if(S.ew)np("paint",npBox(1.5,.01,.12),u+.75,Y+.02,(z0+z1)/2); else np("paint",npBox(.12,.01,1.5),(x0+x1)/2,Y+.02,u+.75);}});
+  });
+  npTraffic();
+}
+function npTraffic(){
+  const T=THREE, X=NP_X, Y=.06, cx=(X.x0+X.x1)/2, cz=(X.z0+X.z1)/2;
+  // Haltlinien (durchgezogen, nur über die eigene Fahrspur) und Fußgängerfurten (zwei gestrichelte Linien)
+  const ns=X.x1-X.x0, ew=X.z1-X.z0;
+  np("paint",npBox(.3,.01,ew/2),X.x0-3.4,Y,cz+ew/4);    // von Westen kommend (rechte Spur = Süden)
+  np("paint",npBox(.3,.01,ew/2),X.x1+3.4,Y,cz-ew/4);    // von Osten
+  np("paint",npBox(ns/2,.01,.3),cx-ns/4,Y,X.z0-3.4);    // von Norden (rechte Spur = Westen)
+  np("paint",npBox(ns/2,.01,.3),cx+ns/4,Y,X.z1+3.4);    // von Süden
+  const furt=(horiz,c,a,b)=>{for(let u=a;u<b-.2;u+=.9){const L=Math.min(.5,b-u);
+    [-1.1,1.1].forEach(o=>horiz?np("paint",npBox(L,.01,.12),u+L/2,Y,c+o):np("paint",npBox(.12,.01,L),c+o,Y,u+L/2));}};
+  furt(false,X.x0-1.7,X.z0,X.z1); furt(false,X.x1+1.7,X.z0,X.z1); furt(true,X.z0-1.7,X.x0,X.x1); furt(true,X.z1+1.7,X.x0,X.x1);
+  // Lampen: leuchtend oder aus (gleiche Materialien für jede Gruppe, die Farbe wechselt im Takt)
+  const lamp=(on)=>new T.MeshBasicMaterial({color:on});
+  const L=NP_TL.mats={};
+  ["ns","ew"].forEach(g=>{L[g]={r:lamp(0x3a1010),y:lamp(0x3a2e0c),gr:lamp(0x0e3016)};});
+  const pedTex=(walk,col)=>{const c=document.createElement("canvas");c.width=c.height=64;const q=c.getContext("2d");q.fillStyle="#111";q.fillRect(0,0,64,64);q.fillStyle=col;
+    q.beginPath();q.arc(32,12,6,0,Math.PI*2);q.fill();q.fillRect(27,19,10,22);
+    if(walk){q.save();q.translate(29,40);q.rotate(.4);q.fillRect(-3,0,6,20);q.restore();q.save();q.translate(35,40);q.rotate(-.4);q.fillRect(-3,0,6,20);q.restore();
+      q.save();q.translate(27,21);q.rotate(.6);q.fillRect(-2.5,0,5,16);q.restore();q.save();q.translate(37,21);q.rotate(-.6);q.fillRect(-2.5,0,5,16);q.restore();}
+    else{q.fillRect(27,40,4,20);q.fillRect(33,40,4,20);q.fillRect(21,20,6,18);q.fillRect(37,20,6,18);}
+    const t=new T.CanvasTexture(c);t.colorSpace=T.SRGBColorSpace;return t;};
+  ["pns","pew"].forEach(g=>{L[g]={r:new T.MeshBasicMaterial({map:pedTex(false,"#ff3b2f"),color:0x444444}),gr:new T.MeshBasicMaterial({map:pedTex(true,"#3dff6a"),color:0x444444})};});
+  const pole=c3mat(0x8d9296), box=c3mat(0x24272a), plate=c3mat(0xf2f2f2);
+  const mesh=(geo,m,x,y,z,ry)=>{const o=new T.Mesh(geo,m);o.position.set(x,y,z);o.rotation.y=ry||0;C3.scene.add(o);return o;};
+  // Ampel für Fahrzeuge: Mast, Gehäuse mit weißer Kontrastblende, Rot oben, Gelb, Grün unten. ry = Blickrichtung zum Verkehr
+  const carLight=(x,z,ry,g)=>{mesh(new T.CylinderGeometry(.07,.09,3.8,8),pole,x,1.9,z);
+    const s=Math.sin(ry), c=Math.cos(ry), at=(o)=>[x+s*o,z+c*o];
+    const [bx,bz]=at(.12); mesh(npBox(.62,1.25,.04),plate,bx,3.05,bz,ry); const [hx,hz]=at(.22); mesh(npBox(.36,1.05,.22),box,hx,3.05,hz,ry);
+    [["r",3.4],["y",3.05],["gr",2.7]].forEach(([k,y])=>{const d=new T.CylinderGeometry(.12,.12,.05,14);d.rotateX(Math.PI/2);const [lx,lz]=at(.35);mesh(d,L[g][k],lx,y,lz,ry);
+      const v=new T.CylinderGeometry(.14,.14,.12,14,1,true,-Math.PI/2,Math.PI);v.rotateX(Math.PI/2);const [ox,oz]=at(.4);mesh(v,box,ox,y+.04,oz,ry);});};
+  // Fußgängerampel: kleiner Mast, zwei Felder mit Figur (rot stehend oben, grün gehend unten)
+  const pedLight=(x,z,ry,g)=>{mesh(new T.CylinderGeometry(.05,.06,2.6,8),pole,x,1.3,z);
+    const s=Math.sin(ry), c=Math.cos(ry); mesh(npBox(.32,.7,.18),box,x+s*.12,2.25,z+c*.12,ry);
+    [["r",2.42],["gr",2.08]].forEach(([k,y])=>mesh(npPlane(.26,.28),L[g][k],x+s*.215,y,z+c*.215,ry));};
+  // Masten jeweils rechts vor der Kreuzung (Rechtsverkehr), Blick zum ankommenden Verkehr
+  carLight(X.x0-3.8,X.z1+.2,-Math.PI/2,"ew");    // von Westen
+  carLight(X.x1+3.8,X.z0-.2,Math.PI/2,"ew");     // von Osten
+  carLight(X.x0-.35,X.z0-3.8,Math.PI,"ns");      // von Norden
+  carLight(X.x1+.3,X.z1+3.8,0,"ns");             // von Süden
+  // Fußgänger über die Spaccanapoli (neben der Via Toledo) und über die Via Toledo (neben der Spaccanapoli)
+  [X.x0-1.7,X.x1+1.7].forEach(x=>{pedLight(x+.7,X.z0-.3,0,"pns");pedLight(x-.7,X.z1+.3,Math.PI,"pns");});
+  // (südlich der Kreuzung steht links gleich die Pizzeria: dort nur der Mast auf der Seite der Scuola)
+  [X.z0-1.7,X.z1+1.7].forEach((z,i)=>{if(!i)pedLight(X.x0-.3,z-.7,Math.PI/2,"pew");pedLight(X.x1+.25,z+(i?-.7:.7),-Math.PI/2,"pew");});
+  npLights();
+}
+// Lampen nach der aktuellen Phase schalten
+function npLights(){const P=npPhase(NP_TL.t), L=NP_TL.mats; if(!L)return;
+  [["ns",P.ns],["ew",P.ew]].forEach(([g,ph])=>{
+    L[g].r.color.setHex(ph==="r"||ph==="ry"?0xff2a1a:0x3a1010);
+    L[g].y.color.setHex(ph==="y"||ph==="ry"?0xffb21a:0x3a2e0c);
+    L[g].gr.color.setHex(ph==="g"?0x2bff5a:0x0e3016);});
+  [["pns",P.pns],["pew",P.pew]].forEach(([g,ph])=>{L[g].r.color.setHex(ph==="r"?0xffffff:0x444444);L[g].gr.color.setHex(ph==="g"?0xffffff:0x444444);});
+}
+function napoliTick(dt){NP_TL.t+=dt;npLights();}
+// Muss ein Fahrzeug an Stelle (x, z), das in Richtung (dx, dz) fährt, vor der Ampel halten? (Rot, Rot-Gelb oder Gelb)
+function napoliMustStop(x,z,dx,dz){
+  const X=NP_X, P=npPhase(NP_TL.t), stop=ph=>ph!=="g";
+  if(Math.abs(dx)>Math.abs(dz)){if(z<X.z0||z>X.z1)return false;
+    if(dx>0&&x>X.x0-6.4&&x<X.x0-3.9)return stop(P.ew); if(dx<0&&x<X.x1+6.4&&x>X.x1+3.9)return stop(P.ew);}
+  else if(Math.abs(dz)>0){if(x<X.x0||x>X.x1)return false;
+    if(dz>0&&z>X.z0-6.4&&z<X.z0-3.9)return stop(P.ns); if(dz<0&&z<X.z1+6.4&&z>X.z1+3.9)return stop(P.ns);}
+  return false;
+}
+
 /* ---------- Straßen aus der Stadt hinaus ---------- */
 // Basaltpflaster wie in Neapel. Sie verbinden die Stadt mit dem Weg zum Vesuv (La campagna), mit dem Wald
 // und mit dem Strand. Punkte x, z; die Straßen beginnen am Rand des Pflasters der Stadt.
 const NP_ROADS=[
-  {name:"VESUVIO",sign:[3.2,-38.6],w:4.2,pts:[[.5,-38],[1.5,-48],[-2,-58],[-9,-68],[-16,-77],[-22,-86]]},
+  {name:"VESUVIO",sign:[3.2,-38.6],w:4.2,pts:[[1.1,-38],[1.5,-48],[-2,-58],[-9,-68],[-16,-77],[-22,-86]]},
   {name:"BOSCO",sign:[-42.6,-15.4],w:3.6,pts:[[-42,-18.2],[-46,-21],[-49,-25.5],[-50.5,-31]]},
   {name:"SPIAGGIA",sign:[42.6,-15.4],w:3.6,pts:[[42,-18.2],[48,-15],[53,-8],[56,0],[57,8.5]]}
 ];
@@ -415,7 +522,7 @@ function npMats(){
     tuffcap:c3mat(0xc9a25c),basalt:c3mat(0x6a6761),water:c3mat(0x5cb7d6),iron:c3mat(0x2b2f2c),lamp:c3mat(0xffe3a6,{emissive:0x8a6a2a}),
     shadow:new T.MeshBasicMaterial({map:tex("blob"),transparent:true,depthWrite:false}),
     tiles:c3mat(0xffffff,{map:npTileTex()}),ridge:c3mat(0xa8442c),terrace:c3mat(0xffffff,{map:npTerraceTex()}),
-    road:c3mat(0xffffff,{map:npRoadTex()}),curb:c3mat(0xc9bfae)};
+    road:c3mat(0xffffff,{map:npRoadTex()}),curb:c3mat(0xc9bfae),paint:c3mat(0xf4f4ee)};
   const M=NP.M;
   NP_CLOTH.forEach((c,i)=>M["c"+i]=new T.MeshLambertMaterial({color:c,side:T.DoubleSide}));
   WALL_COLS.forEach((c,i)=>M["g"+i]=c3mat(c));
@@ -434,7 +541,7 @@ function npRoadTex(){return npTex(64,64,(g,w)=>{g.fillStyle="#5d5b57";g.fillRect
 /* ---------- Alles bauen und zu Meshes zusammenlegen ---------- */
 function napoliBuild(){
   const T=THREE;
-  npLaundry(); npChurch(); npCastle(); npSigns(); npRoads(); npForest();
+  npLaundry(); npChurch(); npCastle(); npSigns(); npCity(); npRoads(); npForest();
   const M=npMats();
   Object.entries(NP.batch).forEach(([k,geos])=>{if(!geos.length)return;const o=new T.Mesh(c3merge(geos),M[k]);if(k==="shadow")o.renderOrder=-1;C3.scene.add(o);});
   NP.batch={};

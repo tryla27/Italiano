@@ -7,7 +7,7 @@ const C3={ok:null,r:null,scene:null,cam:null,host:null,tgt:null,th:-.12,ph:.92,r
   ptrs:new Map(),drag:null,pinch:null,raf:0,last:0,t:0,sea:null,boats:[],picks:[],batch:{}};
 // Wo die Orte stehen: x, z und Höhe des Schilds über dem Boden
 const CITY_SPOTS={pizzeria:[-5,-11,8.6],mercato:[8,-.5,5.2],gelateria:[14,12.2,5.4],porto:[-15,26,4.2],capri:[30,50,9],
-  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8],campagna:[.5,-30,8]};
+  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8],campagna:[4.2,-30,8]};
 const PIAZZA=[-11,14,-7,9];              // x0, x1, z0, z1
 const PROM_Z=[10,18];                    // Uferpromenade, danach Kaimauer und Meer
 // Farben wie auf den Hängen von Neapel: Neapelgelb, Pompejanisch-Rot, Weiß, Rosa, Ocker, Pastellgrün
@@ -326,12 +326,12 @@ function buildLearning(){
   c3box(8.4,.35,2.2,c3mat(0xe2d6bd),x,.17,z+4.3,bi); c3box(8.6,.5,2.2,c3mat(0xf3eee2),x,4.35,z+4.3,bi);
   [-3.4,-1.2,1.2,3.4].forEach(dx=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(.28,.32,3.8,10),c3mat(0xf3eee2));c.position.set(x+dx,2.25,z+4.9);bi.add(c);});
   // Wegweiser aufs Land (La campagna: Bauernhof, Don Vincenzo, Weinberg) am Ende der Querstraße Richtung Vesuv
-  x=.5;z=-30; const ca=placeGroup("campagna");
+  x=4.2;z=-30; const ca=placeGroup("campagna"); // am Rand der Via Toledo, nicht mitten auf der Fahrbahn
   c3box(.14,3,.14,c3mat(0x6b4126),x,1.5,z,ca);
   const w1=signMesh("VESUVIO \u2192",2.6,.6,"#f3eee2","#6b4126"); w1.position.set(x,2.6,z+.09); ca.add(w1);
   const w2=signMesh("CAMPAGNA",2.2,.5,"#3a6b2a","#f6e3a6"); w2.position.set(x,2,z+.09); ca.add(w2);
   c3box(2.6,1.8,.1,new THREE.MeshBasicMaterial({visible:false}),x,2,z,ca);
-  cityModel("vespa",x+2,0,z+.4,-.9,ca);
+  cityModel("vespa",x+1,0,z+1.6,-.9,ca);
 }
 
 /* ---------- Kamera, Zeichnen, Schilder ---------- */
@@ -374,6 +374,7 @@ function cityLoop(now){
   C3.sea.offset.set(C3.t*.015,C3.t*.008);
   C3.boats.forEach(b=>{b.o.position.y=-.4+Math.sin(C3.t*1.4+b.p)*.08;b.o.rotation.z=Math.sin(C3.t*1.1+b.p)*.04;});
   if(typeof francoTick==="function")francoTick(dt);
+  if(typeof napoliTick==="function")napoliTick(dt); // Ampel an der Kreuzung (napoli.js)
   cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
 }
 function cityMount(host){

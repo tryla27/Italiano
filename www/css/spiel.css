@@ -681,6 +681,8 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .hag-item .kiste-wrap{width:64px;max-width:64px;margin:-8px 0}
 /* Franco mit seiner Ape (franco.js): Schild über der fahrenden Ape und Verkaufsfenster */
 .city-pin.fr-pin{border-color:#8cc0d4;max-width:62vw}
+/* Ortsschilder liegen über Francos Schild: er hält jetzt auch an der Ampel vor der Pizzeria */
+.city-pin[data-p]{z-index:2}.city-pin.fr-pin{z-index:1}
 .city-pin.fr-pin::after{border-top-color:#8cc0d4}
 .city-pin.fr-pin small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;color:#f6e3a6}
 .fr-panel{position:absolute;z-index:3;left:calc(var(--wl,0px) + 8px);right:calc(var(--wr,0px) + 8px);bottom:calc(var(--wb,0px) + 8px);max-width:560px;margin:0 auto;

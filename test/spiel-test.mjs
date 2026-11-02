@@ -486,7 +486,10 @@ await fresh({ setupDone: true, coins: 60, day: 2, level: 1 });
 await page.evaluate(() => { screen = "map"; render(); });
 await page.waitForTimeout(1500);
 if (await page.evaluate(() => typeof FR !== "undefined" && !!FR.g)) {
-  check(await page.evaluate(() => FR.g.visible && FR.v > 1), "Franco fährt morgens nicht durch die Stadt");
+  // (er darf auch gerade an der roten Ampel der Kreuzung Spaccanapoli / Via Toledo warten)
+  check(await page.evaluate(() => FR.g.visible && (FR.v > 1 || (typeof napoliMustStop === "function" && napoliMustStop(FR.g.position.x, FR.g.position.z, 1, 0)))), "Franco fährt morgens nicht durch die Stadt");
+  check(await page.evaluate(() => { const t = NP_TL.t; NP_TL.t = 3; const ns = npPhase(3), red = napoliMustStop(-5, -17.5, 1, 0), go = napoliMustStop(1, -25, 0, 1); NP_TL.t = 17; const ew = npPhase(17), go2 = napoliMustStop(-5, -17.5, 1, 0); NP_TL.t = t;
+    return ns.ns === "g" && ns.ew === "r" && red && !go && ew.ew === "g" && ew.ns === "r" && !go2 && npPhase(14.5).ew === "ry" && npPhase(10).ns === "y"; }), "Ampel schaltet nicht nach StVO oder Franco hält nicht bei Rot");
   await page.evaluate(() => francoTap());
   await page.waitForTimeout(1200);
   check(await page.evaluate(() => FR.open && FR.v < .5 && !!document.querySelector(".fr-panel")), "Ape hält beim Antippen nicht an / kein Verkaufsfenster");
