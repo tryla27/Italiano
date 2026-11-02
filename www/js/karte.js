@@ -6,7 +6,7 @@ const PLACES=[
   {id:"porto",it:"Il Porto",de:"Ausflug",x:150,y:402,img:"bilder/umgebungen/hafen.webp",vb:"60 300 280 280"},
   {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true},
   // Lernorte gibt es nur im 3D-Viertel; auf der flachen Karte sind es die Knöpfe der Startseite
-  {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Caffè · Getränke",city:1},
+  {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Burger · Getränke",city:1},
   {id:"biblioteca",it:"La Biblioteca",de:"Bücher · Notizbuch",city:1},{id:"forno",it:"Il Forno",de:"Rezepte",city:1},
   {id:"campagna",it:"🛵 La campagna",de:"Don Vincenzo · Bauernhof",city:1}
 ];

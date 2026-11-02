@@ -253,11 +253,11 @@ check(await page.evaluate(() => MEMO.moves >= 2), "Nonno Peppe spielt nicht");
 await page.waitForFunction(() => MEMO.turn === "me" && !MEMO.lock && MEMO.open.length === 0 || MEMO.done, null, { timeout: 30000 });
 check(await page.evaluate(() => { if (MEMO.done) return true; const before = S.coins, M = MEMO; M.score.ai = 0; [...new Set(M.cards.map(x => x.k))].filter(k => !M.found.includes(k)).forEach(k => { memoFlip(M.cards.findIndex(x => x.k === k && x.pic)); memoFlip(M.cards.findIndex(x => x.k === k && !x.pic)); }); return M.done && M.result === "win" && M.reward === 10 && S.coins === before + 10 && S.tavDay === S.day; }), "Sieg am Tisch wird nicht belohnt");
 await shot("tavolo-sieg");
-// Die Bar verkauft nur Getränke: bestellen kostet Geld, ohne Geld sagt Totò nein
+// Die Bar verkauft Burger und Getränke (kein Eis, das gibt es in der Gelateria): bestellen kostet Geld, ohne Geld sagt Ciccio nein
 await page.evaluate(() => goPlace("bar"));
-check(await page.evaluate(() => screen === "bar" && document.querySelectorAll('[data-act="bardrink"]').length === BAR_MENU.length && !document.querySelector('[data-act="mflip"]')), "Bar zeigt keine Getränke");
+check(await page.evaluate(() => screen === "bar" && document.querySelectorAll('[data-act="bardrink"]').length === BAR_MENU.length && BAR_MENU.some(d => /burger/.test(d[0])) && !BAR_MENU.some(d => /granita|gelato/.test(d[0])) && !document.querySelector('[data-act="mflip"]')), "Bar zeigt keine Burger und Getränke (oder verkauft Eis)");
 check(await page.evaluate(() => { S.coins = 5; barOrder("cappuccino"); const ok = S.coins === 3 && BARB.got && BARB.got[0] === "cappuccino"; S.coins = 0; barOrder("caffè"); return ok && S.coins === 0 && !BARB.got; }), "Getränke an der Bar kosten nicht richtig");
-await page.evaluate(() => { S.coins = 10; barOrder("spremuta d'arancia"); });
+await page.evaluate(() => { S.coins = 10; barOrder("cheeseburger"); });
 await shot("bar-getraenke");
 await page.evaluate(() => { screen = "home"; render(); });
 // Stammgäste mit Persönlichkeit, Reaktionen auf falsche Antworten, Geschichten über mehrere Tage

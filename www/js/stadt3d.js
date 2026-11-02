@@ -155,6 +155,7 @@ function buildCity(){
   isl.computeVertexNormals(); c3add("hill",isl,30,3.3,50);
   [[26,46],[33,45],[29,44]].forEach(([x,z])=>c3add("whitewall",new T.BoxGeometry(1.6,1.4,1.6),x,1.6,z));
   if(typeof tavoloBuild==="function")tavoloBuild(); // Tisch mit Nonno Peppe zum Memory auf der Piazza (tavolo.js)
+  if(typeof barBuild==="function")barBuild();       // Ciccio, der dicke Wirt, neben der Bar (bar.js)
   // Orte
   buildPizzeria(); buildMarket(); buildGelateria(); buildPort(); buildLearning();
   if(typeof francoBuild==="function")francoBuild(); // Franco mit seiner Ape (franco.js)

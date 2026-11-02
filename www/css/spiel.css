@@ -729,5 +729,7 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .bar-d small{display:block;font-size:.72rem;opacity:.8}
 .bar-d em{margin-left:auto;white-space:nowrap;font-style:normal;font-family:var(--game);color:var(--gold)}
 .bar-d.poor{opacity:.5}
+.bar-sec{margin:6px 0 0;font-family:var(--game);color:var(--gold);font-size:1rem}
+.tav-face.ciccio{flex-basis:70px;height:70px;background:#f3d9a8}
 .bar-got{text-align:center;font-size:3.2rem;margin:4px 0;animation:barpop .5s ease-out}
 @keyframes barpop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
