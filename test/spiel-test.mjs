@@ -53,7 +53,7 @@ async function shot(name) {
   console.log("  Screenshot:", file);
 }
 // Knöpfe, die auf der Startseite jetzt Häuser im 3D-Viertel sind
-const PIN = { vocab: "scuola", memo: "bar", menu: "forno" };
+const PIN = { vocab: "scuola", memo: "tavolo", menu: "forno" };
 async function act(a, extra = "") {
   let el = page.locator(`[data-act="${a}"]${extra}`).first();
   if (!(await el.count()) && !extra && PIN[a]) el = page.locator(`.city-pin[data-p="${PIN[a]}"]`).first();
@@ -228,6 +228,9 @@ check(await page.evaluate(() => { G = null; S.lager = Object.fromEntries(S.ing.m
 // Zutaten-Memory: vom Startbildschirm, Paare finden, einmal pro Spieltag Geld
 await page.evaluate(() => { G = null; screen = "home"; S.memDay = 0; render(); });
 await act("memo");
+check(await page.evaluate(() => screen === "memo" && MEMO.choose && !!document.querySelector('[data-act="memo1"]') && !!document.querySelector('[data-act="memo2"]')), "Am Tisch fehlt die Wahl: allein oder gegen Nonno Peppe");
+await shot("tavolo-wahl");
+await act("memo1");
 check(await page.evaluate(() => screen === "memo" && document.querySelectorAll('[data-act="mflip"]').length === 12), "Memory startet nicht");
 await page.evaluate(() => { const c = MEMO.cards, a = c.findIndex(x => x.pic), b = c.findIndex(x => !x.pic && x.k !== c[a].k); memoFlip(a); memoFlip(b); });
 await shot("memory-falsch");
@@ -238,6 +241,24 @@ await shot("memory-halb");
 check(await page.evaluate(() => { const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 11 && S.coins === before + 11 && S.memDay === S.day; }), "Memory-Belohnung stimmt nicht");
 await shot("memory-fertig");
 check(await page.evaluate(() => { startMemo(); const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 0 && S.coins === before; }), "Memory belohnt mehrmals am selben Tag");
+// Memory am Tisch auf der Piazza gegen Nonno Peppe: abwechselnd, er spielt selbst, Sieg gibt einmal pro Tag Geld
+await page.evaluate(() => { goPlace("tavolo"); startMemo(true); });
+check(await page.evaluate(() => screen === "memo" && MEMO.vs && MEMO.turn === "me" && !!document.querySelector(".tav-top")), "Memory am Tisch startet nicht");
+await page.evaluate(() => { const c = MEMO.cards, a = c.findIndex(x => x.pic), b = c.findIndex(x => !x.pic && x.k !== c[a].k); memoFlip(a); memoFlip(b); });
+await page.waitForTimeout(1400);
+check(await page.evaluate(() => MEMO.turn === "ai" && (memoFlip(MEMO.cards.findIndex((x, i) => !MEMO.open.includes(i))), MEMO.open.length === 0)), "Am Tisch ist Nonno Peppe nach einem Fehler nicht dran oder man darf in seinem Zug spielen");
+await page.waitForTimeout(2600);
+await shot("tavolo-nonno");
+check(await page.evaluate(() => MEMO.moves >= 2), "Nonno Peppe spielt nicht");
+await page.waitForFunction(() => MEMO.turn === "me" && !MEMO.lock && MEMO.open.length === 0 || MEMO.done, null, { timeout: 30000 });
+check(await page.evaluate(() => { if (MEMO.done) return true; const before = S.coins, M = MEMO; M.score.ai = 0; [...new Set(M.cards.map(x => x.k))].filter(k => !M.found.includes(k)).forEach(k => { memoFlip(M.cards.findIndex(x => x.k === k && x.pic)); memoFlip(M.cards.findIndex(x => x.k === k && !x.pic)); }); return M.done && M.result === "win" && M.reward === 10 && S.coins === before + 10 && S.tavDay === S.day; }), "Sieg am Tisch wird nicht belohnt");
+await shot("tavolo-sieg");
+// Die Bar verkauft Burger und Getränke (kein Eis, das gibt es in der Gelateria): bestellen kostet Geld, ohne Geld sagt Ciccio nein
+await page.evaluate(() => goPlace("bar"));
+check(await page.evaluate(() => screen === "bar" && document.querySelectorAll('[data-act="bardrink"]').length === BAR_MENU.length && BAR_MENU.some(d => /burger/.test(d[0])) && !BAR_MENU.some(d => /granita|gelato/.test(d[0])) && !document.querySelector('[data-act="mflip"]')), "Bar zeigt keine Burger und Getränke (oder verkauft Eis)");
+check(await page.evaluate(() => { S.coins = 5; barOrder("cappuccino"); const ok = S.coins === 3 && BARB.got && BARB.got[0] === "cappuccino"; S.coins = 0; barOrder("caffè"); return ok && S.coins === 0 && !BARB.got; }), "Getränke an der Bar kosten nicht richtig");
+await page.evaluate(() => { S.coins = 10; barOrder("cheeseburger"); });
+await shot("bar-getraenke");
 await page.evaluate(() => { screen = "home"; render(); });
 // Stammgäste mit Persönlichkeit, Reaktionen auf falsche Antworten, Geschichten über mehrere Tage
 check(await page.evaluate(() => Object.keys(PERS).length === NAMES.length && NAMES.every(n => PERS[n].greet.length && PERS[n].talk.length && PERS[n].huh[0].length && PERS[n].huh[1].length)), "Nicht jeder Stammgast hat eigene Sätze");
@@ -353,7 +374,7 @@ for (const trip of ["gelateria", "porto"]) {
   await act("map");
   if (trip === "gelateria") {
     await page.waitForTimeout(1500);
-    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 10, "Karte zeigt kein 3D-Viertel mit allen Orten");
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 11, "Karte zeigt kein 3D-Viertel mit allen Orten");
     await shot("karte");
   }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
@@ -368,9 +389,9 @@ for (const trip of ["gelateria", "porto"]) {
   check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
 }
 
-// Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
+// Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory (Tisch), Bar (Getränke), Notizbuch und Rezepten
 await fresh({ setupDone: true, coins: 10, day: 2 });
-check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 10), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 11), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
 // La campagna: Wegweiser in der Stadt führt aufs Land mit Bauernhof, Don Vincenzo und Weinberg (noch zu)
 await page.evaluate(() => goPlace("campagna"));
 await page.waitForTimeout(1500);
@@ -388,7 +409,7 @@ await page.locator('[data-act="lexit"]').click();
 check(await page.evaluate(() => !K3.inside && K3.roofs.vincenzo.every(m => m.visible)), "Hinausgehen bringt das Dach nicht zurück");
 await act("home");
 await shot("startseite-stadt");
-for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "biblio"]]) {
+for (const [p, want] of [["scuola", "vocab"], ["tavolo", "memo"], ["bar", "bar"], ["biblioteca", "biblio"]]) {
   await page.evaluate(() => { screen = "home"; render(); });
   await page.locator(`.city-pin[data-p="${p}"]`).click();
   check(await page.evaluate(w => screen === w, want), `Haus ${p} führt nicht zu ${want}`);
