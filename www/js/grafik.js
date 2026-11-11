@@ -172,7 +172,7 @@ let kasseTimer=null;
 function kasse(amount,label){
   if(!(amount>0))return;
   const k=$("#kasse"); clearTimeout(kasseTimer);
-  k.innerHTML=`<div class="kasse-pop">${KASSE_SVG}<b>+${amount} €</b>${label?`<small>${esc(label)}</small>`:""}</div>`;
+  k.innerHTML=`<div class="kasse-pop">${KASSE_SVG}<span><b>+${amount} €</b>${label?`<small>${esc(label)}</small>`:""}</span></div>`;
   sfx("kasse"); kasseTimer=setTimeout(()=>{k.innerHTML="";},1900);
 }
 function starsHTML(n){let h="";for(let i=1;i<=5;i++)h+=n>=i?"★":n>=i-.5?`<span class="half">★</span>`:`<span class="off">★</span>`;return `<span class="stars" aria-label="${n} von 5 Sternen">${h}</span>`;}
