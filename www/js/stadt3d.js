@@ -162,6 +162,8 @@ function buildCity(){
   for(let i=0;i<ip.count;i++){const y=ip.getY(i);if(y>-3)ip.setXYZ(i,ip.getX(i)*(1+(ir()-.5)*.25),y+(ir()-.3)*1.2,ip.getZ(i)*(1+(ir()-.5)*.25));}
   isl.computeVertexNormals(); c3add("hill",isl,30,3.3,50);
   [[26,46],[33,45],[29,44]].forEach(([x,z])=>c3add("whitewall",new T.BoxGeometry(1.6,1.4,1.6),x,1.6,z));
+  if(typeof tavoloBuild==="function")tavoloBuild(); // Tisch mit Nonno Peppe zum Memory auf der Piazza (tavolo.js)
+  if(typeof barBuild==="function")barBuild();       // Ciccio, der dicke Wirt, neben der Bar (bar.js)
   // Orte
   buildPizzeria(); buildMarket(); buildGelateria(); buildPort(); buildLearning();
   if(typeof francoBuild==="function")francoBuild(); // Franco mit seiner Ape (franco.js)
@@ -292,7 +294,7 @@ function buildPort(){
   const s=signMesh("PORTO",2.6,.8,"#2f78c4","#f3eee2"); s.position.set(-15,1.6,PROM_Z[1]+.9); g.add(s);
   c3box(.1,1.2,.1,c3mat(0x2b2f2c),-15,.6,PROM_Z[1]+.85,g);
 }
-// Lernorte: Scuola (Vokabeln), Bar (Memory), Biblioteca (Notizbuch); dazu der leere alte Forno zum Kaufen
+// Lernorte: Scuola (Vokabeln), Bar (Getränke, bar.js), Biblioteca (Notizbuch); dazu der leere alte Forno zum Kaufen
 function civic(id,x,z,w,d,h,col,sign,bg,fg){
   const g=placeGroup(id);
   const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:facadeTex(col)})); wall.position.set(x,h/2,z); g.add(wall);

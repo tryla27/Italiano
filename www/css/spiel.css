@@ -729,3 +729,35 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .fo-msg{display:block;text-align:left;color:var(--chalk);font:inherit;font-size:.85rem;cursor:pointer;width:auto}
 .recbtn{width:100%;margin:6px 0}
 .recbtn small{display:block;font-size:.75rem;opacity:.75}
+/* Memory am Tisch auf der Piazza (tavolo.js) */
+.tav-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tav-p{flex:0 0 68px;text-align:center;border:2px solid var(--line);border-radius:14px;padding:4px 2px;opacity:.7;transition:all .2s}
+.tav-p small{display:block;font-size:.72rem}
+.tav-p b{font-family:var(--game);font-size:1.6rem;color:var(--gold)}
+.tav-p.on{opacity:1;border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,198,79,.25)}
+.tav-p.ai b{color:#e8a38a}
+.tav-npc{flex:1 1 auto;display:flex;align-items:center;gap:6px;min-width:0}
+.tav-face{flex:0 0 56px;height:56px;border-radius:50%;background:var(--slate2);border:2px solid var(--line);overflow:hidden}
+.tav-face.on{border-color:#e8a38a}
+.tav-face svg{width:100%;height:100%}
+.tav-say{flex:1 1 auto;min-width:0;text-align:left;background:#f3eee2;color:#1e2420;border:0;border-radius:12px;padding:5px 8px;font-weight:700;font-size:.86rem;line-height:1.2}
+.tav-say small{display:block;font-weight:400;font-size:.72rem;color:#5a5a50}
+.memo.tav.wait .mcard:not(.up){cursor:wait}
+/* Aufgedeckte Karten hell, sonst sind die Wörter auf dem Glas kaum lesbar; Rand zeigt, wer das Paar hat */
+.mcard.up{background:#f3eee2!important}
+.mcard.found.by-me{border-color:var(--gold)!important}
+.mcard.found.by-ai{border-color:#e8a38a!important}
+.tav-pick{display:flex;flex-direction:column;gap:12px;margin-top:auto;margin-bottom:auto}
+.tav-pick .big.solo{background:rgba(58,154,74,.85)}
+/* Il Bar (bar.js): Getränke bestellen */
+.bar-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start}
+.bar-d{background:var(--glass2);display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border:2px solid var(--line);border-radius:14px;color:var(--chalk)}
+.bar-d i{font-style:normal;font-size:1.7rem}
+.bar-d b{display:block;font-size:.95rem}
+.bar-d small{display:block;font-size:.72rem;opacity:.8}
+.bar-d em{margin-left:auto;white-space:nowrap;font-style:normal;font-family:var(--game);color:var(--gold)}
+.bar-d.poor{opacity:.5}
+.bar-sec{margin:6px 0 0;font-family:var(--game);color:var(--gold);font-size:1rem}
+.tav-face.ciccio{flex-basis:70px;height:70px;background:#f3d9a8}
+.bar-got{text-align:center;font-size:3.2rem;margin:4px 0;animation:barpop .5s ease-out}
+@keyframes barpop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}

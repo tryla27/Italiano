@@ -39,7 +39,7 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna,forno:rForno})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,bar:rBar,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna,forno:rForno})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
   fullBg();
   armBack();
@@ -106,7 +106,7 @@ function rHome(){
   ${homeStart()}
   ${S.setupDone?`<div class="placerow"><button class="placebtn locbtn" data-act="locale"><span class="locthumb">${locThumbHTML()}</span><b>Il mio locale</b><small>Dein Restaurant in 3D</small></button>
     <button class="placebtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><b>La mappa</b><small>Markt, Eisladen, Hafen</small></button></div>`:""}
-  <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"Paare finden":"Bonus heute!"}</small></button></div>
+  <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"am Tisch":"Bonus heute!"}</small></button></div>
   <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="menu">Rezepte</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
   ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
 }
