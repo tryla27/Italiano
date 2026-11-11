@@ -239,8 +239,11 @@ function francoTick(dt){
   const pi=C3.picks.indexOf(FR.g); if(here&&pi<0)C3.picks.push(FR.g); else if(!here&&pi>=0)C3.picks.splice(pi,1);
   if(!here){if(FR.open)francoClose(true);frEngine(false);frStopShout();frPin(false);return;}
   // Fahren, bremsen, stehen
-  const target=FR.state==="drive"?FR_SPEED:0;
-  FR.v+=(target-FR.v)*Math.min(1,dt*(FR.state==="drive"?.9:2.6));
+  // Rote (oder gelbe) Ampel an der Kreuzung vor ihm: anhalten wie alle anderen auch (napoli.js)
+  const p0=FR.g.position, red=typeof napoliMustStop==="function"&&FR.px!==undefined&&napoliMustStop(p0.x,p0.z,p0.x-FR.px,p0.z-FR.pz);
+  FR.px=p0.x; FR.pz=p0.z;
+  const target=FR.state==="drive"&&!red?FR_SPEED:0;
+  FR.v+=(target-FR.v)*Math.min(1,dt*(FR.state==="drive"&&!red?.9:2.6));
   if(FR.state==="stopping"&&FR.v<.05){FR.v=0;FR.state="stop";}
   FR.s+=FR.v*dt; frPlace(dt);
   // Am Ende des Wegs ist er aus dem Viertel raus

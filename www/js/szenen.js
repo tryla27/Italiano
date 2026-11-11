@@ -200,15 +200,16 @@ const SCENE_H=260;
 const SCENE_IMG={
   pizzeria:{src:"bilder/umgebungen/pizzeria.webp",oy:390,stand:[62,250,206]},
   mercato:{src:"bilder/umgebungen/markt.webp",oy:250,stand:[66,258,186]},
-  gelateria:{src:"bilder/umgebungen/eisladen.webp",oy:300,fig:[150,30,100],clip:118},
   porto:{src:"bilder/umgebungen/hafen.webp",oy:250}
 };
 function imageScene(id,person,enter,label,extra){
   // Pizzeria: dein eigenes 3D-Restaurant (restaurant3d.js), sonst das gemalte Bild
-  const I=(id==="pizzeria"&&locStage())||SCENE_IMG[id]; if(!I)return null;
+  // Gelateria: der 3D-Laden aus dem Viertel (stadt3d.js, gelStage), ohne WebGL die gezeichnete Szene
+  const I=(id==="pizzeria"&&locStage())||(id==="gelateria"&&typeof gelStage==="function"&&gelStage())||SCENE_IMG[id]; if(!I)return null;
   let s=`<image href="${I.src}" x="0" y="${-I.oy}" width="400" height="${I.h||700}" preserveAspectRatio="none"/>`+(extra||"");
   if(person&&person.name&&I.stand){const [x,y,h]=I.stand;
-    s+=(person.prev?walker(person.prev,2,x,y,h,"walk walkout"):"")+walker(person.name,person.mood,x,y,h,enter?"walk walkin":"");}
+    const w=(person.prev?walker(person.prev,2,x,y,h,"walk walkout"):"")+walker(person.name,person.mood,x,y,h,enter?"walk walkin":"");
+    s+=I.clip?`<clipPath id="sz-stand-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-stand-${id})">${w}</g>`:w;}
   if(I.fg)s+=`<image href="${I.fg}" x="0" y="0" width="400" height="${I.h}" preserveAspectRatio="none" pointer-events="none"/>`;
   else if(person&&I.fig){const [x,y,w]=I.fig;s+=`<clipPath id="sz-clip-${id}"><rect width="400" height="${I.clip}"/></clipPath><g clip-path="url(#sz-clip-${id})">${figure(person,x,y,w,enter?"enter2":"")}</g>`;}
   return `<svg class="stage-svg" viewBox="0 0 400 ${SCENE_H}" role="img" aria-label="${label}">${s}</svg>`;
@@ -320,7 +321,7 @@ function stageHTML(){
   if(mk){const st=curStep();return imageScene("mercato",{name:"Signor Esposito",mood:st&&st.hag?st.hag.pat:2},false,"Markt",crowdLayer("mercato"))||sceneMarket();}
   const enter=G.entered!==G.gi; G.entered=G.gi;
   const person=g&&!g.phone?face(g.name,g.mood):null;
-  if(G.trip==="gelateria")return imageScene("gelateria",person,false,"Eisladen")||sceneGelateria(person,false);
+  if(G.trip==="gelateria")return imageScene("gelateria",g&&!g.phone?{name:g.name,mood:g.mood}:null,false,"Eisladen")||sceneGelateria(person,false);
   if(G.trip==="porto")return imageScene("porto",null,false,"Hafen",crowdLayer("porto"))||scenePorto(person,false);
   // Pizzeria: der Gast läuft herein, der vorige geht zur gleichen Zeit hinaus.
   const prev=enter&&G.gi>0&&G.guests[G.gi-1], who=g&&!g.phone&&{name:g.name,mood:g.mood,prev:prev&&!prev.phone?prev.name:null};
