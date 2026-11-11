@@ -4,14 +4,30 @@
    dazu Kartoffeln und Melonen, die es nur bei ihm gibt. Er spricht mit eigener Stimme (tools/stimmen, "fr").
    Ton im Raum: Motor, Hupe und Megafon kommen von der Ape (WebAudio-Panner mit HRTF), die Kamera hört zu.
    Hängt an stadt3d.js: buildCity() ruft francoBuild(), cityLoop() ruft francoTick(), Antippen geht über francoTap(). */
-const FR={g:null,hit:null,wheels:[],head:null,s:0,v:0,state:"drive",open:false,msg:null,shoutAt:6,shoutI:0,shouting:null,
+const FR={g:null,hit:null,wheels:[],head:null,s:0,v:0,state:"away",away:3,route:null,open:false,msg:null,shoutAt:6,shoutI:0,shouting:null,
   lastTick:0,snd:null,carry:0,camGo:0,horned:false};
 const FR_SPEED=4.2;                 // m/s, gemütlich wie eine echte Ape
-const FR_PATH=[[-19,-17.5],[20.5,-17.5],[20.5,9.4],[-19,9.4]]; // Runde: Querstraße, Ostseite, vor der Piazza, Westseite
+// Wege durchs Viertel: Franco kommt von außerhalb, fährt durch und ist wieder weg. Jedes Mal ein anderer Weg.
+const FR_ROUTES=[
+  [[-62,-17.5],[62,-17.5]],                                   // Querstraße von West nach Ost
+  [[62,-17.5],[20.5,-17.5],[20.5,9.4],[-62,9.4]],             // von Osten, die Ostseite runter, vor der Piazza nach Westen
+  [[20.5,-62],[20.5,9.4],[-62,9.4]],                          // vom Vesuv her die Ostseite runter, an der Piazza vorbei
+  [[-19,-62],[-19,9.4],[62,9.4]],                             // die Westseite runter, an Piazza und Markt vorbei nach Osten
+  [[62,9.4],[-19,9.4],[-19,-17.5],[62,-17.5]],                // von Osten vor der Piazza, Westseite hoch, Querstraße zurück
+  [[-62,9.4],[20.5,9.4],[20.5,-62]]                           // von Westen vor der Piazza, dann die Ostseite hinauf
+];
+// Wie oft er pro Morgen durchfährt (1 bis 3, je Spieltag fest) und wie lange er zwischendurch weg ist
+const FR_PASSES=day=>1+Math.floor(seeded(day*7919+13)()*3);
+const FR_PAUSE=()=>25+Math.random()*35;
 const FR_GOODS=["patate","melone","cipolla","pomodoro","zucchine","peperoni"];
 const FR_RABATT=.1;                 // direkt von der Ape: etwas günstiger als am Markt
 // Megafon-Rufe (Italienisch, Deutsch) und was er im Gespräch sagt
+// Er ruft vor allem seine Ware aus, laut und immer wieder
 const FR_SHOUT=[["Cipolle! Patate! Meloni!","Zwiebeln! Kartoffeln! Melonen!"],
+  ["Meloni! Meloni dolci!","Melonen! Süße Melonen!"],
+  ["Patate! Cipolle! Patate!","Kartoffeln! Zwiebeln! Kartoffeln!"],
+  ["Pomodori! Zucchine! Peperoni!","Tomaten! Zucchini! Paprika!"],
+  ["Cipolle! Cipolle di Tropea!","Zwiebeln! Zwiebeln aus Tropea!"],
   ["Meloni dolci come lo zucchero!","Melonen, süß wie Zucker!"],
   ["Patate novelle, cipolle di Tropea!","Neue Kartoffeln, Zwiebeln aus Tropea!"],
   ["È arrivato Franco! Frutta e verdura!","Franco ist da! Obst und Gemüse!"],
@@ -98,12 +114,24 @@ function francoBuild(){
   frPlace(0);
 }
 // Länge der Runde und Punkt bei s Metern
-const frLen=()=>FR_PATH.reduce((a,p,i)=>{const q=FR_PATH[(i+1)%FR_PATH.length];return a+Math.hypot(q[0]-p[0],q[1]-p[1]);},0);
+const frRoute=()=>FR.route||FR_ROUTES[0];
+const frLen=()=>{const R=frRoute();let a=0;for(let i=0;i+1<R.length;i++)a+=Math.hypot(R[i+1][0]-R[i][0],R[i+1][1]-R[i][1]);return a;};
 function frAt(s){
-  const L=frLen(); s=((s%L)+L)%L;
-  for(let i=0;i<FR_PATH.length;i++){const p=FR_PATH[i], q=FR_PATH[(i+1)%FR_PATH.length], d=Math.hypot(q[0]-p[0],q[1]-p[1]);
-    if(s<=d){const k=s/d;return {x:p[0]+(q[0]-p[0])*k,z:p[1]+(q[1]-p[1])*k,h:Math.atan2(q[0]-p[0],q[1]-p[1]),left:d-s};} s-=d;}
-  return {x:FR_PATH[0][0],z:FR_PATH[0][1],h:0,left:1};
+  const R=frRoute(); s=Math.max(0,s);
+  for(let i=0;i+1<R.length;i++){const p=R[i], q=R[i+1], d=Math.hypot(q[0]-p[0],q[1]-p[1]);
+    if(s<=d||i+2===R.length){const k=Math.min(1,s/d);return {x:p[0]+(q[0]-p[0])*k,z:p[1]+(q[1]-p[1])*k,h:Math.atan2(q[0]-p[0],q[1]-p[1])};} s-=d;}
+  return {x:R[0][0],z:R[0][1],h:0};
+}
+// Neuer Morgen: 1 bis 3 Durchfahrten (gespeichert, damit Neuladen nichts neu würfelt)
+function frDay(){
+  if(!S.franco||S.franco.day!==S.day){S.franco={day:S.day,left:FR_PASSES(S.day)};FR.state="away";FR.away=3+Math.random()*4;}
+}
+// Nächste Durchfahrt beginnen: neuer Weg, am Anfang außerhalb des Viertels
+function frArrive(){
+  if(!S.franco||S.franco.left<=0)return false;
+  S.franco.left--; save();
+  const last=FR.route; let R; do R=pick(FR_ROUTES); while(R===last&&FR_ROUTES.length>1);
+  FR.route=R; FR.s=0; FR.v=FR_SPEED; FR.state="drive"; FR.shoutAt=2.5; frPlace(0); return true;
 }
 function frPlace(dt){
   const a=frAt(FR.s), g=FR.g;
@@ -115,12 +143,16 @@ function frPlace(dt){
 }
 
 /* ---------- Ton: Motor, Hupe, Megafon im Raum ---------- */
-// Zweitakter im Leerlauf: kurze Knall-Pulse (Rauschen + tiefer Schlag), als Schleife; schneller abspielen = Gas geben
+// Ape 50: kleiner Zweitakter. Im Leerlauf ein unregelmäßiges, blechernes „ploppplopp“ (manche Zündungen fallen fast aus),
+// beim Fahren ein hohes, nasales Kreischen „rrriiing-ding-ding“ (bis ~100 Zündungen pro Sekunde).
+// Der Puffer enthält nur die Zündknalle (50 pro Sekunde); die Klangfarbe von Auspuff und Blech machen feste Filter danach,
+// damit sie bei mehr Gas nicht mitwandert. Schneller abspielen = mehr Drehzahl.
 function frEngineBuf(){
-  const sr=AC.sampleRate, n=Math.round(sr*2), b=AC.createBuffer(1,n,sr), d=b.getChannelData(0), F=38, rnd=seeded(7);
-  for(let p=0;p<F*2;p++){const t0=Math.round(p*sr/F), a=.65+rnd()*.35, ph=rnd()*6;
-    for(let i=0;i<sr*.024&&t0+i<n;i++){const t=i/sr;
-      d[t0+i]+=a*((rnd()*2-1)*Math.exp(-t/.004)*.7+Math.sin(2*Math.PI*85*t+ph)*Math.exp(-t/.011)+Math.sin(2*Math.PI*410*t)*Math.exp(-t/.006)*.35);}}
+  const sr=AC.sampleRate, n=Math.round(sr*2), b=AC.createBuffer(1,n,sr), d=b.getChannelData(0), F=50, rnd=seeded(7);
+  for(let p=0;p<F*2;p++){
+    const t0=Math.round(p*sr/F+(rnd()-.5)*sr*.0025), miss=rnd()<.18, a=miss?.25+rnd()*.15:.7+rnd()*.3, ph=rnd()*6;
+    for(let i=0;i<sr*.014&&t0+i<n;i++){const t=i/sr;
+      d[t0+i]+=a*((rnd()*2-1)*Math.exp(-t/.0018)+Math.sin(2*Math.PI*140*t+ph)*Math.exp(-t/.005)*.6);}}
   return b;
 }
 function frPanner(out){
@@ -131,17 +163,22 @@ function frPanPos(p,x,y,z){if(p.positionX){p.positionX.value=x;p.positionY.value
 function frSound(){
   if(FR.snd||!AC)return FR.snd;
   const eng=frPanner(sfxGain), voice=AC.createGain(); voice.gain.value=1; voice.connect(AC.destination);
-  const vp=frPanner(voice);
+  const vp=frPanner(voice); vp.refDistance=34; vp.rolloffFactor=.8; // das Megafon trägt weit
   const src=AC.createBufferSource(); src.buffer=frEngineBuf(); src.loop=true;
-  const lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=1400; lp.Q.value=2;
+  // Auspuff-Resonanz (nasal), Blech-Klirren, etwas Rauheit durch Übersteuern
+  const hp=AC.createBiquadFilter(); hp.type="highpass"; hp.frequency.value=110;
+  const pipe=AC.createBiquadFilter(); pipe.type="peaking"; pipe.frequency.value=720; pipe.Q.value=3.5; pipe.gain.value=14;
+  const tin=AC.createBiquadFilter(); tin.type="peaking"; tin.frequency.value=1650; tin.Q.value=4; tin.gain.value=8;
+  const ws=AC.createWaveShaper(), c=new Float32Array(512); for(let i=0;i<512;i++){const x=i/255.5-1;c[i]=Math.tanh(x*2.4);} ws.curve=c;
+  const lp=AC.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=4200;
   const g=AC.createGain(); g.gain.value=0;
-  src.connect(lp); lp.connect(g); g.connect(eng); src.start();
+  src.connect(hp); hp.connect(pipe); pipe.connect(tin); tin.connect(ws); ws.connect(lp); lp.connect(g); g.connect(eng); src.start();
   FR.snd={eng,vp,voice,src,g}; return FR.snd;
 }
 // Lautstärke des Motors: 0, wenn die Stadt nicht zu sehen ist (anderer Bildschirm, Franco nicht unterwegs)
 function frEngine(on,rate){
   const s=FR.snd; if(!s)return;
-  s.g.gain.setTargetAtTime(on&&vol("sfx")>0?.55:0,AC.currentTime,on?.15:.08);
+  s.g.gain.setTargetAtTime(on&&vol("sfx")>0?.32+.18*Math.min(1,((rate||1)-.55)/1.45):0,AC.currentTime,on?.15:.08);
   s.src.playbackRate.setTargetAtTime(rate||1,AC.currentTime,.25);
 }
 setInterval(()=>{if(FR.snd&&performance.now()-FR.lastTick>300){frEngine(false);frStopShout();}},250);
@@ -173,11 +210,11 @@ async function frShout(t){
   try{
     const bufs=await Promise.all(parts.map(k=>recLoad(`stimmen/${v}/${k}.mp3`)));
     if(FR.shouting!==tok)return false;
-    s.voice.gain.value=vol("voice")*1.15;
+    s.voice.gain.value=vol("voice")*1.6;
     const inp=frMegaChain(s.vp); let at=AC.currentTime+.12;
     // Klick und kurzes Pfeifen beim Einschalten des Megafons
     const o=AC.createOscillator(),og=AC.createGain(); o.frequency.value=2300; og.gain.setValueAtTime(0,at-.1); og.gain.linearRampToValueAtTime(.05,at-.07); og.gain.linearRampToValueAtTime(0,at); o.connect(og); og.connect(s.vp); o.start(at-.1); o.stop(at+.02);
-    bufs.forEach(b=>{const x=AC.createBufferSource(); x.buffer=b; x.playbackRate.value=1.04; x.connect(inp); x.start(at); tok.src.push(x); at+=b.duration/1.04+.05;});
+    bufs.forEach(b=>{const x=AC.createBufferSource(); x.buffer=b; x.playbackRate.value=1.07; x.connect(inp); x.start(at); tok.src.push(x); at+=b.duration/1.07+.05;});
     tok.src[tok.src.length-1].onended=()=>{if(FR.shouting===tok)FR.shouting=null;};
     return true;
   }catch(e){return false;}
@@ -194,7 +231,10 @@ function frListener(){
 function francoTick(dt){
   if(!FR.g)return;
   FR.lastTick=performance.now();
-  const here=francoHere(); FR.g.visible=here;
+  if(francoHere())frDay();
+  // Weg: warten, bis die nächste Durchfahrt dran ist (heute vielleicht gar keine mehr)
+  if(FR.state==="away"&&francoHere()){FR.away-=dt;if(FR.away<=0&&!frArrive())FR.away=1e9;}
+  const here=francoHere()&&FR.state!=="away"; FR.g.visible=here;
   // Unsichtbar heißt auch: nicht antippbar (der Raycaster schaut nicht auf visible)
   const pi=C3.picks.indexOf(FR.g); if(here&&pi<0)C3.picks.push(FR.g); else if(!here&&pi>=0)C3.picks.splice(pi,1);
   if(!here){if(FR.open)francoClose(true);frEngine(false);frStopShout();frPin(false);return;}
@@ -203,6 +243,8 @@ function francoTick(dt){
   FR.v+=(target-FR.v)*Math.min(1,dt*(FR.state==="drive"?.9:2.6));
   if(FR.state==="stopping"&&FR.v<.05){FR.v=0;FR.state="stop";}
   FR.s+=FR.v*dt; frPlace(dt);
+  // Am Ende des Wegs ist er aus dem Viertel raus
+  if(FR.state==="drive"&&FR.s>=frLen()){FR.state="away";FR.away=FR_PAUSE();frEngine(false);frStopShout();frPin(false);return;}
   FR.wheels.forEach(w=>w.rotation.x+=FR.v*dt/.3);
   FR.g.position.y=Math.sin(C3.t*31)*.012*(.3+FR.v/FR_SPEED); // Zweitakter rüttelt
   if(FR.head)FR.head.rotation.y=FR.state==="stop"?Math.sin(C3.t*1.3)*.3+.6:Math.sin(C3.t*.7)*.15;
@@ -211,8 +253,8 @@ function francoTick(dt){
   // Ton
   if(AC){const s=frSound(); frListener(); const p=FR.g.position;
     frPanPos(s.eng,p.x,.6,p.z); frPanPos(s.vp,p.x,2.3,p.z);
-    frEngine(true,.72+.5*FR.v/FR_SPEED);
-    if(FR.state==="drive"){FR.shoutAt-=dt; if(FR.shoutAt<=0){FR.shoutAt=8+Math.random()*5;
+    frEngine(true,.55+1.45*Math.pow(FR.v/FR_SPEED,.8)); // Leerlauf ~27, Fahrt ~100 Zündungen/s
+    if(FR.state==="drive"){FR.shoutAt-=dt; if(FR.shoutAt<=0){FR.shoutAt=5+Math.random()*3;
       const sh=FR_SHOUT[FR.shoutI++%FR_SHOUT.length]; FR.msg=sh; frShout(sh[0]);}}}
   frPin(true); frPanelKeep();
 }
@@ -233,11 +275,11 @@ function frPin(on){
 /* ---------- Anhalten und verkaufen ---------- */
 // Trifft der Tipp-Strahl die Ape? Dann anhalten (true), sonst geht der Tipp an die Orte
 function francoHit(rc){
-  if(!FR.g||!FR.g.visible||!francoHere()||!rc.intersectObject(FR.g,true).length)return false;
+  if(!FR.g||!FR.g.visible||FR.state==="away"||!francoHere()||!rc.intersectObject(FR.g,true).length)return false;
   francoTap(); return true;
 }
 function francoTap(){
-  if(!francoHere()||!FR.g)return;
+  if(!francoHere()||!FR.g||FR.state==="away")return;
   if(FR.open)return;
   initAudio(); FR.open=true; FR.state="stopping"; FR.camGo=1.2; frStopShout(); sfx("select");
   const s=frSound(); if(s&&AC){const t=AC.currentTime; // Bremsen: Quietschen
@@ -260,9 +302,9 @@ function frBuy(k){
 function francoClose(quiet){
   if(!FR.open)return;
   FR.open=false; FR.note=""; const p=C3.host&&C3.host.querySelector(".fr-panel"); if(p)p.remove();
-  if(quiet){FR.state="drive";return;}
+  if(quiet){if(FR.state!=="away")FR.state="drive";return;}
   const line=FR_SAY.bye[0]; FR.msg=line; speak(line[0],"Franco");
-  setTimeout(()=>{if(!FR.open){frHorn();FR.state="drive";FR.shoutAt=5;}},1600);
+  setTimeout(()=>{if(!FR.open&&FR.state!=="away"){frHorn();FR.state="drive";FR.shoutAt=4;}},1600);
 }
 function frPanelHTML(){
   const [it,de]=FR.say||FR_SAY.greet[0];

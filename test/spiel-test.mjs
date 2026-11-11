@@ -491,7 +491,12 @@ await fresh({ setupDone: true, coins: 60, day: 2, level: 1 });
 await page.evaluate(() => { screen = "map"; render(); });
 await page.waitForTimeout(1500);
 if (await page.evaluate(() => typeof FR !== "undefined" && !!FR.g)) {
-  check(await page.evaluate(() => FR.g.visible && FR.v > 1), "Franco fährt morgens nicht durch die Stadt");
+  // Morgens 1 bis 3 Durchfahrten, dann ist er weg
+  check(await page.evaluate(() => S.franco && S.franco.day === S.day && S.franco.left >= 0 && S.franco.left <= 3), "Franco: keine 1 bis 3 Durchfahrten am Morgen");
+  await page.evaluate(() => { FR.away = 0; });
+  await page.waitForTimeout(600);
+  check(await page.evaluate(() => FR.g.visible && FR.state === "drive" && FR.v > 1), "Franco fährt morgens nicht durch die Stadt");
+  check(await page.evaluate(() => { const L = frLen(), a = frAt(0), b = frAt(L); return Math.max(Math.abs(a.x), Math.abs(a.z)) > 55 && Math.max(Math.abs(b.x), Math.abs(b.z)) > 55; }), "Franco kommt nicht von außerhalb oder fährt nicht wieder weg");
   await page.evaluate(() => francoTap());
   await page.waitForTimeout(1200);
   check(await page.evaluate(() => FR.open && FR.v < .5 && !!document.querySelector(".fr-panel")), "Ape hält beim Antippen nicht an / kein Verkaufsfenster");
@@ -500,6 +505,9 @@ if (await page.evaluate(() => typeof FR !== "undefined" && !!FR.g)) {
   check(await page.evaluate(() => stockOf("melone") === KISTE && S.ing.includes("melone") && S.coins === 60 - frPrice("melone")), "Kauf bei Franco landet nicht im Vorrat");
   await page.locator(".fr-bye").click();
   check(await page.evaluate(() => !FR.open), "Franco fährt nach Arrivederci nicht weiter");
+  // Ende des Wegs: weg, und nach der letzten Durchfahrt kommt er heute nicht wieder
+  check(await page.evaluate(() => { FR.state = "drive"; FR.s = frLen() + 1; S.franco.left = 0; francoTick(.03); FR.away = 0; francoTick(.03); return FR.state === "away" && !FR.g.visible; }), "Franco verschwindet nach der letzten Durchfahrt nicht");
+  await page.evaluate(() => { S.franco.left = 1; FR.away = 0; francoTick(.03); });
   await page.evaluate(() => { startDay(); screen = "map"; render(); });
   await page.waitForTimeout(300);
   check(await page.evaluate(() => !FR.g.visible && !C3.picks.includes(FR.g)), "Franco fährt auch während des Spieltags herum");
