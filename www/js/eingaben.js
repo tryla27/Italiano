@@ -49,6 +49,9 @@ function handleClick(e){
   if(a==="lplace")return landTap(t.dataset.p);
   if(a==="lenter")return landEnter(t.dataset.p);
   if(a==="lexit")return landExit();
+  if(a==="fbuy")return fornoBuy();
+  if(a==="fsay")return fornoSay();
+  if(a==="recipes"){volOpen=false;codeBox=null;menuOpen=true;return render();} // Rezeptbuch aus dem Spielermenü
   if(a==="trip"){if(G&&!G.summary){screen="play";render();autoSpeak();return;}return startTrip(t.dataset.t);}
   if(a==="setup"){screen="setup";return render();}
   if(a==="setupCheck"){if(ROOM_ITEMS.every(i=>S.room.some(r=>r.id===i.id)))startSetupQuiz();return;}
@@ -69,7 +72,10 @@ function handleClick(e){
   if(a==="chest")return chestTap();
   if(a==="vacc"){const i=$("#vin");if(i&&!i.readOnly){i.value+=t.dataset.c;i.focus();}return;}
   if(a==="book"){screen="book";return render();}
-  if(a==="memo")return startMemo();
+  if(a==="memo")return tavOpen();           // Memory gibt es am Tisch auf der Piazza (tavolo.js)
+  if(a==="memo1")return startMemo();
+  if(a==="memo2")return startMemo(true);
+  if(a==="bardrink")return barOrder(t.dataset.k);
   if(a==="biblio"){LETTURA=null;stopPoesia();POESIA=null;screen="biblio";return render();}
   if(a==="leggi")return startLettura(t.dataset.b,+t.dataset.c);
   if(a==="lpag")return letturaPage(+t.dataset.d);
@@ -89,6 +95,7 @@ function handleClick(e){
   if(a==="buy"){const i=SHOP.find(x=>x.id===t.dataset.id);if(i&&S.coins>=i.cost&&!S.owned.includes(i.id)){S.coins-=i.cost;S.owned.push(i.id);sfx("coins");if(i.up)S.level=i.up;else{furnBought(i);screen="locale";}save();}return render();}
   // 3D-Restaurant: öffnen, Name hören, drehen, einlagern, aus dem Lager aufstellen
   if(a==="locale"){screen="locale";return render();}
+  if(a==="lopen"){sfx("door");if(G&&!G.summary&&!G.trip){screen="play";render();autoSpeak();return;}return openDay();}
   if(a==="lsay"){const I=L3.byKey[L3.sel];if(I)speak(I.it);return;}
   if(a==="lrot"){locRotate();return render();}
   if(a==="lstore"){locStore();return render();}

@@ -53,7 +53,7 @@ async function shot(name) {
   console.log("  Screenshot:", file);
 }
 // Knöpfe, die auf der Startseite jetzt Häuser im 3D-Viertel sind
-const PIN = { vocab: "scuola", memo: "bar", menu: "forno" };
+const PIN = { vocab: "scuola", memo: "tavolo" };
 async function act(a, extra = "") {
   let el = page.locator(`[data-act="${a}"]${extra}`).first();
   if (!(await el.count()) && !extra && PIN[a]) el = page.locator(`.city-pin[data-p="${PIN[a]}"]`).first();
@@ -228,6 +228,9 @@ check(await page.evaluate(() => { G = null; S.lager = Object.fromEntries(S.ing.m
 // Zutaten-Memory: vom Startbildschirm, Paare finden, einmal pro Spieltag Geld
 await page.evaluate(() => { G = null; screen = "home"; S.memDay = 0; render(); });
 await act("memo");
+check(await page.evaluate(() => screen === "memo" && MEMO.choose && !!document.querySelector('[data-act="memo1"]') && !!document.querySelector('[data-act="memo2"]')), "Am Tisch fehlt die Wahl: allein oder gegen Nonno Peppe");
+await shot("tavolo-wahl");
+await act("memo1");
 check(await page.evaluate(() => screen === "memo" && document.querySelectorAll('[data-act="mflip"]').length === 12), "Memory startet nicht");
 await page.evaluate(() => { const c = MEMO.cards, a = c.findIndex(x => x.pic), b = c.findIndex(x => !x.pic && x.k !== c[a].k); memoFlip(a); memoFlip(b); });
 await shot("memory-falsch");
@@ -238,6 +241,24 @@ await shot("memory-halb");
 check(await page.evaluate(() => { const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 11 && S.coins === before + 11 && S.memDay === S.day; }), "Memory-Belohnung stimmt nicht");
 await shot("memory-fertig");
 check(await page.evaluate(() => { startMemo(); const before = S.coins, c = MEMO.cards; [...new Set(c.map(x => x.k))].forEach(k => { memoFlip(c.findIndex(x => x.k === k && x.pic)); memoFlip(c.findIndex(x => x.k === k && !x.pic)); }); return MEMO.done && MEMO.reward === 0 && S.coins === before; }), "Memory belohnt mehrmals am selben Tag");
+// Memory am Tisch auf der Piazza gegen Nonno Peppe: abwechselnd, er spielt selbst, Sieg gibt einmal pro Tag Geld
+await page.evaluate(() => { goPlace("tavolo"); startMemo(true); });
+check(await page.evaluate(() => screen === "memo" && MEMO.vs && MEMO.turn === "me" && !!document.querySelector(".tav-top")), "Memory am Tisch startet nicht");
+await page.evaluate(() => { const c = MEMO.cards, a = c.findIndex(x => x.pic), b = c.findIndex(x => !x.pic && x.k !== c[a].k); memoFlip(a); memoFlip(b); });
+await page.waitForTimeout(1400);
+check(await page.evaluate(() => MEMO.turn === "ai" && (memoFlip(MEMO.cards.findIndex((x, i) => !MEMO.open.includes(i))), MEMO.open.length === 0)), "Am Tisch ist Nonno Peppe nach einem Fehler nicht dran oder man darf in seinem Zug spielen");
+await page.waitForTimeout(2600);
+await shot("tavolo-nonno");
+check(await page.evaluate(() => MEMO.moves >= 2), "Nonno Peppe spielt nicht");
+await page.waitForFunction(() => MEMO.turn === "me" && !MEMO.lock && MEMO.open.length === 0 || MEMO.done, null, { timeout: 30000 });
+check(await page.evaluate(() => { if (MEMO.done) return true; const before = S.coins, M = MEMO; M.score.ai = 0; [...new Set(M.cards.map(x => x.k))].filter(k => !M.found.includes(k)).forEach(k => { memoFlip(M.cards.findIndex(x => x.k === k && x.pic)); memoFlip(M.cards.findIndex(x => x.k === k && !x.pic)); }); return M.done && M.result === "win" && M.reward === 10 && S.coins === before + 10 && S.tavDay === S.day; }), "Sieg am Tisch wird nicht belohnt");
+await shot("tavolo-sieg");
+// Die Bar verkauft Burger und Getränke (kein Eis, das gibt es in der Gelateria): bestellen kostet Geld, ohne Geld sagt Ciccio nein
+await page.evaluate(() => goPlace("bar"));
+check(await page.evaluate(() => screen === "bar" && document.querySelectorAll('[data-act="bardrink"]').length === BAR_MENU.length && BAR_MENU.some(d => /burger/.test(d[0])) && !BAR_MENU.some(d => /granita|gelato/.test(d[0])) && !document.querySelector('[data-act="mflip"]')), "Bar zeigt keine Burger und Getränke (oder verkauft Eis)");
+check(await page.evaluate(() => { S.coins = 5; barOrder("cappuccino"); const ok = S.coins === 3 && BARB.got && BARB.got[0] === "cappuccino"; S.coins = 0; barOrder("caffè"); return ok && S.coins === 0 && !BARB.got; }), "Getränke an der Bar kosten nicht richtig");
+await page.evaluate(() => { S.coins = 10; barOrder("cheeseburger"); });
+await shot("bar-getraenke");
 await page.evaluate(() => { screen = "home"; render(); });
 // Stammgäste mit Persönlichkeit, Reaktionen auf falsche Antworten, Geschichten über mehrere Tage
 check(await page.evaluate(() => Object.keys(PERS).length === NAMES.length && NAMES.every(n => PERS[n].greet.length && PERS[n].talk.length && PERS[n].huh[0].length && PERS[n].huh[1].length)), "Nicht jeder Stammgast hat eigene Sätze");
@@ -319,20 +340,23 @@ await page.locator('[data-act="cserve"]').click();
 check(await page.evaluate(() => curStep().done && curStep().wrong === 0), "Richtig zubereiteter Kaffee wird nicht angenommen");
 await page.evaluate(() => { G = null; screen = "home"; S.owned = []; render(); });
 
-// Gesundheitsamt: Brief am Abend davor, vier Fragen, Ergebnis in der Abrechnung
+// Gesundheitsamt: Brief am Abend davor, drei Fragen, Ergebnis in der Abrechnung
 await fresh({ coins: 100, level: 1, day: 6, setupDone: true });
 check(await page.evaluate(() => { S.inspDue = 7; G = null; startDay(); G.phase = "guest"; while (G && screen === "play") advance(); return G.summary.letter === true; }), "Brief vom Gesundheitsamt fehlt am Abend davor");
 await shot("brief-asl");
-check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 4; }), "Dottoressa Severini kommt nicht");
+check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 3; }), "Dottoressa Severini kommt nicht");
 await page.evaluate(() => render());
 await shot("ispettrice");
-check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspDue > S.day; }), "Bestandene Prüfung gibt kein Zertifikat");
-check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspDue === S.day; }), "Durchgefallen: keine Strafe oder kein Wiederbesuch am nächsten Tag");
+check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspN === 1 && S.inspDue === 0; }), "Bestandene Prüfung gibt kein Zertifikat");
+check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspN === 2 && !S.inspDue; }), "Durchgefallen: keine Strafe");
+// Höchstens zweimal im Spiel: danach plant das Spiel keine Kontrolle mehr, auch nicht auf hoher Stufe
+check(await page.evaluate(() => { S.level = 5; for (let k = 0; k < 30; k++) { G = null; startDay(); if (G.guests.some(g => g.insp)) return false; while (G && screen === "play") advance(); } return !S.inspDue && S.inspN === 2; }), "Gesundheitsamt kommt öfter als zweimal");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
 
 // Antwort antippen: die Stimme liest sie vor
 await fresh({ coins: 10, level: 0, day: 1, setupDone: true });
-await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); render(); });
+// Nicht jeder Gast begrüßt: für den Test sicher mit einer Frage mit Antworten anfangen
+await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); if (curStep().kind !== "mc") G.guests[0].steps.unshift(mcStep(GREET[0], "Was antwortest du?", { greet: true })); render(); });
 await page.locator('#screen .opt').first().click();
 check(await page.evaluate(() => __said.includes(curStep().opts[0].t)), "Angetippte Antwort wird nicht vorgelesen");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
@@ -353,7 +377,7 @@ for (const trip of ["gelateria", "porto"]) {
   await act("map");
   if (trip === "gelateria") {
     await page.waitForTimeout(1500);
-    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 10, "Karte zeigt kein 3D-Viertel mit allen Orten");
+    check(await page.locator(".map.city canvas").count() === 1 && await page.locator(".map .city-pin[data-p]").count() === 11, "Karte zeigt kein 3D-Viertel mit allen Orten");
     await shot("karte");
   }
   await page.locator(`.map [data-act="place"][data-p="${trip}"]`).click();
@@ -368,9 +392,9 @@ for (const trip of ["gelateria", "porto"]) {
   check(await page.evaluate(() => screen === "summary" && S.coins > 10), `Ausflug ${trip} endet nicht mit Trinkgeld`);
 }
 
-// Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory, Notizbuch und Rezepten
+// Startseite ist das 3D-Viertel: die Lernhäuser führen zu Vokabeln, Memory (Tisch), Bar (Getränke), Notizbuch und Rezepten
 await fresh({ setupDone: true, coins: 10, day: 2 });
-check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 10), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
+check(await page.evaluate(() => screen === "home" && !!document.querySelector(".s-home .map.city canvas") && document.querySelectorAll(".s-home .city-pin[data-p]").length === 11), "Startseite zeigt nicht das 3D-Viertel mit allen Orten");
 // La campagna: Wegweiser in der Stadt führt aufs Land mit Bauernhof, Don Vincenzo und Weinberg (noch zu)
 await page.evaluate(() => goPlace("campagna"));
 await page.waitForTimeout(1500);
@@ -388,7 +412,7 @@ await page.locator('[data-act="lexit"]').click();
 check(await page.evaluate(() => !K3.inside && K3.roofs.vincenzo.every(m => m.visible)), "Hinausgehen bringt das Dach nicht zurück");
 await act("home");
 await shot("startseite-stadt");
-for (const [p, want] of [["scuola", "vocab"], ["bar", "memo"], ["biblioteca", "biblio"]]) {
+for (const [p, want] of [["scuola", "vocab"], ["tavolo", "memo"], ["bar", "bar"], ["biblioteca", "biblio"]]) {
   await page.evaluate(() => { screen = "home"; render(); });
   await page.locator(`.city-pin[data-p="${p}"]`).click();
   check(await page.evaluate(w => screen === w, want), `Haus ${p} führt nicht zu ${want}`);
@@ -407,9 +431,24 @@ check(await page.evaluate(() => POESIE.every(P => P.versi.every(([it]) => poWord
 check(await page.evaluate(() => { const solve = () => { startPoesia("giro"); startPoesiaQuiz(); while (POESIA.quiz) { const g = POESIA.quiz.gaps[POESIA.quiz.gi]; poesiaAnswer(g.opts.indexOf(g.word)); } };
   const c0 = S.coins; solve(); solve(); const l1 = S.poesie.giro.lvl; S.day++; solve(); S.day++; solve(); return l1 === 1 && S.poesie.giro.lvl === POESIA_MAX && S.coins === c0 + POESIA_PREMIO; }), "Gedicht-Stufen oder Belohnung stimmen nicht");
 await page.evaluate(() => { screen = "home"; render(); });
+// Il vecchio forno: leerstehend, betretbar in 3D, für Geld zu kaufen
 await page.locator('.city-pin[data-p="forno"]').click();
-check(await page.evaluate(() => menuOpen), "Forno öffnet keine Rezepte");
+await page.waitForTimeout(800);
+check(await page.evaluate(() => screen === "forno" && !!document.querySelector("#forno3d canvas") && !fornoMine()), "Alter Forno lässt sich nicht betreten");
+check(await page.evaluate(() => F3.walls.some(w => !w.g.visible) && F3.walls.some(w => w.g.visible)), "Wände zur Kamera werden nicht ausgeblendet");
+await shot("forno-leer");
+check(await page.evaluate(() => { S.coins = 50; render(); fornoBuy(); return !fornoMine() && S.coins === 50; }), "Forno lässt sich ohne Geld kaufen");
+check(await page.evaluate(() => { S.coins = FORNO_PREIS + 20; render(); document.querySelector('[data-act="fbuy"]').click(); return fornoMine() && S.coins === 20 && S.forno.day === S.day; }), "Forno lässt sich nicht kaufen");
+await shot("forno-gekauft");
+await act("home");
+check(await page.evaluate(() => C3.fornoSold.visible && !C3.fornoSale.visible && /gehört dir/.test(document.querySelector('.city-pin[data-p="forno"]').textContent)), "Stadt zeigt nicht, dass der Forno dir gehört");
+// Rezeptbuch steckt jetzt im Spielermenü (Zahnrad)
+await page.evaluate(() => { volOpen = true; render(); });
+await page.locator('[data-act="recipes"]').click();
+check(await page.evaluate(() => menuOpen && !volOpen && /Il ricettario/.test($("#overlay").textContent)), "Rezeptbuch fehlt im Spielermenü");
 await page.evaluate(() => { menuOpen = false; render(); });
+// Rezepte schalten sich mit den Zutaten frei, ohne Stufe
+check(await page.evaluate(() => { const lv0 = S.level; S.level = 0; const P = PIZZE.find(p => p.lv >= 3); const keep = [...S.ing]; S.ing = [...new Set([...S.ing, ...P.ing])]; const ok = availPizze().includes(P); S.ing = keep; S.level = lv0; return ok; }), "Rezept bleibt trotz Zutaten an die Stufe gebunden");
 
 // Karte: Markt ist außerhalb des Spieltags offen, die Pizzeria startet den Tag
 await fresh({ setupDone: true, coins: 10, day: 2 });
@@ -419,7 +458,9 @@ check(await page.evaluate(() => screen === "mercato" && document.querySelectorAl
 await shot("mercato");
 await page.evaluate(() => { screen = "home"; render(); });
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
-check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
+check(await page.evaluate(() => screen === "locale" && !G), "Pizzeria auf der Karte führt nicht ins eigene Restaurant");
+await page.locator('[data-act="lopen"]').click();
+check(await page.evaluate(() => screen === "play" && !G.trip), "„Apriamo!“ im Restaurant startet keinen Spieltag");
 // Während des Spieltags ist der Markt zu
 check(await page.evaluate(() => { goPlace("mercato"); const ok = screen !== "mercato" && /läuft noch/.test(mapMsg); mapMsg = ""; return ok; }), "Markt öffnet mitten im Spieltag");
 
@@ -486,7 +527,15 @@ await fresh({ setupDone: true, coins: 60, day: 2, level: 1 });
 await page.evaluate(() => { screen = "map"; render(); });
 await page.waitForTimeout(1500);
 if (await page.evaluate(() => typeof FR !== "undefined" && !!FR.g)) {
-  check(await page.evaluate(() => FR.g.visible && FR.v > 1), "Franco fährt morgens nicht durch die Stadt");
+  // Morgens 1 bis 3 Durchfahrten, dann ist er weg
+  check(await page.evaluate(() => S.franco && S.franco.day === S.day && S.franco.left >= 0 && S.franco.left <= 3), "Franco: keine 1 bis 3 Durchfahrten am Morgen");
+  await page.evaluate(() => { FR.away = 0; });
+  await page.waitForTimeout(600);
+  // (er darf auch gerade an der roten Ampel der Kreuzung Spaccanapoli / Via Toledo warten)
+  check(await page.evaluate(() => FR.g.visible && FR.state === "drive" && (FR.v > 1 || (typeof napoliMustStop === "function" && napoliMustStop(FR.g.position.x, FR.g.position.z, 1, 0)))), "Franco fährt morgens nicht durch die Stadt");
+  check(await page.evaluate(() => { const L = frLen(), a = frAt(0), b = frAt(L); return Math.max(Math.abs(a.x), Math.abs(a.z)) > 55 && Math.max(Math.abs(b.x), Math.abs(b.z)) > 55; }), "Franco kommt nicht von außerhalb oder fährt nicht wieder weg");
+  check(await page.evaluate(() => { const t = NP_TL.t; NP_TL.t = 3; const ns = npPhase(3), red = napoliMustStop(-5, -17.5, 1, 0), go = napoliMustStop(1, -25, 0, 1); NP_TL.t = 17; const ew = npPhase(17), go2 = napoliMustStop(-5, -17.5, 1, 0); NP_TL.t = t;
+    return ns.ns === "g" && ns.ew === "r" && red && !go && ew.ew === "g" && ew.ns === "r" && !go2 && npPhase(14.5).ew === "ry" && npPhase(10).ns === "y"; }), "Ampel schaltet nicht nach StVO oder Franco hält nicht bei Rot");
   await page.evaluate(() => francoTap());
   await page.waitForTimeout(1200);
   check(await page.evaluate(() => FR.open && FR.v < .5 && !!document.querySelector(".fr-panel")), "Ape hält beim Antippen nicht an / kein Verkaufsfenster");
@@ -495,6 +544,9 @@ if (await page.evaluate(() => typeof FR !== "undefined" && !!FR.g)) {
   check(await page.evaluate(() => stockOf("melone") === KISTE && S.ing.includes("melone") && S.coins === 60 - frPrice("melone")), "Kauf bei Franco landet nicht im Vorrat");
   await page.locator(".fr-bye").click();
   check(await page.evaluate(() => !FR.open), "Franco fährt nach Arrivederci nicht weiter");
+  // Ende des Wegs: weg, und nach der letzten Durchfahrt kommt er heute nicht wieder
+  check(await page.evaluate(() => { FR.state = "drive"; FR.s = frLen() + 1; S.franco.left = 0; francoTick(.03); FR.away = 0; francoTick(.03); return FR.state === "away" && !FR.g.visible; }), "Franco verschwindet nach der letzten Durchfahrt nicht");
+  await page.evaluate(() => { S.franco.left = 1; FR.away = 0; francoTick(.03); });
   await page.evaluate(() => { startDay(); screen = "map"; render(); });
   await page.waitForTimeout(300);
   check(await page.evaluate(() => !FR.g.visible && !C3.picks.includes(FR.g)), "Franco fährt auch während des Spieltags herum");

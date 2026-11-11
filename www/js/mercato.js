@@ -42,7 +42,7 @@ function mkRescue(){
 }
 function mkBuy(k){
   const p=mkPrice(k); if(!ING[k]||S.coins<p){sfx("wrong");return false;}
-  S.coins-=p; mkMsg=addStock(k,KISTE); sfx("coins"); save(); return true;
+  S.coins-=p; mkMsg=addStock(k,KISTE); sfx("coins"); save(); if(typeof mk3Hop==="function")mk3Hop(k); return true;
 }
 // Alles auffüllen, was für einen Spieltag fehlt (so weit das Geld reicht). Gibt die ausgegebenen Euro zurück.
 function mkFill(){
@@ -57,18 +57,20 @@ function mkGo(){
   if(G&&!G.summary&&!G.trip&&G.phase==="market"){screen="play";render();autoSpeak();return;}
   if(G&&!G.summary){mapMsg="Dein Spieltag läuft noch: erst fertig spielen, dann einkaufen.";sfx("wrong");return render();}
   if(G&&G.summary)G=null;
-  mapMsg=""; mkMsg=""; screen="mercato"; sfx("door"); render();
+  mapMsg=""; mkMsg=""; if(typeof mk3Enter==="function")mk3Enter(); screen="mercato"; sfx("door"); render();
   const B=BANCHE.find(b=>b.id===mkTab); if(B&&S.sound)setTimeout(()=>speak(B.say[0],B.who),300);
 }
 function mkCard(k){
   const n=stockOf(k), p=mkPrice(k), neu=!hasIng(k);
-  const pz=PIZZE.filter(x=>x.ing.includes(k)), now=pz.filter(x=>x.lv<=S.level), later=pz.filter(x=>x.lv>S.level);
-  const use=now.length?`für ${now.map(x=>cap(x.n)).join(", ")}`:later.length?`Pizza ab ${LEVELS[later[0].lv].it}`:"als Extra-Belag";
+  const pz=PIZZE.filter(x=>x.ing.includes(k));
+  const use=pz.length?`für ${pz.map(x=>cap(x.n)).join(", ")}`:"als Extra-Belag";
   return `<div class="card mk-card${neu?" neu":""}${n<4&&!neu?" low":""}">${kisteImg(k)}<b>${k}</b><small>${esc(ING[k][0])} · ${esc(use)}</small>
     <span class="mk-stock">${neu?"neu":`im Vorrat: <b>${n}</b>`}</span>
     <button class="buy" data-act="mkbuy" data-k="${k}" ${S.coins<p?"disabled":""} aria-label="Eine Kiste ${esc(ING[k][0])} für ${p} Euro">+${KISTE} · ${p} €</button></div>`;
 }
-function rMercato(){
+// Begehbar in 3D (markt3d.js), ohne WebGL der flache Markt
+function rMercato(){return cityCan()?rMercato3D():rMercato2D();}
+function rMercato2D(){
   const B=BANCHE.find(b=>b.id===mkTab)||BANCHE[0], md=isMarketDay(S.day), list=mkList(), cost=mkListCost(), kisten=list.reduce((a,x)=>a+x.n,0);
   const esp=B.who==="Signor Esposito"?{name:"Signor Esposito",mood:2}:null;
   $("#screen").innerHTML=`${head("Il Mercato",md?`Markttag: alles ${MK_RABATT*100} % günstiger`:"Zutaten für deine Küche")}

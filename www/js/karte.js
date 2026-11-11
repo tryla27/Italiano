@@ -2,19 +2,19 @@
 const PLACES=[
   {id:"pizzeria",it:"La Pizzeria",de:"Spieltag",x:112,y:250,img:"bilder/umgebungen/pizzeria.webp",vb:"60 400 280 280"},
   {id:"mercato",it:"Il Mercato",de:"Zutaten kaufen",x:282,y:150,img:"bilder/umgebungen/markt.webp",vb:"60 300 280 280"},
-  {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:"bilder/umgebungen/eisladen.webp",vb:"60 380 280 280"},
+  {id:"gelateria",it:"La Gelateria",de:"Ausflug",x:296,y:300,img:null},
   {id:"porto",it:"Il Porto",de:"Ausflug",x:150,y:402,img:"bilder/umgebungen/hafen.webp",vb:"60 300 280 280"},
   {id:"capri",it:"Capri",de:"bald mit dem Boot",x:336,y:448,locked:true},
   // Lernorte gibt es nur im 3D-Viertel; auf der flachen Karte sind es die Knöpfe der Startseite
-  {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Memory",city:1},
-  {id:"biblioteca",it:"La Biblioteca",de:"Bücher · Notizbuch",city:1},{id:"forno",it:"Il Forno",de:"Rezepte",city:1},
+  {id:"scuola",it:"La Scuola",de:"Vokabeln",city:1},{id:"bar",it:"Il Bar",de:"Burger · Getränke",city:1},
+  {id:"biblioteca",it:"La Biblioteca",de:"Bücher · Notizbuch",city:1},{id:"forno",it:"Il vecchio forno",de:"steht leer",city:1},
   {id:"campagna",it:"🛵 La campagna",de:"Don Vincenzo · Bauernhof",city:1}
 ];
 const CITY_GO={
   scuola:()=>{screen="vocab";if(S.vocabRun&&S.vocabRun.finished)S.vocabRun=null;render();},
-  bar:()=>startMemo(),
+  bar:()=>barOpen(),
   biblioteca:()=>{screen="biblio";render();},
-  forno:()=>{menuOpen=true;render();},
+  forno:()=>fornoGo(),
   campagna:()=>{K3.msg=null;if(K3.inside){K3.inside=null;K3.fly=null;K3.fitted=false;landRoofs();}screen="campagna";render();}
 };
 function placeOpen(p){
@@ -42,7 +42,7 @@ function mapSVG(){
 }
 // Schilder über den Orten im 3D-Viertel
 function cityPinsHTML(){
-  return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="bar"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.id==="mercato"?mkPinText():p.de;
+  return PLACES.map(p=>{const open=placeOpen(p), de=p.id==="tavolo"&&S.memDay!==S.day?"Memory · Bonus!":p.id==="scuola"&&vocabWaiting()?"Vokabeln · neu!":p.id==="mercato"?mkPinText():p.id==="forno"?(fornoMine()?"gehört dir · leer":`Vendesi · ${FORNO_PREIS} €`):p.de;
     return `<button class="city-pin${open?"":" shut"}${p.city?" learn":""}" data-act="place" data-p="${p.id}" aria-label="${p.it}, ${de}${open?"":" (geschlossen)"}"><b>${open?"":"🔒 "}${p.it}</b><small>${de}</small></button>`;}).join("");
 }
 const cityBox=()=>`<div class="map city full3d" id="city3d"><div class="city-pins">${cityPinsHTML()}</div>
@@ -71,7 +71,7 @@ function goPlace(id){
   const p=PLACES.find(q=>q.id===id); if(!p)return;
   if(id==="mercato")return mkGo();
   if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":"";sfx("wrong");return render();}
-  if(id==="pizzeria"){if(G&&!G.summary&&!G.trip){mapMsg="";sfx("door");screen="play";render();autoSpeak();return;}sfx("door");return openDay();}
+  if(id==="pizzeria"){mapMsg="";sfx("door");screen="locale";return render();} // erst ins eigene Restaurant, von dort öffnen
   mapMsg=""; sfx("door");
   if(G&&!G.summary&&G.trip===id){screen="play";render();autoSpeak();return;}
   // Ein laufender Spieltag geht nicht einfach verloren, wenn man auf einen Ausflug tippt

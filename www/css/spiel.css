@@ -98,7 +98,11 @@ input,textarea{-webkit-user-select:text;user-select:text}
 
 /* HUD */
 .hud{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums}
-.hud .where{font-size:.85rem;color:var(--chalk-dim);font-weight:600}
+.hud .where{font-size:.85rem;color:var(--chalk-dim);font-weight:600;display:flex;flex-direction:column;align-items:center;gap:3px}
+.hud .where .steps{display:flex;gap:3px}
+.hud .where .steps i{width:6px;height:6px;border-radius:50%;background:currentColor;opacity:.3}
+.hud .where .steps i.done{opacity:.8}
+.hud .where .steps i.now{opacity:1;background:var(--gold,#f2c14e)}
 .stars{color:var(--gold);letter-spacing:1px;font-size:1rem;white-space:nowrap}
 .stars .off{color:var(--slate3)}
 .stars .half{background:linear-gradient(90deg,var(--gold) 50%,var(--slate3) 50%);-webkit-background-clip:text;background-clip:text;color:transparent}
@@ -265,10 +269,10 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 
 /* Kassen-Symbol beim Geldbekommen */
 #kasse{position:fixed;top:calc(10px + env(safe-area-inset-top,0px));right:max(12px,env(safe-area-inset-right,0px));z-index:35;pointer-events:none}
-.kasse-pop{display:flex;align-items:center;gap:8px;background:var(--slate2);border:2px solid var(--gold);border-radius:16px;padding:6px 12px 6px 6px;box-shadow:0 8px 20px rgba(0,0,0,.45);animation:kasse 1.9s ease-out both}
-.kasse-pop svg{width:44px;height:44px;animation:kaching .5s ease-out}
-.kasse-pop b{font-family:var(--game);font-weight:400;font-size:1.35rem;color:var(--gold)}
-.kasse-pop small{display:block;font-size:.7rem;color:var(--chalk-dim)}
+.kasse-pop{display:flex;align-items:center;gap:6px;background:var(--slate2);border:2px solid var(--gold);border-radius:14px;padding:4px 10px 4px 4px;line-height:1.05;box-shadow:0 8px 20px rgba(0,0,0,.45);animation:kasse 1.9s ease-out both}
+.kasse-pop svg{width:34px;height:34px;flex:none;animation:kaching .5s ease-out}
+.kasse-pop b{display:block;font-family:var(--game);font-weight:400;font-size:1.2rem;white-space:nowrap;color:var(--gold)}
+.kasse-pop small{display:block;font-size:.66rem;white-space:nowrap;color:var(--chalk-dim)}
 @keyframes kasse{0%{transform:translateY(-20px) scale(.8);opacity:0}12%{transform:none;opacity:1}80%{opacity:1}100%{transform:translateY(-10px);opacity:0}}
 @keyframes kaching{40%{transform:rotate(-10deg) scale(1.15)}70%{transform:rotate(6deg)}}
 
@@ -367,7 +371,6 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .vword.de{font-size:1.4rem}
 .s-vocab .opts{gap:7px}
 /* Truhe */
-#kasse{right:auto;left:50%;transform:translateX(-50%)}
 .chestbtn{background:linear-gradient(180deg,#f4c64f,#d99a2b);color:#3a2a00;box-shadow:0 5px 0 #9a6a14;animation:chestpulse 1.6s ease-in-out infinite}
 .chestbtn small{color:#5a4410}
 @keyframes chestpulse{50%{transform:scale(1.025)}}
@@ -534,6 +537,7 @@ h2.t{font-family:var(--game);font-size:1.8rem}
 .loc-b{padding:4px 8px;font-size:1.15rem;line-height:1.1;background:rgba(27,34,31,.92)}
 .loc-b small{font-size:.66rem}
 .loc-store{display:flex;flex-direction:column;gap:3px}
+.loc-open{flex:none}
 .loc-store b{font-family:var(--hand);font-size:1.25rem;color:var(--gold);line-height:1}
 .loc-store>small{color:var(--chalk-dim);font-size:.74rem}
 .loc-store .chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
@@ -681,6 +685,8 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .hag-item .kiste-wrap{width:64px;max-width:64px;margin:-8px 0}
 /* Franco mit seiner Ape (franco.js): Schild über der fahrenden Ape und Verkaufsfenster */
 .city-pin.fr-pin{border-color:#8cc0d4;max-width:62vw}
+/* Ortsschilder liegen über Francos Schild: er hält jetzt auch an der Ampel vor der Pizzeria */
+.city-pin[data-p]{z-index:2}.city-pin.fr-pin{z-index:1}
 .city-pin.fr-pin::after{border-top-color:#8cc0d4}
 .city-pin.fr-pin small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:60vw;color:#f6e3a6}
 .fr-panel{position:absolute;z-index:3;left:calc(var(--wl,0px) + 8px);right:calc(var(--wr,0px) + 8px);bottom:calc(var(--wb,0px) + 8px);max-width:560px;margin:0 auto;
@@ -701,3 +707,57 @@ body.has3d .weeknote,body.has3d #screen>.note{background:var(--glass);border-rad
 .fr-info{margin:0;font-size:.78rem;color:var(--chalk-dim);text-align:center}
 .fr-info b{color:var(--chalk)}
 .fr-bye small{display:block;font-size:.72rem;opacity:.75}
+
+/* ---------- Il Mercato in 3D (markt3d.js): Platz hinter allem, unten Stände und Kisten ---------- */
+.mk3{display:flex;flex-direction:column;gap:6px;flex:0 0 auto}
+.mk3 .mk-list{display:flex;overflow-x:auto;gap:6px;padding:2px 2px 4px;scroll-snap-type:x proximity;scrollbar-width:thin}
+.mk3 .mk-card{flex:0 0 112px;scroll-snap-align:center}
+.mk3 .mk-card.sel{outline:3px solid var(--gold);outline-offset:-3px}
+.mk3 .mk-card .kiste-wrap{max-width:64px}
+.mk3 .mk-say{padding:5px 10px}
+.mk3 .mk-say .it{font-size:.95rem}
+.mk3 .mk-fill{padding:8px 10px}
+.s-mercato .win3d{min-height:150px}
+.mk3 .mk-card{flex:0 0 98px;padding:5px 3px}
+.mk3 .mk-card small{font-size:.68rem;line-height:1.1}
+.mk3 .mk-card .buy{padding:5px 6px;font-size:.85rem}
+.mk3 .mk-say .who{display:flex;justify-content:space-between;align-items:baseline}
+.mk3 .mk-kasse{font-family:var(--body,system-ui);font-size:.78rem;color:#55605a}
+.mk3 .mk-msg{display:block;color:#a8382a;font-size:.8rem;margin-top:2px}
+.mk3 .mk-tabs .chip{padding:5px 10px;font-size:.85rem}
+/* Il vecchio forno (forno3d.js): Makler-Sprechblase ist ein Knopf, Rezeptbuch im Spielermenü */
+.fo-msg{display:block;text-align:left;color:var(--chalk);font:inherit;font-size:.85rem;cursor:pointer;width:auto}
+.recbtn{width:100%;margin:6px 0}
+.recbtn small{display:block;font-size:.75rem;opacity:.75}
+/* Memory am Tisch auf der Piazza (tavolo.js) */
+.tav-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tav-p{flex:0 0 68px;text-align:center;border:2px solid var(--line);border-radius:14px;padding:4px 2px;opacity:.7;transition:all .2s}
+.tav-p small{display:block;font-size:.72rem}
+.tav-p b{font-family:var(--game);font-size:1.6rem;color:var(--gold)}
+.tav-p.on{opacity:1;border-color:var(--gold);box-shadow:0 0 0 3px rgba(244,198,79,.25)}
+.tav-p.ai b{color:#e8a38a}
+.tav-npc{flex:1 1 auto;display:flex;align-items:center;gap:6px;min-width:0}
+.tav-face{flex:0 0 56px;height:56px;border-radius:50%;background:var(--slate2);border:2px solid var(--line);overflow:hidden}
+.tav-face.on{border-color:#e8a38a}
+.tav-face svg{width:100%;height:100%}
+.tav-say{flex:1 1 auto;min-width:0;text-align:left;background:#f3eee2;color:#1e2420;border:0;border-radius:12px;padding:5px 8px;font-weight:700;font-size:.86rem;line-height:1.2}
+.tav-say small{display:block;font-weight:400;font-size:.72rem;color:#5a5a50}
+.memo.tav.wait .mcard:not(.up){cursor:wait}
+/* Aufgedeckte Karten hell, sonst sind die Wörter auf dem Glas kaum lesbar; Rand zeigt, wer das Paar hat */
+.mcard.up{background:#f3eee2!important}
+.mcard.found.by-me{border-color:var(--gold)!important}
+.mcard.found.by-ai{border-color:#e8a38a!important}
+.tav-pick{display:flex;flex-direction:column;gap:12px;margin-top:auto;margin-bottom:auto}
+.tav-pick .big.solo{background:rgba(58,154,74,.85)}
+/* Il Bar (bar.js): Getränke bestellen */
+.bar-menu{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;align-content:start}
+.bar-d{background:var(--glass2);display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border:2px solid var(--line);border-radius:14px;color:var(--chalk)}
+.bar-d i{font-style:normal;font-size:1.7rem}
+.bar-d b{display:block;font-size:.95rem}
+.bar-d small{display:block;font-size:.72rem;opacity:.8}
+.bar-d em{margin-left:auto;white-space:nowrap;font-style:normal;font-family:var(--game);color:var(--gold)}
+.bar-d.poor{opacity:.5}
+.bar-sec{margin:6px 0 0;font-family:var(--game);color:var(--gold);font-size:1rem}
+.tav-face.ciccio{flex-basis:70px;height:70px;background:#f3d9a8}
+.bar-got{text-align:center;font-size:3.2rem;margin:4px 0;animation:barpop .5s ease-out}
+@keyframes barpop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}

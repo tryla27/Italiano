@@ -7,22 +7,25 @@ const C3={ok:null,r:null,scene:null,cam:null,host:null,tgt:null,th:-.12,ph:.92,r
   ptrs:new Map(),drag:null,pinch:null,raf:0,last:0,t:0,sea:null,boats:[],picks:[],batch:{}};
 // Wo die Orte stehen: x, z und Höhe des Schilds über dem Boden
 const CITY_SPOTS={pizzeria:[-5,-11,8.6],mercato:[8,-.5,5.2],gelateria:[14,12.2,5.4],porto:[-15,26,4.2],capri:[30,50,9],
-  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8],campagna:[.5,-30,8]};
+  scuola:[7,-11.5,11.2],bar:[-6,12.2,5.2],biblioteca:[27,-1,11.4],forno:[-14.2,-11,8.8],campagna:[4.2,-30,8]};
 const PIAZZA=[-11,14,-7,9];              // x0, x1, z0, z1
 const PROM_Z=[10,18];                    // Uferpromenade, danach Kaimauer und Meer
-const WALL_COLS=["#f0c987","#e8a38a","#f3e2bf","#d98c5f","#f6d7a6","#e9b9a4","#d9c38f"];
+// Farben wie auf den Hängen von Neapel: Neapelgelb, Pompejanisch-Rot, Weiß, Rosa, Ocker, Pastellgrün
+const WALL_COLS=["#f2c443","#d9573f","#f1ece2","#eab1a3","#e6a54a","#f6dca0","#cdd6b0","#e98a6a","#f4e3c3"];
 
 /* ---------- Bausteine ---------- */
 const c3mat=(c,o)=>new THREE.MeshLambertMaterial(Object.assign({color:c},o||{}));
 function c3tex(w,h,draw){const t=canvasTex(w,h,draw);t.wrapS=t.wrapT=THREE.RepeatWrapping;return t;}
-// Fassade: ein Fenster mit grünen Läden je Feld (3 m breit, 3,2 m hoch), in der Farbe des Hauses
+// Fassade: je Feld (3 m breit, 3,2 m hoch) eine hohe Fenstertür mit weißem Stuckrahmen, Gesims darüber
+// und grünen Persiane (Fensterläden mit Lamellen), wie an den Häusern in Neapel
 function facadeTex(col){
   return c3tex(64,64,(g,w,h)=>{g.fillStyle=col;g.fillRect(0,0,w,h);
-    g.fillStyle="rgba(0,0,0,.06)";g.fillRect(0,h-6,w,6);
-    g.fillStyle="#3e6b4b";g.fillRect(14,14,8,34);g.fillRect(42,14,8,34);
-    g.fillStyle="#34424a";g.fillRect(22,14,20,34);g.fillStyle="#5b7480";g.fillRect(22,14,20,8);
-    g.fillStyle="#f6efe2";g.fillRect(18,48,28,4);
-    g.fillStyle="rgba(60,40,30,.55)";g.fillRect(20,52,24,2);});
+    g.fillStyle="rgba(0,0,0,.07)";g.fillRect(0,h-4,w,4);
+    g.fillStyle="#f6f1e6";g.fillRect(17,9,30,46);g.fillRect(14,5,36,4);
+    g.fillStyle="rgba(0,0,0,.18)";g.fillRect(14,9,36,1.5);
+    g.fillStyle="#2f3d44";g.fillRect(21,13,22,41);g.fillStyle="#56707b";g.fillRect(21,13,22,9);
+    g.fillStyle="#3f7a52";g.fillRect(10,13,10,41);g.fillRect(44,13,10,41);
+    g.fillStyle="rgba(0,0,0,.22)";for(let y=16;y<53;y+=4){g.fillRect(10,y,10,1);g.fillRect(44,y,10,1);}});
 }
 const STONE=()=>c3tex(128,128,(g,w)=>{g.fillStyle="#b8ab93";g.fillRect(0,0,w,w);
   for(let y=0;y<8;y++)for(let x=0;x<8;x++){g.fillStyle=["#c9bca3","#c2b49b","#d1c5ad","#bdae94"][(x*7+y*3)%4];g.fillRect(x*16+(y%2)*8+1,y*16+1,14,14);}});
@@ -108,12 +111,16 @@ function buildCity(){
   for(let gx=-42;gx<42;gx+=6)for(let gz=-38;gz<10;gz+=6){
     const x0=gx,x1=gx+6,z0=gz,z1=gz+6; if(!free(x0,x1,z0,z1))continue;
     if(Math.hypot(gx+3,gz+3)>44&&rnd()<.5)continue;
-    const fl=2+Math.floor(rnd()*(Math.hypot(gx,gz)<26?4:2)), h=fl*3.2+.4, col=Math.floor(rnd()*WALL_COLS.length);
-    const w=6-(rnd()<.2?1:0), d=6-(rnd()<.3?1:0);
+    const fl=2+Math.floor(rnd()*(Math.hypot(gx,gz)<26?4:2)), col=Math.floor(rnd()*WALL_COLS.length);
+    const w=6-(rnd()<.2?1:0), d=6-(rnd()<.3?1:0), rk=rnd()<.7?"roof":"roof2", tank=rnd()<.35?[rnd(),rnd()]:null, balc=rnd()<.5;
+    if(typeof napoliSite==="function"&&napoliSite(x0,x1,z0,z1))continue; // hier stehen Kirche und Piazzetta (napoli.js)
+    const n=fl+(Math.hypot(gx+3,gz+3)>15?1:0), h=n*3.2+.4; // ein Stockwerk mehr: Neapel ist eng und hoch
     c3add("w"+col,wallBox(w,h,d),gx+3,h/2,gz+3);
-    c3add(rnd()<.7?"roof":"roof2",new T.BoxGeometry(w+.25,.35,d+.25),gx+3,h+.17,gz+3);
-    if(rnd()<.35)c3add("white",new T.BoxGeometry(1.2,1,1.2),gx+2+rnd()*2,h+.85,gz+2+rnd()*2); // Wassertank
-    if(rnd()<.5)c3add("balcony",new T.BoxGeometry(w*.7,.15,.7),gx+3,4.6,gz+6.3); // Balkon nach Süden
+    // napoli.js baut Dach (Ziegel-Satteldach oder Dachterrasse mit Steinboden), Balkone und Gesimse
+    if(!(typeof napoliHouse==="function"&&napoliHouse(gx+3,gz+3,w,d,h,n,balc,tank,col))){
+      c3add(rk,new T.BoxGeometry(w+.25,.35,d+.25),gx+3,h+.17,gz+3);
+      if(tank)c3add("white",new T.BoxGeometry(1.2,1,1.2),gx+2+tank[0]*2,h+.85,gz+2+tank[1]*2); // Wassertank
+      if(balc)c3add("balcony",new T.BoxGeometry(w*.7,.15,.7),gx+3,4.6,gz+6.3);}
     c3add("shadow",flatPlane(w+3,d+3),gx+3,.03,gz+3);
   }
   // Bäume: Pinien am Rand, Zypressen und Bäume an der Promenade
@@ -124,7 +131,8 @@ function buildCity(){
     c3add("shadow",flatPlane(4,4),x,.03,z);
   };
   for(let x=-40;x<=40;x+=8)if(Math.abs(x-14)>5&&Math.abs(x+6)>5)tree(x,PROM_Z[0]+.8,false);
-  for(let i=0;i<70;i++){const a=rnd()*Math.PI*2,rr=48+rnd()*50,x=Math.cos(a)*rr,z=-20+Math.sin(a)*rr*.7;if(z>PROM_Z[0]-2&&x<38)continue;tree(x,z,rnd()<.6);}
+  for(let i=0;i<70;i++){const a=rnd()*Math.PI*2,rr=48+rnd()*50;let x=Math.cos(a)*rr;let z=-20+Math.sin(a)*rr*.7;if(z>PROM_Z[0]-2){if(x<38)continue;z=2*(PROM_Z[0]-2)-z;x=Math.max(x,44);}tree(x,z,rnd()<.6);}
+  // (Bäume, die sonst im Meer oder am Strand stünden, werden landeinwärts gespiegelt, östlich der Häuser)
   [[-9,4],[13,6],[-10,-5]].forEach(([x,z])=>tree(x,z,true));
   // Laternen an der Piazza
   [[-10,-6],[13,-6],[-10,8],[13,8],[0,PROM_Z[0]+.8]].forEach(([x,z])=>{c3add("iron",new T.CylinderGeometry(.08,.12,3.2,6),x,1.6,z);c3add("lamp",new T.BoxGeometry(.45,.45,.45),x,3.3,z);});
@@ -154,9 +162,12 @@ function buildCity(){
   for(let i=0;i<ip.count;i++){const y=ip.getY(i);if(y>-3)ip.setXYZ(i,ip.getX(i)*(1+(ir()-.5)*.25),y+(ir()-.3)*1.2,ip.getZ(i)*(1+(ir()-.5)*.25));}
   isl.computeVertexNormals(); c3add("hill",isl,30,3.3,50);
   [[26,46],[33,45],[29,44]].forEach(([x,z])=>c3add("whitewall",new T.BoxGeometry(1.6,1.4,1.6),x,1.6,z));
+  if(typeof tavoloBuild==="function")tavoloBuild(); // Tisch mit Nonno Peppe zum Memory auf der Piazza (tavolo.js)
+  if(typeof barBuild==="function")barBuild();       // Ciccio, der dicke Wirt, neben der Bar (bar.js)
   // Orte
   buildPizzeria(); buildMarket(); buildGelateria(); buildPort(); buildLearning();
   if(typeof francoBuild==="function")francoBuild(); // Franco mit seiner Ape (franco.js)
+  if(typeof napoliBuild==="function")napoliBuild(); // Wäscheleinen, Kirche mit Kuppel, Castel dell'Ovo (napoli.js)
   // Alles Gesammelte zu Meshes
   const M={roof:c3mat(0xc4673f),roof2:c3mat(0xe2d3b8),white:c3mat(0xf3eee2),whitewall:c3mat(0xfbf7ef),balcony:c3mat(0x6e4a32),
     trunk:c3mat(0x7a5a3a),leaf:c3mat(0x5f9147),leaf2:c3mat(0x7aa65a),iron:c3mat(0x2b2f2c),lamp:c3mat(0xffe3a6,{emissive:0x8a6a2a}),
@@ -174,7 +185,7 @@ function cityModel(name,x,y,z,r,parent,s){
 function buildPizzeria(){
   const g=placeGroup("pizzeria"), x=-5, z=-11.5;
   const wall=new THREE.Mesh(wallBox(9,7,6.5),c3mat(0xffffff,{map:facadeTex("#f4cf7a")})); wall.position.set(x,3.5,z); g.add(wall);
-  c3box(9.3,.4,6.8,c3mat(0xc4673f),x,7.2,z,g);
+  if(typeof napoliTileRoof==="function")napoliTileRoof(x,z,9,6.5,7,g,"#f4cf7a"); else c3box(9.3,.4,6.8,c3mat(0xc4673f),x,7.2,z,g);
   // Laden unten: dunkle Tür und Fenster, rot-weiß-grüne Markise, Schild
   c3box(8.6,2.6,.1,c3mat(0x3b2a20),x,1.3,z+3.27,g);
   c3box(1.6,2.3,.12,c3mat(0x6b4126),x,1.15,z+3.32,g);
@@ -198,16 +209,83 @@ function buildMarket(){
   const s=signMesh("MERCATO",3.4,.8,"#3a9a4a","#f3eee2"); s.position.set(7.75,3.3,-.25); g.add(s);
   c3box(.1,3.4,.1,c3mat(0x2b2f2c),7.75,1.7,-.3,g);
 }
+// Gelateria: richtiger Laden mit Glasfront, drinnen Eistheke, Regal mit Waffeln und Preistafel.
+// Von draußen sieht man durch die Scheibe hinein; beim Ausflug zeigt gelStage() den Blick über die Theke.
+const GEL={x:14,z:12.2,w:7,d:4.4,h:3.8};
+function gelTex(w,h,draw){const c=document.createElement("canvas");c.width=w;c.height=h;draw(c.getContext("2d"),w,h);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;}
+const GEL_FLAV=[["#a8cf6a","pistacchio"],["#f6a0b8","fragola"],["#6e4026","cioccolato"],["#f7e27a","limone"],
+  ["#fbf6ea","stracciatella"],["#e2b07a","nocciola"],["#b98ad8","mirtillo"],["#ffc58f","melone"]];
 function buildGelateria(){
-  const g=placeGroup("gelateria"), x=14, z=12.2;
-  const k=new THREE.Mesh(wallBox(5,3,3),c3mat(0xffffff,{map:facadeTex("#f6c6d0")})); k.position.set(x,1.5,z); g.add(k);
-  c3box(5.3,.3,3.3,c3mat(0xf3eee2),x,3.15,z,g);
-  c3box(4,1,.1,c3mat(0xbfe8de,{emissive:0x3a6a60}),x,1.4,z+1.52,g);
-  const aw=new THREE.Mesh(new THREE.BoxGeometry(5.2,.1,1.4),c3mat(0xffffff,{map:awningTex("#f39ab0","#bfe8de")})); aw.position.set(x,2.5,z+2); aw.rotation.x=.3; g.add(aw);
-  const s=signMesh("GELATERIA",4.2,.8,"#f39ab0","#ffffff"); s.position.set(x,3.75,z+1.52); g.add(s);
-  // Eistüte auf dem Dach
-  c3box(.9,.9,.9,c3mat(0xf6e3a6),x,3.9,z,g); c3box(.8,.6,.8,c3mat(0xf39ab0),x,4.6,z,g);
-  cityModel("ombrellone",x+4.5,0,z+1.5,0,g); cityModel("ombrellone",x-4.6,0,z+1.8,0,g);
+  const T=THREE, g=placeGroup("gelateria"), {x,z,w,d,h}=GEL, z0=z-d/2, z1=z+d/2, x0=x-w/2;
+  const wall=c3mat(0xffffff,{map:facadeTex("#f6c6d0")}), plain=c3mat(0xf6c6d0), white=c3mat(0xf6f1e6);
+  // Hülle: Rückwand, Seiten, Pfeiler und Sturz vorn, Dach mit Gesims
+  const wb=(W,H,D,X,Y,Z,m)=>{const o=new T.Mesh(wallBox(W,H,D),m||wall);o.position.set(X,Y,Z);g.add(o);return o;};
+  wb(w,h,.25,x,h/2,z0+.125); wb(.25,h,d,x0+.125,h/2,z); wb(.25,h,d,x+w/2-.125,h/2,z);
+  c3box(.55,h,.3,plain,x0+.27,h/2,z1-.15,g); c3box(.55,h,.3,plain,x+w/2-.27,h/2,z1-.15,g); c3box(w,.95,.3,plain,x,h-.47,z1-.15,g);
+  c3box(w+.3,.3,d+.3,white,x,h+.15,z,g); c3box(w+.4,.18,.4,white,x,h-.95,z1+.05,g);
+  c3box(w-1.1,.6,.32,c3mat(0x6f6c66),x,.3,z1-.15,g); // Sockel aus Piperno unter der Scheibe
+  const glass=new T.Mesh(new T.PlaneGeometry(w-1.1,h-1.55),c3mat(0xbfe8f0,{transparent:true,opacity:.18,depthWrite:false}));
+  glass.position.set(x,.6+(h-1.55)/2,z1-.2); g.add(glass);
+  c3box(.08,h-1.55,.08,c3mat(0xe9e2d4),x-1,.6+(h-1.55)/2,z1-.18,g); c3box(.08,h-1.55,.08,c3mat(0xe9e2d4),x+1,.6+(h-1.55)/2,z1-.18,g);
+  // Markise, Schild, Eistüte auf dem Dach
+  const aw=new T.Mesh(new T.BoxGeometry(w+.2,.1,1.5),c3mat(0xffffff,{map:awningTex("#f39ab0","#fbf3f5")})); aw.position.set(x,h-.85,z1+.7); aw.rotation.x=.3; g.add(aw);
+  const s=signMesh("GELATERIA",4.6,.7,"#f39ab0","#ffffff"); s.position.set(x,h-.45,z1+.02); g.add(s);
+  const cone=new T.Mesh(new T.CylinderGeometry(.55,.05,1.3,10),c3mat(0xe2b07a)); cone.position.set(x+2.3,h+.95,z-.6); g.add(cone);
+  [[0xf6a0b8,1.75],[0xa8cf6a,2.25]].forEach(([c,y])=>{const b=new T.Mesh(frSphere(.55,12,8),c3mat(c));b.position.set(x+2.3,h+y,z-.6);g.add(b);});
+  // Innen: Wände mit Streifen in Mint, Decke, Fliesen in Rosa und Weiß
+  const stripeT=gelTex(64,64,(c,W,H)=>{for(let i=0;i<8;i++){c.fillStyle=i%2?"#bfe6d4":"#d3f0e3";c.fillRect(i*8,0,8,H);}
+    c.fillStyle="#f3b6c4";c.fillRect(0,H-10,W,10);}); stripeT.wrapS=T.RepeatWrapping; stripeT.repeat.set(5,1);
+  const inner=c3mat(0xffffff,{map:stripeT});
+  const inPlane=(W,H,X,Y,Z,ry,m)=>{const o=new T.Mesh(new T.PlaneGeometry(W,H),m||inner);o.position.set(X,Y,Z);o.rotation.y=ry;g.add(o);return o;};
+  inPlane(w-.5,h-.3,x,(h-.3)/2,z0+.26,0); inPlane(d-.5,h-.3,x0+.26,(h-.3)/2,z,Math.PI/2); inPlane(d-.5,h-.3,x+w/2-.26,(h-.3)/2,z,-Math.PI/2);
+  const ceil=new T.Mesh(new T.PlaneGeometry(w-.5,d-.4),c3mat(0xfbf3f5)); ceil.rotation.x=Math.PI/2; ceil.position.set(x,h-.31,z); g.add(ceil);
+  const tile=gelTex(64,64,(c,W)=>{c.fillStyle="#fdf3f6";c.fillRect(0,0,W,W);c.fillStyle="#f0b9c9";c.fillRect(0,0,32,32);c.fillRect(32,32,32,32);});
+  tile.wrapS=tile.wrapT=T.RepeatWrapping; tile.repeat.set(w/.8,d/.8);
+  const fl=new T.Mesh(flatPlane(w-.5,d-.4),c3mat(0xffffff,{map:tile})); fl.position.set(x,.04,z); g.add(fl);
+  // Rückwand: Schriftzug, Preistafel, Regale mit Waffeln, Lampen
+  const logo=new T.Mesh(new T.PlaneGeometry(2.6,.7),new T.MeshBasicMaterial({map:gelTex(512,138,(c,W,H)=>{c.fillStyle="#fbe3ea";c.fillRect(4,4,W-8,H-8);
+    c.strokeStyle="#e98aa3";c.lineWidth=8;c.strokeRect(8,8,W-16,H-16);c.fillStyle="#d1497a";c.font='italic 700 84px Georgia, serif';c.textAlign="center";c.textBaseline="middle";c.fillText("Gelateria",W/2,H/2+4);})}));
+  logo.position.set(x,2.85,z0+.28); g.add(logo);
+  const price=new T.Mesh(new T.PlaneGeometry(1.4,1.05),new T.MeshBasicMaterial({map:gelTex(280,210,(c,W,H)=>{c.fillStyle="#2b3a33";c.fillRect(0,0,W,H);
+    c.strokeStyle="#c99a6a";c.lineWidth=10;c.strokeRect(5,5,W-10,H-10);c.fillStyle="#f6f1e6";c.font='italic 700 34px Georgia, serif';c.textAlign="center";c.fillText("Prezzi",W/2,46);
+    c.font="24px Arial";[["1 gusto","2,50 €"],["2 gusti","3,50 €"],["3 gusti","4,50 €"],["+ panna","0,50 €"]].forEach(([a,b],i)=>{c.textAlign="left";c.fillText(a,24,86+i*32);c.textAlign="right";c.fillText(b,W-24,86+i*32);});})}));
+  price.position.set(x+2.2,1.95,z0+.28); g.add(price);
+  [1.55,2.05].forEach(y=>{c3box(1.6,.06,.3,c3mat(0xc99a6a),x-2.2,y,z0+.42,g);
+    for(let i=0;i<6;i++){const c=new T.Mesh(new T.CylinderGeometry(.07,0,.26,8),c3mat(0xe2b07a));c.position.set(x-2.85+i*.26,y+.16,z0+.42);g.add(c);}});
+  [-1.6,0,1.6].forEach(dx=>{c3box(.03,.5,.03,c3mat(0x2b2f2c),x+dx,h-.55,z+.2,g);const l=new T.Mesh(new T.CylinderGeometry(.12,.3,.25,12),c3mat(0xffe3a6,{emissive:0x8a6a2a}));l.position.set(x+dx,h-.85,z+.2);g.add(l);});
+  // Eistheke (eigenes Objekt: gelStage() zeichnet sie zusätzlich allein, damit Signora Lucia dahinter steht)
+  const ctr=new T.Group(); C3.scene.add(ctr); GEL.counter=ctr;
+  const cz=z+.15; c3box(5.6,1,.8,c3mat(0xffffff,{map:tile.clone()}),x,.5,cz,ctr); c3box(5.7,.08,.9,c3mat(0xf6f1e6),x,1.02,cz,ctr);
+  c3box(5.6,.12,.85,c3mat(0xe98aa3),x,.1,cz+.02,ctr);
+  GEL_FLAV.forEach(([c,n],i)=>{const tx=x-2.45+i*.7;
+    c3box(.6,.12,.55,c3mat(0xd9dfe2),tx,1.1,cz-.05,ctr);
+    const sc=new T.Mesh(frSphere(.26,10,6),c3mat(c)); sc.scale.set(1,.32,.8); sc.position.set(tx,1.16,cz-.05); ctr.add(sc);
+    const lab=new T.Mesh(new T.PlaneGeometry(.56,.14),new T.MeshBasicMaterial({map:gelTex(160,40,(q,W,H)=>{q.fillStyle="#fff";q.fillRect(0,0,W,H);q.fillStyle="#3a3a3a";q.font="22px Arial";q.textAlign="center";q.textBaseline="middle";q.fillText(n,W/2,H/2+1);})}));
+    lab.position.set(tx,.86,cz+.41); ctr.add(lab);});
+  const vit=new T.Mesh(new T.BoxGeometry(5.6,.42,.06),c3mat(0xd8f2fa,{transparent:true,opacity:.28,depthWrite:false})); vit.position.set(x,1.3,cz+.38); vit.rotation.x=-.45; ctr.add(vit);
+  c3box(5.6,.04,.5,c3mat(0xd8f2fa,{transparent:true,opacity:.25,depthWrite:false}),x,1.5,cz-.02,ctr);
+  // Draußen: Tische mit Schirmen auf der Promenade
+  cityModel("ombrellone",x+w/2+1.6,0,z+1.5,0,g); cityModel("ombrellone",x0-1.6,0,z+1.8,0,g);
+}
+// Bild für den Ausflug (wie locStage im Restaurant): Blick vom Kunden über die Theke, Signora Lucia dahinter.
+// Zwei Bilder: der ganze Laden und nur die Theke (durchsichtig), dazwischen setzt szenen.js die Figur.
+function gelStage(){
+  if(GEL.stage)return GEL.stage;
+  if(!cityCan()||!cityInit()||!GEL.counter)return null;
+  const T=THREE, r=C3.r, {x,z,d}=GEL, cam=new T.PerspectiveCamera(56,400/260,.1,40);
+  cam.position.set(x,1.5,z+d/2-.3); cam.lookAt(x,1.38,z-d/2-.4); cam.updateMatrixWorld(true);
+  const W=800, H=520, pr=r.getPixelRatio(); r.setPixelRatio(1); r.setSize(W,H,false);
+  r.render(C3.scene,cam); const bg=r.domElement.toDataURL("image/jpeg",.86);
+  const off=[]; C3.scene.children.forEach(o=>{if(!o.isLight&&o!==GEL.counter&&o.visible){o.visible=false;off.push(o);}});
+  r.setClearColor(0x000000,0); r.render(C3.scene,cam); const fg=r.domElement.toDataURL("image/png");
+  off.forEach(o=>o.visible=true); r.setClearColor(0xbfe1ee,1); r.setPixelRatio(pr);
+  if(C3.host&&C3.host.isConnected)cityResize();
+  const p=(X,Y,Z)=>{const v=new T.Vector3(X,Y,Z).project(cam);return [(v.x+1)/2*400,(1-v.y)/2*260];};
+  const f=p(x-.3,0,z-.5), hd=p(x-.3,1.8,z-.5), size=(f[1]-hd[1])*250/240, top=p(x,1.02,z+.6)[1];
+  // clip: unterhalb der Thekenkante wird die Figur abgeschnitten (sonst schauen unten die Beine hervor)
+  GEL.stage={src:bg,fg,oy:0,h:260,stand:[Math.round(f[0]),Math.round(f[1]),Math.round(size)],clip:Math.round(top)};
+  return GEL.stage;
 }
 function buildPort(){
   const g=placeGroup("porto");
@@ -216,28 +294,52 @@ function buildPort(){
   const s=signMesh("PORTO",2.6,.8,"#2f78c4","#f3eee2"); s.position.set(-15,1.6,PROM_Z[1]+.9); g.add(s);
   c3box(.1,1.2,.1,c3mat(0x2b2f2c),-15,.6,PROM_Z[1]+.85,g);
 }
-// Lernorte: Scuola (Vokabeln), Bar (Memory), Biblioteca (Notizbuch), Forno (Rezepte)
+// Lernorte: Scuola (Vokabeln), Bar (Getränke, bar.js), Biblioteca (Notizbuch); dazu der leere alte Forno zum Kaufen
 function civic(id,x,z,w,d,h,col,sign,bg,fg){
   const g=placeGroup(id);
   const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:facadeTex(col)})); wall.position.set(x,h/2,z); g.add(wall);
-  c3box(w+.3,.4,d+.3,c3mat(0xc4673f),x,h+.2,z,g);
+  if(typeof napoliTileRoof==="function")napoliTileRoof(x,z,w,d,h,g,col); else c3box(w+.3,.4,d+.3,c3mat(0xc4673f),x,h+.2,z,g); // Ziegeldach
   c3box(1.6,2.4,.12,c3mat(0x6b4126),x,1.2,z+d/2+.03,g);
   const s=signMesh(sign,Math.min(w-1,sign.length*.55+1.2),.9,bg,fg); s.position.set(x,3,z+d/2+.05); g.add(s);
   return g;
 }
+// Verlassene Fassade: ausgeblichen, Putz blättert ab, Läden geschlossen und schief
+function oldFacadeTex(){
+  return c3tex(64,64,(g,w,h)=>{g.fillStyle="#d9b7a6";g.fillRect(0,0,w,h);
+    g.fillStyle="rgba(120,90,70,.18)";g.fillRect(0,40,w,24);
+    g.fillStyle="#b9715a";g.fillRect(4,6,10,6);g.fillRect(50,30,9,7);g.fillRect(30,54,12,6); // Ziegel unter dem Putz
+    g.fillStyle="#6f7a66";g.fillRect(16,14,15,34);g.fillRect(33,15,15,33);
+    g.strokeStyle="rgba(40,40,30,.5)";g.lineWidth=1;for(let i=0;i<6;i++){g.beginPath();g.moveTo(16,18+i*5);g.lineTo(31,18+i*5);g.moveTo(33,19+i*5);g.lineTo(48,19+i*5);g.stroke();}
+    g.fillStyle="#d6cfc0";g.fillRect(14,48,36,4);
+    g.fillStyle="rgba(70,55,45,.35)";g.fillRect(20,52,3,10);g.fillRect(40,52,2,8);});
+}
+function buildOldForno(x,z){
+  const g=placeGroup("forno"), w=5.5,d=5.5,h=6.4;
+  const wall=new THREE.Mesh(wallBox(w,h,d),c3mat(0xffffff,{map:oldFacadeTex()})); wall.position.set(x,h/2,z); g.add(wall);
+  c3box(w+.3,.4,d+.3,c3mat(0x9a6a52),x,h+.2,z,g);
+  c3box(.9,2.2,.9,c3mat(0x7a4a3a),x+1.4,7.3,z-1,g); c3box(.7,.6,.7,c3mat(0x7a4a3a),x+1.6,8.6,z-1,g); // Schornstein, oben abgebröckelt
+  c3box(1.6,2.4,.12,c3mat(0x4a3424),x,1.2,z+d/2+.03,g);
+  [[.5,-.35],[1.3,.3],[2,-.2]].forEach(([y,r])=>{const b=c3box(1.9,.22,.06,c3mat(0x9a7a52),x,y,z+d/2+.1,g);b.rotation.z=r;}); // Bretter vor der Tür
+  const old=signMesh("FORNO",3.4,.9,"#8f7a62","#e8dcc0"); old.position.set(x,3,z+d/2+.05); old.rotation.z=-.06; g.add(old);
+  const sale=signMesh("VENDESI",1.6,.6,"#f3eee2","#d8402f"); sale.position.set(x-1.6,1.9,z+d/2+.08); g.add(sale); C3.fornoSale=sale;
+  const sold=signMesh("TUO!",1.2,.5,"#2f4a3c","#f4c64f"); sold.position.set(x-1.6,1.9,z+d/2+.08); g.add(sold); C3.fornoSold=sold;
+  // Unkraut und eine alte Kiste vor dem Haus
+  [[-2.3,3.2],[2.4,3.1],[-1.4,3]].forEach(([dx,dz],i)=>c3box(.5+i*.15,.35,.4,c3mat(0x6f8a3a),x+dx,.17,z+dz,g));
+  const k=c3box(.9,.5,.7,c3mat(0x7a5a3a),x-1.9,.25,z+3.6,g); k.rotation.y=.4;
+  cityForno();
+}
+// Schild am alten Forno: „Vendesi“, bis er dir gehört
+function cityForno(){if(!C3.fornoSale)return;const m=fornoMine();C3.fornoSale.visible=!m;C3.fornoSold.visible=m;}
 function buildLearning(){
   // Scuola mit Glockenturm, Fahne und Tafel davor
   let x=7,z=-11.75; const sc=civic("scuola",x,z,8,6,7,"#f3e2bf","SCUOLA","#2f4a3c","#f3eee2");
   c3box(1.8,2.2,1.8,c3mat(0xf3eee2),x,8.5,z-1,sc); c3box(2.1,.3,2.1,c3mat(0xc4673f),x,9.75,z-1,sc);
-  const bell=new THREE.Mesh(new THREE.CylinderGeometry(.25,.5,.7,10),c3mat(0xd9a93a)); bell.position.set(x,8.8,z-.05); sc.add(bell);
+  const bell=new THREE.Mesh(new THREE.CylinderGeometry(.25,.5,.7,10),c3mat(0xd9a93a)); bell.position.set(x,9.05,z-.05); sc.add(bell);
   c3box(.08,3,.08,c3mat(0x2b2f2c),x-3.6,8.5,z+2.6,sc);
   [0x3a9a4a,0xf3eee2,0xd8402f].forEach((c,i)=>c3box(.4,.8,.04,c3mat(c),x-3.36+i*.4,9.5,z+2.6,sc));
   cityModel("lavagna",x+2.6,0,z+4.4,0,sc);
-  // Forno mit Schornstein und Brotkisten
-  x=-14.2;z=-11; const fo=civic("forno",x,z,5.5,5.5,6.4,"#e8a38a","FORNO","#6b4126","#f6e3a6");
-  c3box(.9,2.6,.9,c3mat(0x9a4a32),x+1.4,7.5,z-1,fo);
-  const aw=new THREE.Mesh(new THREE.BoxGeometry(5.4,.1,1.3),c3mat(0xffffff,{map:awningTex("#6b4126","#f6e3a6")})); aw.position.set(x,2.55,z+3.3); aw.rotation.x=.3; fo.add(aw);
-  [-1.6,1.6].forEach(dx=>{c3box(1.1,.6,.8,c3mat(0x8a5a36),x+dx,.3,z+3.4,fo);c3box(.9,.2,.6,c3mat(0xd9a45a),x+dx,.7,z+3.4,fo);});
+  // Il vecchio forno: die alte Bäckerei steht leer (verblasste Fassade, Läden zu, Tür mit Brettern, Schild „Vendesi“), kaufbar (forno3d.js)
+  x=-14.2;z=-11; buildOldForno(x,z);
   // Bar am Hafen: Kiosk mit Tischen davor
   x=-6;z=12.2; const bar=placeGroup("bar");
   const k=new THREE.Mesh(wallBox(5,3,3),c3mat(0xffffff,{map:facadeTex("#bfe0d0")})); k.position.set(x,1.5,z); bar.add(k);
@@ -251,12 +353,12 @@ function buildLearning(){
   c3box(8.4,.35,2.2,c3mat(0xe2d6bd),x,.17,z+4.3,bi); c3box(8.6,.5,2.2,c3mat(0xf3eee2),x,4.35,z+4.3,bi);
   [-3.4,-1.2,1.2,3.4].forEach(dx=>{const c=new THREE.Mesh(new THREE.CylinderGeometry(.28,.32,3.8,10),c3mat(0xf3eee2));c.position.set(x+dx,2.25,z+4.9);bi.add(c);});
   // Wegweiser aufs Land (La campagna: Bauernhof, Don Vincenzo, Weinberg) am Ende der Querstraße Richtung Vesuv
-  x=.5;z=-30; const ca=placeGroup("campagna");
+  x=4.2;z=-30; const ca=placeGroup("campagna"); // am Rand der Via Toledo, nicht mitten auf der Fahrbahn
   c3box(.14,3,.14,c3mat(0x6b4126),x,1.5,z,ca);
   const w1=signMesh("VESUVIO \u2192",2.6,.6,"#f3eee2","#6b4126"); w1.position.set(x,2.6,z+.09); ca.add(w1);
   const w2=signMesh("CAMPAGNA",2.2,.5,"#3a6b2a","#f6e3a6"); w2.position.set(x,2,z+.09); ca.add(w2);
   c3box(2.6,1.8,.1,new THREE.MeshBasicMaterial({visible:false}),x,2,z,ca);
-  cityModel("vespa",x+2,0,z+.4,-.9,ca);
+  cityModel("vespa",x+1,0,z+1.6,-.9,ca);
 }
 
 /* ---------- Kamera, Zeichnen, Schilder ---------- */
@@ -299,11 +401,12 @@ function cityLoop(now){
   C3.sea.offset.set(C3.t*.015,C3.t*.008);
   C3.boats.forEach(b=>{b.o.position.y=-.4+Math.sin(C3.t*1.4+b.p)*.08;b.o.rotation.z=Math.sin(C3.t*1.1+b.p)*.04;});
   if(typeof francoTick==="function")francoTick(dt);
+  if(typeof napoliTick==="function")napoliTick(dt); // Ampel an der Kreuzung (napoli.js)
   cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
 }
 function cityMount(host){
   C3.host=host; if(!host||!cityInit())return false;
-  host.prepend(C3.r.domElement); cityResize(); cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
+  host.prepend(C3.r.domElement); cityForno(); cityResize(); cityCam(); C3.r.render(C3.scene,C3.cam); cityPins();
   if(!C3.raf){C3.last=0;C3.raf=requestAnimationFrame(cityLoop);}
   return true;
 }

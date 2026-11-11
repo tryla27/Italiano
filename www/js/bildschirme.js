@@ -14,6 +14,7 @@ function render(){
       :screen!=="home"?`<div class="pausenav"><button class="sec" data-act="home">Zurück zur Stadt</button></div>`:"";
     $("#overlay").innerHTML=`<div class="sheet top${S.muted?" muted":""}" role="dialog" aria-label="${run?"Pause und Einstellungen":"Einstellungen"}"><h2>${run?"Pausa":"Impostazioni"}<small>${run?"Pause · Einstellungen":"Einstellungen"}</small></h2>
       ${nav}
+      <button class="sec recbtn" data-act="recipes">📖 Il ricettario<small>Rezeptbuch: deine Pizzen und was dir noch fehlt</small></button>
       <button class="mutebig${S.muted?" on":""}" data-act="mute" aria-pressed="${S.muted}">${ICON.off} ${S.muted?"Alles stumm · antippen für Ton":"Alles stumm schalten"}</button>
       ${sl("v-music","Musik",S.vol.music)}${sl("v-sfx","Geräusche",S.vol.sfx)}${canSpeak?sl("v-voice","Vorlese-Stimme",S.vol.voice):""}
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
@@ -38,7 +39,7 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,bar:rBar,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna,forno:rForno})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
   fullBg();
   armBack();
@@ -75,7 +76,7 @@ function homeStats(){
 }
 function homeStart(){
   return G&&!G.summary
-    ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":`Gast ${G.gi+1} von ${G.guests.length}`}`}</small></button>`
+    ?`<button class="big" data-act="start">Avanti!<small>Weiterspielen · ${G.trip?`Ausflug ${esc(TRIPS[G.trip].de)}`:`Tag ${S.day}, ${G.phase==="market"?"Markt":guestLabel(" von ")}`}</small></button>`
     :S.setupDone?`<button class="big" data-act="start">Apri il locale!<small>Laden öffnen · ${cap(giorno(S.day)[0])}, Tag ${S.day}</small></button>`
     :`<button class="big" data-act="setup">Laden einrichten<small>Bevor die ersten Gäste kommen</small></button>`;
 }
@@ -105,21 +106,21 @@ function rHome(){
   ${homeStart()}
   ${S.setupDone?`<div class="placerow"><button class="placebtn locbtn" data-act="locale"><span class="locthumb">${locThumbHTML()}</span><b>Il mio locale</b><small>Dein Restaurant in 3D</small></button>
     <button class="placebtn" data-act="map"><span class="mapthumb">${mapSVG()}</span><b>La mappa</b><small>Markt, Eisladen, Hafen</small></button></div>`:""}
-  <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"Paare finden":"Bonus heute!"}</small></button></div>
+  <div class="learnrow"><button class="vocabbtn" data-act="vocab">Vocabolario<small>${vocabStatus()}</small></button><button class="vocabbtn memobtn" data-act="memo">Memory<small>${S.memDay===S.day?"am Tisch":"Bonus heute!"}</small></button></div>
   <div class="row3"><button class="sec iconbtn" data-act="shop">${ICON.shop}Shop</button><button class="sec" data-act="book">Notizbuch</button><button class="sec" data-act="menu">Rezepte</button><button class="sec" data-act="help">So geht's</button>${LADEN_EINRICHTEN?`<button class="sec" data-act="setup" ${S.setupDone?"":"disabled"}>Umstellen</button>`:""}</div>
   ${musicOn||vol("music")===0?"":`<p class="note tiny">♪ Tippe irgendwo auf den Bildschirm, dann startet die Musik.</p>`}`;
 }
 // Rezeptbuch: freigeschaltete Pizzen mit Rezept und Sternen, die anderen mit den fehlenden Zutaten
 function ricettarioHTML(){
-  const have=availPizze(), rest=PIZZE.filter(p=>!have.includes(p)).sort((a,b)=>a.lv-b.lv);
+  const have=availPizze(), miss=p=>p.ing.filter(k=>!hasIng(k)).length, rest=PIZZE.filter(p=>!have.includes(p)).sort((a,b)=>miss(a)-miss(b)||a.lv-b.lv);
   const st=n=>{const k=pzStars(n);return `<span class="pzst" aria-label="${k} von 3 Sternen">${"★".repeat(k)}<span class="off">${"★".repeat(3-k)}</span></span>`;};
   return `<div class="sheet" role="dialog" aria-label="Rezeptbuch"><h2>Il ricettario<small>Rezeptbuch · Zutaten ${S.ing.length}/${Object.keys(ING).length}</small></h2>
     <div class="recipes">${have.map(p=>{const n=Math.min(...p.ing.map(stockOf));return `<div class="mi"><b>${cap(p.n)} ${st(p.n)} <span class="price">${p.p} €</span></b><div>${p.ing.map(k=>`<span title="${esc(ING[k][0])}">${ingIcon(k)}${k}</span>`).join(" ")}</div><small class="${n?"":"out"}">${n?`Vorrat reicht für ${n}`:"Vorrat leer: im Mercato nachkaufen"}</small></div>`;}).join("")}
-    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>${[p.ing.some(k=>!hasIng(k))?`Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}`:"",p.lv>S.level?`Gäste bestellen sie ab ${esc(LEVELS[p.lv].it)}`:""].filter(Boolean).join(" · ")}</div></div>`).join("")}</div>
+    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}</div></div>`).join("")}</div>
     ${tierOf("caffe")?`<h3 class="hand gold">Al bar</h3><div class="recipes">${CAFFE.map(c=>c.t<=tierOf("caffe")
       ?`<div class="mi"><b>${esc(c.n)} ${st(c.n)} <span class="price">${c.p} €</span></b><div>${c.ing.join(" → ")} · ${c.cup}</div></div>`
       :`<div class="mi locked"><b>🔒 ${esc(c.n)}</b><div>braucht ${esc(FURN.find(f=>f.grp==="caffe"&&f.tier===c.t).it)}</div></div>`).join("")}</div>`:""}
-    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Zutaten kaufst du im Mercato: jede Pizza braucht eine Portion von jeder Zutat.</p>
+    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Neue Rezepte kosten nichts: Sobald du alle Zutaten einer Pizza einmal gekauft hast (Mercato, Franco, Signor Esposito), steht sie automatisch hier und die Gäste bestellen sie. Jede Pizza braucht eine Portion von jeder Zutat.</p>
     <button class="next" data-act="menu">Zurück</button></div>`;
 }
 // Spielregeln und Stufen: früher unten auf der Startseite, jetzt im Fenster „So geht's“
@@ -154,7 +155,7 @@ function rPlay(){
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p></div>`;
   }
   else if(st.kind==="stall"){const bud=stallBudget(), asks=st.asks||{};
-    action=`<div class="stall">${st.offer.map(k=>{const own=st.bought.includes(k),pz=pizzeWith(k).filter(p=>p.lv<=S.level),P=espoPrice(k);
+    action=`<div class="stall">${st.offer.map(k=>{const own=st.bought.includes(k),pz=pizzeWith(k),P=espoPrice(k);
       return `<div class="card${own?" got":""}">${kisteImg(k)}<b>${k}</b><small>${esc(ING[k][0])}${hasIng(k)?` · Vorrat ${stockOf(k)}`:" · neu"}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
       ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<Math.min(asks[k]||P,Math.ceil(P*.7))?"disabled":""}>${asks[k]||P} €</button>`}</div>`;}).join("")}</div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
@@ -185,7 +186,7 @@ function rPlay(){
       <div class="ctrl">${st.wrong>0&&!st.showTip?`<button class="tipbtn" data-act="tip">Tipp anzeigen</button>`:`<span class="spacer"></span>`}
       <button class="idk" data-act="idk" aria-label="Keine Ahnung, Lösung zeigen">✕<small>K. Ahnung</small></button></div>`;
   $("#screen").innerHTML=`
-    <div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`Gast ${G.gi+1}/${G.guests.length}`}</span>${G.combo>=2?`<span class="combo">×${G.combo}</span>`:starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span>${tools()}</div>
+    <div class="hud"><button class="quit" data-act="pause">Pause</button><span class="where">${mk?"Mercato":G.trip?esc(TRIPS[G.trip].it)+` ${G.si+1}/${G.guests[0].steps.length}`:`${guestLabel("/")}${stepDots()}`}</span>${G.combo>=2?`<span class="combo">×${G.combo}</span>`:starsHTML(G.stars)}<span class="money">€ ${G.earned+(G.revenue||0)}</span>${tools()}</div>
     <div class="stage">${G.banner?`<div class="banner">${esc(G.banner)}</div>`:""}${stageHTML()}</div>
     <div class="scene solo"><div style="min-width:0"><div class="who">${esc(who)}</div><div class="bubble">${bubble}</div></div></div>
     <div class="task">${H?(H.over?"Sein letztes Wort: annehmen oder gehen?":"Biete weniger, aber nicht zu frech!"):esc(st.task)}</div>
@@ -253,4 +254,16 @@ function fullBg(){
   const src=img&&img.getAttribute("href");
   b.classList.toggle("hasbg",!!src);
   if(src)b.style.setProperty("--scene-bg",`url("${src}")`); else b.style.removeProperty("--scene-bg");
+}
+
+// Kleine Punkte unter „Gast 1/3“: ein Punkt pro Satz dieses Gastes (Begrüßung, Bestellung, Rechnung …), damit man sieht, dass ein Gast mehrere Fragen hat.
+function stepDots(){
+  const g=G.guests[G.gi]; if(!g||g.steps.length<2)return "";
+  return `<span class="steps" aria-label="Satz ${G.si+1} von ${g.steps.length}">${g.steps.map((x,i)=>`<i class="${i<G.si?"done":i===G.si?"now":""}"></i>`).join("")}</span>`;
+}
+// „Gast 2/3“: die Dottoressa vom Gesundheitsamt zählt nicht als Gast
+function guestLabel(sep){
+  const g=G.guests[G.gi]; if(g&&g.insp)return "Gesundheitsamt";
+  const real=G.guests.filter(x=>!x.insp), i=real.indexOf(g);
+  return `Gast ${(i<0?real.length:i)+1}${sep}${real.length}`;
 }
