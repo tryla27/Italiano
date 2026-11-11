@@ -62,8 +62,8 @@ function mkGo(){
 }
 function mkCard(k){
   const n=stockOf(k), p=mkPrice(k), neu=!hasIng(k);
-  const pz=PIZZE.filter(x=>x.ing.includes(k)), now=pz.filter(x=>x.lv<=S.level), later=pz.filter(x=>x.lv>S.level);
-  const use=now.length?`für ${now.map(x=>cap(x.n)).join(", ")}`:later.length?`Pizza ab ${LEVELS[later[0].lv].it}`:"als Extra-Belag";
+  const pz=PIZZE.filter(x=>x.ing.includes(k));
+  const use=pz.length?`für ${pz.map(x=>cap(x.n)).join(", ")}`:"als Extra-Belag";
   return `<div class="card mk-card${neu?" neu":""}${n<4&&!neu?" low":""}">${kisteImg(k)}<b>${k}</b><small>${esc(ING[k][0])} · ${esc(use)}</small>
     <span class="mk-stock">${neu?"neu":`im Vorrat: <b>${n}</b>`}</span>
     <button class="buy" data-act="mkbuy" data-k="${k}" ${S.coins<p?"disabled":""} aria-label="Eine Kiste ${esc(ING[k][0])} für ${p} Euro">+${KISTE} · ${p} €</button></div>`;

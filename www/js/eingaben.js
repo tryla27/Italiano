@@ -49,6 +49,9 @@ function handleClick(e){
   if(a==="lplace")return landTap(t.dataset.p);
   if(a==="lenter")return landEnter(t.dataset.p);
   if(a==="lexit")return landExit();
+  if(a==="fbuy")return fornoBuy();
+  if(a==="fsay")return fornoSay();
+  if(a==="recipes"){volOpen=false;codeBox=null;menuOpen=true;return render();} // Rezeptbuch aus dem Spielermenü
   if(a==="trip"){if(G&&!G.summary){screen="play";render();autoSpeak();return;}return startTrip(t.dataset.t);}
   if(a==="setup"){screen="setup";return render();}
   if(a==="setupCheck"){if(ROOM_ITEMS.every(i=>S.room.some(r=>r.id===i.id)))startSetupQuiz();return;}

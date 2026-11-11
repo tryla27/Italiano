@@ -14,6 +14,7 @@ function render(){
       :screen!=="home"?`<div class="pausenav"><button class="sec" data-act="home">Zurück zur Stadt</button></div>`:"";
     $("#overlay").innerHTML=`<div class="sheet top${S.muted?" muted":""}" role="dialog" aria-label="${run?"Pause und Einstellungen":"Einstellungen"}"><h2>${run?"Pausa":"Impostazioni"}<small>${run?"Pause · Einstellungen":"Einstellungen"}</small></h2>
       ${nav}
+      <button class="sec recbtn" data-act="recipes">📖 Il ricettario<small>Rezeptbuch: deine Pizzen und was dir noch fehlt</small></button>
       <button class="mutebig${S.muted?" on":""}" data-act="mute" aria-pressed="${S.muted}">${ICON.off} ${S.muted?"Alles stumm · antippen für Ton":"Alles stumm schalten"}</button>
       ${sl("v-music","Musik",S.vol.music)}${sl("v-sfx","Geräusche",S.vol.sfx)}${canSpeak?sl("v-voice","Vorlese-Stimme",S.vol.voice):""}
       ${canSpeak?`<label class="vcheck"><input type="checkbox" id="v-auto" ${S.sound?"checked":""}> Gäste automatisch vorlesen</label>`:""}
@@ -38,7 +39,7 @@ function render(){
   else if(helpOpen)$("#overlay").innerHTML=`<div class="sheet" role="dialog" aria-label="So geht's"><h2>Come si gioca<small>So geht's</small></h2>${helpHTML()}<button class="next" data-act="help">Alles klar</button></div>`;
   else if(menuOpen)$("#overlay").innerHTML=ricettarioHTML();
   $("#screen").className="s-"+screen;
-  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna})[screen]();
+  ({home:rHome,play:rPlay,summary:rSummary,shop:rShop,map:rMap,book:rBook,setup:rSetup,vocab:rVocab,memo:rMemo,biblio:rBiblio,lettura:rLettura,poesia:rPoesia,locale:rLocale,mercato:rMercato,campagna:rCampagna,forno:rForno})[screen]();
   if(screen==="home"||screen==="shop")locThumbSoon();
   fullBg();
   armBack();
@@ -111,15 +112,15 @@ function rHome(){
 }
 // Rezeptbuch: freigeschaltete Pizzen mit Rezept und Sternen, die anderen mit den fehlenden Zutaten
 function ricettarioHTML(){
-  const have=availPizze(), rest=PIZZE.filter(p=>!have.includes(p)).sort((a,b)=>a.lv-b.lv);
+  const have=availPizze(), miss=p=>p.ing.filter(k=>!hasIng(k)).length, rest=PIZZE.filter(p=>!have.includes(p)).sort((a,b)=>miss(a)-miss(b)||a.lv-b.lv);
   const st=n=>{const k=pzStars(n);return `<span class="pzst" aria-label="${k} von 3 Sternen">${"★".repeat(k)}<span class="off">${"★".repeat(3-k)}</span></span>`;};
   return `<div class="sheet" role="dialog" aria-label="Rezeptbuch"><h2>Il ricettario<small>Rezeptbuch · Zutaten ${S.ing.length}/${Object.keys(ING).length}</small></h2>
     <div class="recipes">${have.map(p=>{const n=Math.min(...p.ing.map(stockOf));return `<div class="mi"><b>${cap(p.n)} ${st(p.n)} <span class="price">${p.p} €</span></b><div>${p.ing.map(k=>`<span title="${esc(ING[k][0])}">${ingIcon(k)}${k}</span>`).join(" ")}</div><small class="${n?"":"out"}">${n?`Vorrat reicht für ${n}`:"Vorrat leer: im Mercato nachkaufen"}</small></div>`;}).join("")}
-    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>${[p.ing.some(k=>!hasIng(k))?`Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}`:"",p.lv>S.level?`Gäste bestellen sie ab ${esc(LEVELS[p.lv].it)}`:""].filter(Boolean).join(" · ")}</div></div>`).join("")}</div>
+    ${rest.map(p=>`<div class="mi locked"><b>🔒 ${cap(p.n)} <span class="price">${p.p} €</span></b><div>Dir fehlen: ${p.ing.filter(k=>!hasIng(k)).map(k=>`${k} (${esc(ING[k][0])})`).join(", ")}</div></div>`).join("")}</div>
     ${tierOf("caffe")?`<h3 class="hand gold">Al bar</h3><div class="recipes">${CAFFE.map(c=>c.t<=tierOf("caffe")
       ?`<div class="mi"><b>${esc(c.n)} ${st(c.n)} <span class="price">${c.p} €</span></b><div>${c.ing.join(" → ")} · ${c.cup}</div></div>`
       :`<div class="mi locked"><b>🔒 ${esc(c.n)}</b><div>braucht ${esc(FURN.find(f=>f.grp==="caffe"&&f.tier===c.t).it)}</div></div>`).join("")}</div>`:""}
-    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Zutaten kaufst du im Mercato: jede Pizza braucht eine Portion von jeder Zutat.</p>
+    <p class="note">Je drei fehlerfreie Pizzen gibt es einen Stern. Ab zwei Sternen sagt dir keiner mehr das Rezept, mit drei Sternen gibt es +1 € Trinkgeld. Neue Rezepte kosten nichts: Sobald du alle Zutaten einer Pizza einmal gekauft hast (Mercato, Franco, Signor Esposito), steht sie automatisch hier und die Gäste bestellen sie. Jede Pizza braucht eine Portion von jeder Zutat.</p>
     <button class="next" data-act="menu">Zurück</button></div>`;
 }
 // Spielregeln und Stufen: früher unten auf der Startseite, jetzt im Fenster „So geht's“
@@ -154,7 +155,7 @@ function rPlay(){
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p></div>`;
   }
   else if(st.kind==="stall"){const bud=stallBudget(), asks=st.asks||{};
-    action=`<div class="stall">${st.offer.map(k=>{const own=st.bought.includes(k),pz=pizzeWith(k).filter(p=>p.lv<=S.level),P=espoPrice(k);
+    action=`<div class="stall">${st.offer.map(k=>{const own=st.bought.includes(k),pz=pizzeWith(k),P=espoPrice(k);
       return `<div class="card${own?" got":""}">${kisteImg(k)}<b>${k}</b><small>${esc(ING[k][0])}${hasIng(k)?` · Vorrat ${stockOf(k)}`:" · neu"}${pz.length?` · für ${pz.map(p=>cap(p.n)).join(", ")}`:""}</small>
       ${own?`<span class="owned">gekauft ✓</span>`:`<button class="buy" data-act="stallbuy" data-k="${k}" ${bud<Math.min(asks[k]||P,Math.ceil(P*.7))?"disabled":""}>${asks[k]||P} €</button>`}</div>`;}).join("")}</div>
       <p class="note tiny">Heute noch verfügbar: ${Math.max(0,bud)} €</p>`;
