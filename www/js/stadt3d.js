@@ -124,7 +124,8 @@ function buildCity(){
     c3add("shadow",flatPlane(4,4),x,.03,z);
   };
   for(let x=-40;x<=40;x+=8)if(Math.abs(x-14)>5&&Math.abs(x+6)>5)tree(x,PROM_Z[0]+.8,false);
-  for(let i=0;i<70;i++){const a=rnd()*Math.PI*2,rr=48+rnd()*50,x=Math.cos(a)*rr,z=-20+Math.sin(a)*rr*.7;if(z>PROM_Z[0]-2&&x<38)continue;tree(x,z,rnd()<.6);}
+  for(let i=0;i<70;i++){const a=rnd()*Math.PI*2,rr=48+rnd()*50;let x=Math.cos(a)*rr;let z=-20+Math.sin(a)*rr*.7;if(z>PROM_Z[0]-2){if(x<38)continue;z=2*(PROM_Z[0]-2)-z;x=Math.max(x,44);}tree(x,z,rnd()<.6);}
+  // (Bäume, die sonst im Meer oder am Strand stünden, werden landeinwärts gespiegelt, östlich der Häuser)
   [[-9,4],[13,6],[-10,-5]].forEach(([x,z])=>tree(x,z,true));
   // Laternen an der Piazza
   [[-10,-6],[13,-6],[-10,8],[13,8],[0,PROM_Z[0]+.8]].forEach(([x,z])=>{c3add("iron",new T.CylinderGeometry(.08,.12,3.2,6),x,1.6,z);c3add("lamp",new T.BoxGeometry(.45,.45,.45),x,3.3,z);});
