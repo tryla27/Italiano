@@ -518,8 +518,15 @@ function rLocale(){
       :`<p class="loc-hint">Ein Finger dreht den Raum, zwei Finger zoomen. Tippe ein Möbelstück an und zieh es an seinen Platz.</p>`}
       <button class="loc-home" data-act="lhome" aria-label="Ganzen Raum zeigen" title="Ganzen Raum zeigen">⤢</button>
     </div><div class="win3d"></div>
+    ${locOpenHTML()}
     ${stored.length?`<div class="loc-store"><b>Il magazzino</b><small>Lager · antippen zum Aufstellen</small><div class="chips">${stored.map(i=>`<button class="chip${i.rare?" rare":""}" data-act="lput" data-k="${esc(i.key)}">${i.ic} ${esc(i.it)}</button>`).join("")}</div></div>`:""}`;
   loc3dMount($("#loc3d"));
+}
+// Im eigenen Restaurant: Gäste empfangen (neuer Spieltag) oder den laufenden Tag fortsetzen
+function locOpenHTML(){
+  if(!S.setupDone)return "";
+  const run=G&&!G.summary&&!G.trip;
+  return `<button class="big loc-open" data-act="lopen">${run?"Avanti!":"Apriamo!"}<small>${run?`Weiterspielen · ${G.phase==="market"?"Markt":guestLabel(" von ")}`:`Gäste empfangen · Tag ${S.day}`}</small></button>`;
 }
 // Kleines Bild vom Restaurant für Startseite und Shop (einmal gerendert, bis sich etwas ändert)
 function locThumbHTML(){return L3.thumb&&L3.thumbSig===locSig()?`<img src="${L3.thumb}" alt="">`:`<span class="locph">🍕</span>`;}

@@ -319,20 +319,23 @@ await page.locator('[data-act="cserve"]').click();
 check(await page.evaluate(() => curStep().done && curStep().wrong === 0), "Richtig zubereiteter Kaffee wird nicht angenommen");
 await page.evaluate(() => { G = null; screen = "home"; S.owned = []; render(); });
 
-// Gesundheitsamt: Brief am Abend davor, vier Fragen, Ergebnis in der Abrechnung
+// Gesundheitsamt: Brief am Abend davor, drei Fragen, Ergebnis in der Abrechnung
 await fresh({ coins: 100, level: 1, day: 6, setupDone: true });
 check(await page.evaluate(() => { S.inspDue = 7; G = null; startDay(); G.phase = "guest"; while (G && screen === "play") advance(); return G.summary.letter === true; }), "Brief vom Gesundheitsamt fehlt am Abend davor");
 await shot("brief-asl");
-check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 4; }), "Dottoressa Severini kommt nicht");
+check(await page.evaluate(() => { G = null; startDay(); return G.guests[0].insp && G.guests[0].name === "Dottoressa Severini" && G.guests[0].steps.length === 3; }), "Dottoressa Severini kommt nicht");
 await page.evaluate(() => render());
 await shot("ispettrice");
-check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspDue > S.day; }), "Bestandene Prüfung gibt kein Zertifikat");
-check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspDue === S.day; }), "Durchgefallen: keine Strafe oder kein Wiederbesuch am nächsten Tag");
+check(await page.evaluate(() => { const coins = S.coins; G.guests[0].steps.forEach(() => { finish(); advance(); }); const pass = G.insp && G.insp.res === "pass"; while (G && screen === "play") advance(); return pass && S.cert === 3 && G.summary.net === G.summary.net && S.inspN === 1 && S.inspDue === 0; }), "Bestandene Prüfung gibt kein Zertifikat");
+check(await page.evaluate(() => { S.inspDue = S.day; G = null; startDay(); G.guests[0].steps.forEach(st => { wrongAnswer(0); finish(); advance(); }); const fail = G.insp.res === "fail" && G.inspMoney === -20; while (G && screen === "play") advance(); return fail && S.inspN === 2 && !S.inspDue; }), "Durchgefallen: keine Strafe");
+// Höchstens zweimal im Spiel: danach plant das Spiel keine Kontrolle mehr, auch nicht auf hoher Stufe
+check(await page.evaluate(() => { S.level = 5; for (let k = 0; k < 30; k++) { G = null; startDay(); if (G.guests.some(g => g.insp)) return false; while (G && screen === "play") advance(); } return !S.inspDue && S.inspN === 2; }), "Gesundheitsamt kommt öfter als zweimal");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
 
 // Antwort antippen: die Stimme liest sie vor
 await fresh({ coins: 10, level: 0, day: 1, setupDone: true });
-await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); render(); });
+// Nicht jeder Gast begrüßt: für den Test sicher mit einer Frage mit Antworten anfangen
+await page.evaluate(() => { window.__said = []; const o = speak; speak = (t, w) => { __said.push(t); }; G = null; startDay(); if (curStep().kind !== "mc") G.guests[0].steps.unshift(mcStep(GREET[0], "Was antwortest du?", { greet: true })); render(); });
 await page.locator('#screen .opt').first().click();
 check(await page.evaluate(() => __said.includes(curStep().opts[0].t)), "Angetippte Antwort wird nicht vorgelesen");
 await page.evaluate(() => { G = null; screen = "home"; render(); });
@@ -419,7 +422,9 @@ check(await page.evaluate(() => screen === "mercato" && document.querySelectorAl
 await shot("mercato");
 await page.evaluate(() => { screen = "home"; render(); });
 await page.locator('.map [data-act="place"][data-p="pizzeria"]').click();
-check(await page.evaluate(() => screen === "play" && !G.trip), "Pizzeria auf der Karte startet keinen Spieltag");
+check(await page.evaluate(() => screen === "locale" && !G), "Pizzeria auf der Karte führt nicht ins eigene Restaurant");
+await page.locator('[data-act="lopen"]').click();
+check(await page.evaluate(() => screen === "play" && !G.trip), "„Apriamo!“ im Restaurant startet keinen Spieltag");
 // Während des Spieltags ist der Markt zu
 check(await page.evaluate(() => { goPlace("mercato"); const ok = screen !== "mercato" && /läuft noch/.test(mapMsg); mapMsg = ""; return ok; }), "Markt öffnet mitten im Spieltag");
 

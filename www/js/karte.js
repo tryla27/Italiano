@@ -71,7 +71,7 @@ function goPlace(id){
   const p=PLACES.find(q=>q.id===id); if(!p)return;
   if(id==="mercato")return mkGo();
   if(!placeOpen(p)){mapMsg=p.locked?"Capri erreichst du später mit dem eigenen Boot.":"";sfx("wrong");return render();}
-  if(id==="pizzeria"){if(G&&!G.summary&&!G.trip){mapMsg="";sfx("door");screen="play";render();autoSpeak();return;}sfx("door");return openDay();}
+  if(id==="pizzeria"){mapMsg="";sfx("door");screen="locale";return render();} // erst ins eigene Restaurant, von dort öffnen
   mapMsg=""; sfx("door");
   if(G&&!G.summary&&G.trip===id){screen="play";render();autoSpeak();return;}
   // Ein laufender Spieltag geht nicht einfach verloren, wenn man auf einen Ausflug tippt

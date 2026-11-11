@@ -89,6 +89,7 @@ function handleClick(e){
   if(a==="buy"){const i=SHOP.find(x=>x.id===t.dataset.id);if(i&&S.coins>=i.cost&&!S.owned.includes(i.id)){S.coins-=i.cost;S.owned.push(i.id);sfx("coins");if(i.up)S.level=i.up;else{furnBought(i);screen="locale";}save();}return render();}
   // 3D-Restaurant: öffnen, Name hören, drehen, einlagern, aus dem Lager aufstellen
   if(a==="locale"){screen="locale";return render();}
+  if(a==="lopen"){sfx("door");if(G&&!G.summary&&!G.trip){screen="play";render();autoSpeak();return;}return openDay();}
   if(a==="lsay"){const I=L3.byKey[L3.sel];if(I)speak(I.it);return;}
   if(a==="lrot"){locRotate();return render();}
   if(a==="lstore"){locStore();return render();}
